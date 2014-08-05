@@ -363,8 +363,9 @@ bool Jit::ReplaceJalTo(u32 dest) {
 	}
 
 	if (entry->flags & (REPFLAG_HOOKENTER | REPFLAG_HOOKEXIT | REPFLAG_DISABLED)) {
+      if ((entry->flags & (REPFLAG_DISABLED)) && !g_Config.bUnsafeFuncReplacements)
 		// If it's a hook, we can't replace the jal, we have to go inside the func.
-		return false;
+         return false;
 	}
 
 	// Warning - this might be bad if the code at the destination changes...
@@ -414,7 +415,7 @@ void Jit::Comp_ReplacementFunc(MIPSOpcode op)
 		return;
 	}
 
-	if (entry->flags & REPFLAG_DISABLED) {
+	if ((entry->flags & REPFLAG_DISABLED) && !g_Config.bUnsafeFuncReplacements) {
 		MIPSCompileOp(Memory::Read_Instruction(js.compilerPC, true));
 	} else if (entry->jitReplaceFunc) {
 		MIPSReplaceFunc repl = entry->jitReplaceFunc;

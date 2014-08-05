@@ -629,7 +629,7 @@ static std::map<std::string, int> replacementNameLookup;
 void Replacement_Init() {
 	for (int i = 0; i < (int)ARRAY_SIZE(entries); i++) {
 		const auto entry = &entries[i];
-		if (!entry->name || (entry->flags & REPFLAG_DISABLED) != 0)
+		if (!entry->name || ((entry->flags & REPFLAG_DISABLED) != 0 && !g_Config.bUnsafeFuncReplacements))
 			continue;
 		replacementNameLookup[entry->name] = i;
 	}

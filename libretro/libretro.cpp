@@ -143,6 +143,7 @@ void retro_set_environment(retro_environment_t cb)
       { "ppsspp_vertex_cache", "Vertex Cache (Speedhack); disabled|enabled" },
       { "ppsspp_separate_cpu_thread", "CPU Threading; disabled|enabled" },
       { "ppsspp_separate_io_thread", "IO Threading; disabled|enabled" },
+      { "ppsspp_unsafe_func_replacements", "Unsafe FuncReplacements; enabled|disabled" },
       { NULL, NULL },
    };
 
@@ -529,6 +530,20 @@ static void check_variables(void)
    else
       g_Config.bSeparateIOThread = false;
 
+
+   var.key = "ppsspp_unsafe_func_replacements";
+   var.value = NULL;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      if (!strcmp(var.value, "enabled"))
+         g_Config.bUnsafeFuncReplacements = true;
+      else if (!strcmp(var.value, "disabled"))
+         g_Config.bUnsafeFuncReplacements = false;
+   }
+   else
+         g_Config.bUnsafeFuncReplacements = true;
+
    var.key = "ppsspp_cpu_core";
    var.value = NULL;
 
@@ -770,6 +785,7 @@ void retro_run(void)
       //log_cb(RETRO_LOG_INFO, "Locked CPU Speed: %d\n", g_Config.iLockedCPUSpeed);
       //log_cb(RETRO_LOG_INFO, "Audio Latency: %d\n", g_Config.IaudioLatency);
       //log_cb(RETRO_LOG_INFO, "Rendering Mode: %d\n", g_Config.iRenderingMode);
+      log_cb(RETRO_LOG_INFO, "Function replacements: %d\n", g_Config.bFuncReplacements);
 #endif
 
    NativeRender();

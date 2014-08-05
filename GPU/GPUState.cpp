@@ -23,7 +23,7 @@
 #endif
 #include "GPU/Null/NullGpu.h"
 #include "GPU/Software/SoftGpu.h"
-#if defined(_XBOX) || defined(_WIN32)
+#if defined(_XBOX) || defined(_WIN32) && !defined(__LIBRETRO__)
 #include "GPU/Directx9/helper/global.h"
 #include "GPU/Directx9/GPU_DX9.h"
 #endif
@@ -67,7 +67,7 @@ bool GPU_Init() {
 #endif
 		break;
 	case GPU_DIRECTX9:
-#if defined(_XBOX) || defined(_WIN32)
+#if defined(_XBOX) || defined(_WIN32) && !defined(__LIBRETRO__)
 		SetGPU(new DIRECTX9_GPU());
 #endif
 		break;

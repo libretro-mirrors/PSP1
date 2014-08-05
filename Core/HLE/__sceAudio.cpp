@@ -443,7 +443,10 @@ int __AudioMix(short *outstereo, int numFrames)
 
 	if (sz1 + sz2 < (size_t)numFrames) {
 		underrun = (int)(sz1 + sz2) / 2;
+      // we always grab everything in the queue in libretro, don't spam logs about it
+#ifndef __LIBRETRO__
 		VERBOSE_LOG(SCEAUDIO, "Audio out buffer UNDERRUN at %i of %i", underrun, numFrames);
+#endif
 	}
 	return underrun >= 0 ? underrun : numFrames;
 }

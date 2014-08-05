@@ -22,6 +22,7 @@
 #include "Core/MIPS/ARM/ArmRegCache.h"
 #include "Core/MIPS/ARM/ArmRegCacheFPU.h"
 #include "Core/MIPS/ARM/ArmAsm.h"
+#include "Core/Config.h"
 
 #ifndef offsetof
 #include "stddef.h"

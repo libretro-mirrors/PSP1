@@ -556,7 +556,7 @@ static void check_variables(void)
          g_Config.bSoundSpeedHack = false;
    }
    else
-      g_Config.bSoundSpeedHack = true;
+      g_Config.bSoundSpeedHack = false;
 
 
    var.key = "ppsspp_cpu_core";

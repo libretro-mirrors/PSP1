@@ -144,6 +144,7 @@ void retro_set_environment(retro_environment_t cb)
       { "ppsspp_separate_cpu_thread", "CPU Threading; disabled|enabled" },
       { "ppsspp_separate_io_thread", "IO Threading; disabled|enabled" },
       { "ppsspp_unsafe_func_replacements", "Unsafe FuncReplacements; enabled|disabled" },
+      { "ppsspp_sound_speedhack", "Sound Speedhack; disabled|enabled" },
       { NULL, NULL },
    };
 
@@ -543,6 +544,20 @@ static void check_variables(void)
    }
    else
          g_Config.bUnsafeFuncReplacements = true;
+   
+   var.key = "ppsspp_sound_speedhack";
+   var.value = NULL;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      if (!strcmp(var.value, "enabled"))
+         g_Config.bSoundSpeedHack = true;
+      else if (!strcmp(var.value, "disabled"))
+         g_Config.bSoundSpeedHack = false;
+   }
+   else
+      g_Config.bSoundSpeedHack = true;
+
 
    var.key = "ppsspp_cpu_core";
    var.value = NULL;
@@ -747,6 +762,7 @@ void retro_run(void)
 
    if (should_reset)
       PSP_Shutdown();
+
    
    if (!_initialized || should_reset)
    {

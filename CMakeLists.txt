@@ -17,6 +17,17 @@ endif()
 # Remove soon?
 set(USE_FFMPEG ON)
 
+set(LIBRETRO ON)
+
+if(LIBRETRO)
+	add_definitions(-D__LIBRETRO__)
+	set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--version-script=${CMAKE_SOURCE_DIR}/libretro/link.T")
+	set(X11_LIBRARIES, "")
+	if(NOT WIN32)
+		add_definitions(-fPIC)
+	endif()
+endif()
+
 if(ARM OR SIMULATOR)
 	set(USING_EGL ON)
 	set(MOBILE_DEVICE ON)
@@ -125,7 +136,7 @@ if(MAEMO)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
 endif()
 
-if (NOT BLACKBERRY AND NOT ANDROID AND NOT IOS)
+if (NOT BLACKBERRY AND NOT ANDROID AND NOT IOS AND NOT LIBRETRO)
 	include(FindSDL)
 endif()
 include(FindThreads)
@@ -336,13 +347,20 @@ if(NOT USING_GLES2)
 	include_directories(${OPENGL_INCLUDE_DIR})
 
 	add_definitions(-DGLEW_STATIC)
-	add_library(glew STATIC
-		native/ext/glew/GL/glew.h
-		native/ext/glew/GL/glxew.h
-		native/ext/glew/GL/wglew.h
-		native/ext/glew/glew.c)
+	if(LIBRETRO)
+		add_library(glew STATIC
+			libretro/ext/glew/GL/glew.h
+			libretro/ext/glew/glew.c)
+		include_directories(libretro/ext/glew)
+	else()
+		add_library(glew STATIC
+			native/ext/glew/GL/glew.h
+			native/ext/glew/GL/glxew.h
+			native/ext/glew/GL/wglew.h
+			native/ext/glew/glew.c)
+		include_directories(native/ext/glew)
+	endif()
 	target_link_libraries(glew ${OPENGL_LIBRARIES})
-	include_directories(native/ext/glew)
 	set(GLEW_LIBRARIES glew)
 endif()
 
@@ -728,6 +746,8 @@ elseif(BLACKBERRY)
 	set(nativeExtra ${nativeExtra} native/base/BlackberryMain.cpp native/base/BlackberryDisplay.cpp)
 	set(nativeExtraLibs ${nativeExtraLibs} OpenAL bps screen socket EGL)
 	set(TargetBin PPSSPPBlackberry)
+elseif(LIBRETRO)
+	set(TargetBin PPSSPPLibretro)
 elseif(SDL_FOUND)
 	set(TargetBin PPSSPPSDL)
 	# Require SDL
@@ -748,34 +768,40 @@ else()
 	message(FATAL_ERROR "Could not find SDL. Failing.")
 endif()
 
-set(NativeAppSource
-	UI/NativeApp.cpp
-	UI/BackgroundAudio.cpp
-	UI/DevScreens.cpp
-	UI/EmuScreen.cpp
-	android/jni/TestRunner.cpp
-	UI/GameInfoCache.cpp
-	UI/MainScreen.cpp
-	UI/MiscScreens.cpp
-	UI/GameScreen.cpp
-	UI/GameSettingsScreen.cpp
-	UI/TiltAnalogSettingsScreen.cpp
-	UI/TiltEventProcessor.cpp
-	UI/TouchControlLayoutScreen.cpp
-	UI/TouchControlVisibilityScreen.cpp
-	UI/GamepadEmu.cpp
-	UI/UIShader.cpp
-	UI/OnScreenDisplay.cpp
-	UI/ControlMappingScreen.cpp
-	UI/Store.cpp
-	UI/CwCheatScreen.cpp
-	UI/InstallZipScreen.cpp
-	UI/ui_atlas.cpp)
-if(ANDROID)
-	if (ARM)
-		set(NativeAppSource ${NativeAppSource} android/jni/ArmEmitterTest.cpp)
+if(LIBRETRO)
+	set(NativeAppSource
+		libretro/libretro.cpp
+		libretro/libretro_osm.cpp)
+else()
+	set(NativeAppSource
+		UI/NativeApp.cpp
+		UI/BackgroundAudio.cpp
+		UI/DevScreens.cpp
+		UI/EmuScreen.cpp
+		android/jni/TestRunner.cpp
+		UI/GameInfoCache.cpp
+		UI/MainScreen.cpp
+		UI/MiscScreens.cpp
+		UI/GameScreen.cpp
+		UI/GameSettingsScreen.cpp
+		UI/TiltAnalogSettingsScreen.cpp
+		UI/TiltEventProcessor.cpp
+		UI/TouchControlLayoutScreen.cpp
+		UI/TouchControlVisibilityScreen.cpp
+		UI/GamepadEmu.cpp
+		UI/UIShader.cpp
+		UI/OnScreenDisplay.cpp
+		UI/ControlMappingScreen.cpp
+		UI/Store.cpp
+		UI/CwCheatScreen.cpp
+		UI/InstallZipScreen.cpp
+		UI/ui_atlas.cpp)
+	if(ANDROID)
+		if (ARM)
+			set(NativeAppSource ${NativeAppSource} android/jni/ArmEmitterTest.cpp)
+		endif()
+		set(nativeExtra ${nativeExtra} ${NativeAppSource})
 	endif()
-	set(nativeExtra ${nativeExtra} ${NativeAppSource})
 endif()
 
 add_library(native STATIC
@@ -1470,7 +1496,9 @@ if(UNITTEST)
 endif()
 
 if (TargetBin)
-	if (IOS OR APPLE)
+   if (LIBRETRO)
+		add_library(${TargetBin} SHARED ${NativeAppSource})
+	elseif (IOS OR APPLE)
 		set(ICON_PATH_ABS ${CMAKE_CURRENT_SOURCE_DIR}/assets/icon-114.icns)
 		set( MACOSX_BUNDLE_ICON_FILE icon-114.icns )
 		set_source_files_properties(${ICON_PATH_ABS} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")

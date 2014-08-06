@@ -185,7 +185,7 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ModuleDefinitionFile>libretro.def</ModuleDefinitionFile>
-      <AdditionalDependencies>avcodec.lib;avformat.lib;avutil.lib;swresample.lib;swscale.lib;Winmm.lib;Ws2_32.lib;opengl32.lib;dsound.lib;glu32.lib;dsound.lib;comctl32.lib;d3d9.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>avcodec.lib;avformat.lib;avutil.lib;swresample.lib;swscale.lib;Winmm.lib;Ws2_32.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>../ffmpeg/Windows/x86_64/lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>

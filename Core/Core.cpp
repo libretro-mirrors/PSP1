@@ -49,7 +49,7 @@ static bool singleStepPending = false;
 static std::set<Core_ShutdownFunc> shutdownFuncs;
 static bool windowHidden = false;
 
-#ifdef _WIN32
+#if defined (_WIN32) && !defined (__LIBRETRO__)
 InputState input_state;
 #else
 extern InputState input_state;

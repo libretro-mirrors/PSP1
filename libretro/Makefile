@@ -52,7 +52,7 @@ ifneq (,$(findstring unix,$(platform)))
    LDFLAGS += -shared -Wl,--version-script=link.T -Wl,--no-undefined
    
 	FFMPEGINCFLAGS += -I$(FFMPEGDIR)/ffmpeg/include/linux/x86_64/include
-	FFMPEGLDFLAGS += -L$(FFMPEGLIBDIR) -lavcodec -lavformat -lavutil -lswresample -lswscale
+	FFMPEGLDFLAGS += -L$(FFMPEGLIBDIR) -lavformat -lavcodec -lavutil -lswresample -lswscale
    fpic = -fPIC
 ifneq (,$(findstring gles,$(platform)))
    GLES = 1

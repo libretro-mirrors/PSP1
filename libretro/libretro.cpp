@@ -670,6 +670,7 @@ bool retro_load_game(const struct retro_game_info *game)
    g_Config.bVertexDecoderJit = (coreParam.cpuCore == CPU_JIT) ? true : false;
    g_Config.bFrameSkipUnthrottle = false;
    g_Config.bVSync = false;
+   g_Config.bEnableLogging = true;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_USERNAME, &tmp) && tmp)
       g_Config.sNickName = std::string(tmp);

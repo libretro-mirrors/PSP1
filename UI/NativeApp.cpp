@@ -426,7 +426,7 @@ void NativeInit(int argc, const char *argv[],
 	// Note to translators: do not translate this/add this to PPSSPP-lang's files.
 	// It's intended to be custom for every user.
 	// Only add it to your own personal copies of PPSSPP.
-#ifdef _WIN32
+#if defined _WIN32 && !defined(__LIBRETRO__)
 	// TODO: Could allow a setting to specify a font file to load?
 	// TODO: Make this a constant if we can sanely load the font on other systems?
 	AddFontResourceEx(L"assets/Roboto-Condensed.ttf", FR_PRIVATE, NULL);
@@ -470,7 +470,7 @@ void NativeInitGraphics() {
 
 	// memset(&ui_theme, 0, sizeof(ui_theme));
 	// New style theme
-#ifdef _WIN32
+#if defined _WIN32 && !defined(__LIBRETRO__)
 	ui_theme.uiFont = UI::FontStyle(UBUNTU24, g_Config.sFont.c_str(), 22);
 	ui_theme.uiFontSmall = UI::FontStyle(UBUNTU24, g_Config.sFont.c_str(), 15);
 	ui_theme.uiFontSmaller = UI::FontStyle(UBUNTU24, g_Config.sFont.c_str(), 12);

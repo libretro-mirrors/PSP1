@@ -31,7 +31,7 @@
 
 #include <GL/glew.h>
 
-#  include "libretro/libretro_host.h"
+#include "libretro_host.h"
 
 /*
  * Define glewGetContext and related helper macros.

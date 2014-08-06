@@ -8,7 +8,6 @@ extern "C"
 {
 #endif
 
-extern GLuint libretro_framebuffer;
 extern retro_hw_get_proc_address_t libretro_get_proc_address;
 
 #ifdef __cplusplus

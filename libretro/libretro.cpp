@@ -15,6 +15,7 @@
 #include "file/zip_read.h"
 #include "GPU/GPUState.h"
 #include "input/input_state.h"
+#include "native/gfx_es2/fbo.h"
 #include "native/gfx_es2/gl_state.h"
 
 #include <cstring>
@@ -38,6 +39,7 @@ static retro_input_state_t input_state_cb;
 static retro_environment_t environ_cb;
 static bool _initialized;
 static PMixer *libretro_mixer;
+static FBO *libretro_framebuffer;
 
 static uint32_t screen_width, screen_height,
                 screen_pitch;
@@ -47,6 +49,9 @@ std::string System_GetProperty(SystemProperty prop) { return ""; }
 void NativeUpdate(InputState &input_state) { }
 void NativeRender()
 {
+   libretro_framebuffer = fbo_create_from_native_fbo((GLuint) hw_render.get_current_framebuffer(), libretro_framebuffer);
+   fbo_override_backbuffer(libretro_framebuffer);
+
    glstate.Restore();
 
    ReapplyGfxState();
@@ -69,7 +74,6 @@ InputState input_state;
 
 extern "C"
 {
-GLuint libretro_framebuffer;
 retro_hw_get_proc_address_t libretro_get_proc_address;
 }
 
@@ -690,7 +694,11 @@ bool retro_load_game(const struct retro_game_info *game)
 
 void retro_unload_game(void)
 {
-    PSP_Shutdown();
+   if (libretro_framebuffer)
+      fbo_destroy(libretro_framebuffer);
+   libretro_framebuffer = NULL;
+
+   PSP_Shutdown();
 }
 
 static bool should_reset = false;
@@ -756,7 +764,6 @@ void retro_run(void)
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
       check_variables();
 
-   libretro_framebuffer = (GLuint) hw_render.get_current_framebuffer();
    input_poll_cb();
 
    retro_input();

@@ -29,6 +29,10 @@
 #define PATH_MAX MAX_PATH
 #endif
 
+#ifdef BAKE_IN_GIT
+const char *PPSSPP_GIT_VERSION = "v0.9.9-git";
+#endif
+
 static CoreParameter coreParam;
 static struct retro_hw_render_callback hw_render;
 static retro_log_printf_t log_cb;

@@ -546,7 +546,6 @@ CXXFILES += $(NATIVEDIR)/file/chunk_file.cpp \
 				$(COREDIR)/Util/BlockAllocator.cpp \
 				$(COREDIR)/Util/PPGeDraw.cpp \
 				$(COREDIR)/Util/ppge_atlas.cpp \
-				$(ROOTDIR)/git-version.cpp \
 				$(LIBRETRODIR)/libretro.cpp \
 				$(LIBRETRODIR)/libretro_osm.cpp \
 				$(COMMONDIR)/CPUDetect.cpp
@@ -599,7 +598,7 @@ else
 GLFLAGS += -DHAVE_OPENGL
 endif
 
-COREFLAGS += -D__LIBRETRO__ -DINLINE="inline" -DPPSSPP -DUSE_FFMPEG
+COREFLAGS += -D__LIBRETRO__ -DINLINE="inline" -DPPSSPP -DUSE_FFMPEG -DBAKE_IN_GIT
 
 ifeq ($(DEBUG), 1)
    CPUOPTS += -O0 -g

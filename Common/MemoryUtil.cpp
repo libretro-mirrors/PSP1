@@ -132,7 +132,7 @@ void* AllocateExecutableMemory(size_t size, bool exec)
 	void* ptr = (void*)g_next_ptr;
 	g_next_ptr += size;
 #else
-	char *map_hint = 0;
+	static char *map_hint = 0;
 #if defined(_M_X64)
 	// Try to request one that is close to our memory location if we're in high memory.
 	// We use a dummy global variable to give us a good location to start from.

@@ -44,14 +44,15 @@ EXTDIR         = ../ext
 TARGET_NAME := ppsspp
 CC_AS ?= $(CC)
 FFMPEGINCFLAGS :=
-FFMPEGLIBDIR := $(FFMPEGDIR)/linux/x86_64/lib
+FFMPEGLIBDIR :=
 FFMPEGLIBS :=
 
 ifneq (,$(findstring unix,$(platform)))
    TARGET := $(TARGET_NAME)_libretro.so
    LDFLAGS += -shared -Wl,--version-script=link.T -Wl,--no-undefined
    
-	FFMPEGINCFLAGS += -I$(FFMPEGDIR)/ffmpeg/include/linux/x86_64/include
+	FFMPEGINCFLAGS += -I$(FFMPEGDIR)/linux/x86_64/include
+	FFMPEGLIBDIR :=   $(FFMPEGDIR)/linux/x86_64/lib
 	FFMPEGLDFLAGS += -L$(FFMPEGLIBDIR) -lavformat -lavcodec -lavutil -lswresample -lswscale
    fpic = -fPIC
 ifneq (,$(findstring gles,$(platform)))
@@ -90,6 +91,9 @@ ifneq ($(shell sw_vers | grep -c 10.9),1)
 endif
    fpic = -fPIC
 
+	FFMPEGINCFLAGS += -I$(FFMPEGDIR)/macosx/x86_64/include
+	FFMPEGLIBDIR := $(FFMPEGDIR)/macosx/x86_64/lib
+	FFMPEGLDFLAGS += -L$(FFMPEGLIBDIR) -lavformat -lavcodec -lavutil -lswresample -lswscale
    PLATCFLAGS += -D__MACOSX__
    GL_LIB := -framework OpenGL
    PLATFORM_EXT := unix

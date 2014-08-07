@@ -93,7 +93,7 @@ endif
 
 	FFMPEGINCFLAGS += -I$(FFMPEGDIR)/macosx/x86_64/include
 	FFMPEGLIBDIR := $(FFMPEGDIR)/macosx/x86_64/lib
-	FFMPEGLDFLAGS += -L$(FFMPEGLIBDIR) -lavformat -lavcodec -lavutil -lswresample -lswscale
+	FFMPEGLDFLAGS += -liconv -L$(FFMPEGLIBDIR) -lavformat -lavcodec -lavutil -lswresample -lswscale
    PLATCFLAGS += -D__MACOSX__
    GL_LIB := -framework OpenGL
    PLATFORM_EXT := unix

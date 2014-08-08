@@ -355,14 +355,17 @@ ifdef WITH_DYNAREC
 						$(COREDIR)/MIPS/ARM/ArmCompFPU.cpp \
 						$(COREDIR)/MIPS/ARM/ArmCompLoadStore.cpp \
 						$(COREDIR)/MIPS/ARM/ArmCompVFPU.cpp \
-						$(COREDIR)/MIPS/ARM/ArmCompVFPUNEON.cpp \
 						$(COREDIR)/MIPS/ARM/ArmCompReplace.cpp \
 						$(COREDIR)/MIPS/ARM/ArmJit.cpp \
 						$(COREDIR)/MIPS/ARM/ArmRegCache.cpp \
 						$(COREDIR)/MIPS/ARM/ArmRegCacheFPU.cpp \
 						$(GPUDIR)/GLES/VertexDecoderArm.cpp \
-						$(GPUDIR)/Common/TextureDecoderNEON.cpp
-		ASMFILES   += $(NATIVEDIR)/math/fast/fast_matrix_neon.S
+		ifeq ($(HAVE_NEON),1)
+			CXXFILES   += \
+							  $(COREDIR)/MIPS/ARM/ArmCompVFPUNEON.cpp \
+							  $(GPUDIR)/Common/TextureDecoderNEON.cpp
+			ASMFILES   += $(NATIVEDIR)/math/fast/fast_matrix_neon.S
+		endif
    else
 	   CPUFLAGS := -msse -msse2 -D_M_X64
 	   CXXFILES += $(COMMONDIR)/x64Analyzer.cpp \

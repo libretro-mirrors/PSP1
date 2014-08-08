@@ -359,7 +359,7 @@ ifdef WITH_DYNAREC
 						$(COREDIR)/MIPS/ARM/ArmJit.cpp \
 						$(COREDIR)/MIPS/ARM/ArmRegCache.cpp \
 						$(COREDIR)/MIPS/ARM/ArmRegCacheFPU.cpp \
-						$(GPUDIR)/GLES/VertexDecoderArm.cpp \
+						$(GPUDIR)/GLES/VertexDecoderArm.cpp
 		ifeq ($(HAVE_NEON),1)
 			CXXFILES   += \
 							  $(COREDIR)/MIPS/ARM/ArmCompVFPUNEON.cpp \

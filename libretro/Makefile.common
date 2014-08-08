@@ -14,7 +14,6 @@ INCFLAGS := \
 	-I$(EXTDIR)/xbrz \
 	-I$(EXTDIR)/xxhash
 
-CXXFILES += $(COMMONDIR)/ABI.cpp
 CFILES   += $(LIBRETRODIR)/ext/glew/glew.c
 CXXFILES += $(NATIVEDIR)/ext/rg_etc1/rg_etc1.cpp
 CXXFILES += $(EXTDIR)/snappy/snappy-c.cpp
@@ -25,7 +24,6 @@ CXXFILES += $(NATIVEDIR)/ext/vjson/json.cpp \
 CFILES   += $(NATIVEDIR)/ext/libpng17/pngerror.c
 CFILES    += $(NATIVEDIR)/ext/libpng17/pngget.c \
 				 $(NATIVEDIR)/ext/libzip/zip_name_locate.c
-CXXFILES += $(COMMONDIR)/Thunk.cpp
 CFILES   += $(NATIVEDIR)/ext/libpng17/pngmem.c \
 				$(NATIVEDIR)/ext/libpng17/pngpread.c 
 CXXFILES += $(NATIVEDIR)/ext/cityhash/city.cpp \
@@ -339,8 +337,7 @@ CXXFILES += $(NATIVEDIR)/file/chunk_file.cpp \
 				$(COREDIR)/Util/PPGeDraw.cpp \
 				$(COREDIR)/Util/ppge_atlas.cpp \
 				$(LIBRETRODIR)/libretro.cpp \
-				$(LIBRETRODIR)/libretro_osm.cpp \
-				$(COMMONDIR)/CPUDetect.cpp
+				$(LIBRETRODIR)/libretro_osm.cpp
 
 
 ### DYNAREC ###
@@ -349,11 +346,30 @@ ifdef WITH_DYNAREC
    ifeq ($(WITH_DYNAREC), arm)
       DYNAFLAGS += -DNEW_DYNAREC=3
 		CXXFILES += $(COMMONDIR)/ArmEmitter.cpp \
-						$(EXTDIR)/disarm.cpp
+						$(EXTDIR)/disarm.cpp \
+						$(COMMONDIR)/ArmCPUDetect.cpp \
+						$(COMMONDIR)/ArmThunk.cpp \
+						$(COREDIR)/MIPS/ARM/ArmAsm.cpp \
+						$(COREDIR)/MIPS/ARM/ArmCompALU.cpp \
+						$(COREDIR)/MIPS/ARM/ArmCompBranch.cpp \
+						$(COREDIR)/MIPS/ARM/ArmCompFPU.cpp \
+						$(COREDIR)/MIPS/ARM/ArmCompLoadStore.cpp \
+						$(COREDIR)/MIPS/ARM/ArmCompVFPU.cpp \
+						$(COREDIR)/MIPS/ARM/ArmCompVFPUNEON.cpp \
+						$(COREDIR)/MIPS/ARM/ArmCompReplace.cpp \
+						$(COREDIR)/MIPS/ARM/ArmJit.cpp \
+						$(COREDIR)/MIPS/ARM/ArmRegCache.cpp \
+						$(COREDIR)/MIPS/ARM/ArmRegCacheFPU.cpp \
+						$(GPUDIR)/GLES/VertexDecoderArm.cpp \
+						$(GPUDIR)/Common/TextureDecoderNEON.cpp
+		ASMFILES   += $(NATIVEDIR)/math/fast/fast_matrix_neon.S
    else
 	   CPUFLAGS := -msse -msse2 -D_M_X64
 	   CXXFILES += $(COMMONDIR)/x64Analyzer.cpp \
 						$(COMMONDIR)/x64Emitter.cpp \
+						$(COMMONDIR)/ABI.cpp \
+						$(COMMONDIR)/Thunk.cpp \
+						$(COMMONDIR)/CPUDetect.cpp \
 						$(COREDIR)/MIPS/x86/CompReplace.cpp \
 						$(COREDIR)/MIPS/x86/CompBranch.cpp \
 						$(COREDIR)/MIPS/x86/Asm.cpp \

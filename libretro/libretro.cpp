@@ -629,8 +629,6 @@ bool retro_load_game(const struct retro_game_info *game)
       retro_base_dir = std::string(_dir);
    }
 
-   check_variables();
-
 #ifdef _WIN32
    retro_base_dir  += "\\";
 #else
@@ -693,6 +691,7 @@ bool retro_load_game(const struct retro_game_info *game)
    coreParam.unthrottle = true;
 
    _initialized = false;
+   check_variables();
    return true;
 }
 

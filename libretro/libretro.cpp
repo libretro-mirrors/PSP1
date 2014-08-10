@@ -14,6 +14,7 @@
 #include "file/vfs.h"
 #include "file/zip_read.h"
 #include "GPU/GPUState.h"
+#include "GPU/GPUInterface.h"
 #include "input/input_state.h"
 #include "native/gfx_es2/fbo.h"
 #include "native/gfx_es2/gl_state.h"
@@ -44,6 +45,7 @@ static retro_environment_t environ_cb;
 static bool _initialized;
 static PMixer *libretro_mixer;
 static FBO *libretro_framebuffer;
+static bool gpu_refresh = false;
 
 static uint32_t screen_width, screen_height,
                 screen_pitch;
@@ -147,9 +149,10 @@ void retro_set_environment(retro_environment_t cb)
       // if extension is available at runtime
       { "ppsspp_texture_anisotropic_filtering", "Anisotropic Filtering; off" },
 #else
-      { "ppsspp_texture_anisotropic_filtering", "Anisotropic Filtering; off|1x|2x|3x|4x|5x" },
+      { "ppsspp_texture_anisotropic_filtering", "Anisotropic Filtering; off|1x|2x|4x|8x|16x" },
 #endif
       { "ppsspp_texture_deposterize", "Texture Deposterize; disabled|enabled" }, 
+	  { "ppsspp_internal_shader", "Internal Shader; off|fxaa|crt|natural|vignette|grayscale|bloom|sharpen|inverse|scanlines|cartoon|4xHQ|aa-color|upscale" },
       { "ppsspp_gpu_hardware_transform", "GPU Hardware T&L; enabled|disabled" },
       { "ppsspp_vertex_cache", "Vertex Cache (Speedhack); disabled|enabled" },
       { "ppsspp_prescale_uv", "Prescale UV (Speedhack); disabled|enabled" },
@@ -218,7 +221,10 @@ void retro_init(void)
    }
 }
 
-void retro_deinit(void) {}
+void retro_deinit(void) {
+	//fix me: force core to exit here since it's getting locked when texture scaling is enabled
+	//exit(EXIT_FAILURE);
+}
 
 void retro_set_controller_port_device(unsigned port, unsigned device)
 {
@@ -310,6 +316,8 @@ static void check_variables(void)
          coreParam.renderWidth = 480;
          coreParam.renderHeight = 272;
       }
+
+	  gpu_refresh = true;
    }
    else
    {
@@ -326,6 +334,8 @@ static void check_variables(void)
       {
          screen_width = 480;
          screen_height = 272;
+
+		 gpu_refresh = true;
       }
    }
    else
@@ -333,6 +343,7 @@ static void check_variables(void)
       screen_width = 480;
       screen_height = 272;
    }
+
    coreParam.pixelWidth = screen_width;
    coreParam.pixelHeight = screen_height;
 
@@ -460,6 +471,8 @@ static void check_variables(void)
          g_Config.iTexScalingType = 2;
       else if (!strcmp(var.value, "hybrid_bicubic"))
          g_Config.iTexScalingType = 3;
+	  
+	  gpu_refresh = true;
    }
    else
       g_Config.iTexScalingType = 0;
@@ -471,9 +484,51 @@ static void check_variables(void)
    {
       int new_val = atoi(var.value);
       g_Config.iTexScalingLevel = new_val;
+
+	  gpu_refresh = true;
    }
    else
       g_Config.iTexScalingLevel = 1;
+
+
+   var.key = "ppsspp_internal_shader";
+   var.value = NULL;
+   //off|fxaa|crt|natural|vignette|grayscale|bloom|sharpen|inverse|scanlines|cartoon|4xHQ|aa-color|upscale
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+	   if (!strcmp(var.value, "off"))
+		   g_Config.sPostShaderName = "";
+	   else if (!strcmp(var.value, "crt"))
+		   g_Config.sPostShaderName = "CRT";
+	   else if (!strcmp(var.value, "natural"))
+		   g_Config.sPostShaderName = "Natural";
+	   else if (!strcmp(var.value, "vignette"))
+		   g_Config.sPostShaderName = "Vignette";
+	   else if (!strcmp(var.value, "grayscale"))
+		   g_Config.sPostShaderName = "Grayscale";
+	   else if (!strcmp(var.value, "bloom"))
+		   g_Config.sPostShaderName = "Bloom";
+	   else if (!strcmp(var.value, "sharpen"))
+		   g_Config.sPostShaderName = "Sharpen";
+	   else if (!strcmp(var.value, "inverse"))
+		   g_Config.sPostShaderName = "InverseColors";
+	   else if (!strcmp(var.value, "scanlines"))
+		   g_Config.sPostShaderName = "Scanlines";
+	   else if (!strcmp(var.value, "cartoon"))
+		   g_Config.sPostShaderName = "Cartoon";
+	   else if (!strcmp(var.value, "4xHQ"))
+		   g_Config.sPostShaderName = "4xHqGLSL";
+	   else if (!strcmp(var.value, "AAColor"))
+		   g_Config.sPostShaderName = "AA Color";
+	   else if (!strcmp(var.value, "upscale"))
+		   g_Config.sPostShaderName = "UpscaleSpline36";
+	   else
+		   g_Config.sPostShaderName = "";
+  
+	   gpu_refresh = true;
+   }
+   else
+	   g_Config.sPostShaderName = "Off";
 
    var.key = "ppsspp_texture_anisotropic_filtering";
    var.value = NULL;
@@ -492,11 +547,11 @@ static void check_variables(void)
          g_Config.iAnisotropyLevel = 1;
       else if (!strcmp(var.value, "2x"))
          g_Config.iAnisotropyLevel = 2;
-      else if (!strcmp(var.value, "3x"))
-         g_Config.iAnisotropyLevel = 3;
       else if (!strcmp(var.value, "4x"))
+         g_Config.iAnisotropyLevel = 3;
+      else if (!strcmp(var.value, "8x"))
          g_Config.iAnisotropyLevel = 4;
-      else if (!strcmp(var.value, "5x"))
+      else if (!strcmp(var.value, "16x"))
          g_Config.iAnisotropyLevel = 5;
 #endif
    }
@@ -512,6 +567,8 @@ static void check_variables(void)
          g_Config.bTexDeposterize = true;
       else if (!strcmp(var.value, "disabled"))
          g_Config.bTexDeposterize = false;
+
+	  gpu_refresh = true;
    }
    else
       g_Config.bTexDeposterize = false;
@@ -645,8 +702,6 @@ bool retro_load_game(const struct retro_game_info *game)
       retro_base_dir = std::string(_dir);
    }
 
-   check_variables();
-
 #ifdef _WIN32
    retro_base_dir  += "\\";
 #else
@@ -709,6 +764,7 @@ bool retro_load_game(const struct retro_game_info *game)
    coreParam.unthrottle = true;
 
    _initialized = false;
+   check_variables();
    return true;
 }
 
@@ -778,12 +834,23 @@ static void retro_input(void)
    __CtrlSetAnalogY(analogY);
 }
 
+
 void retro_run(void)
 {
    bool updated = false;
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
-      check_variables();
+   {
+	   check_variables();
+	   if (gpu_refresh)
+	   {
+		   gpu->ClearCacheNextFrame();
+		   gpu->Resized();		   	   
+		   gpu_refresh = false;
+	   }
+   }
 
+   log_cb(RETRO_LOG_DEBUG, "iw*ih: %d x %d ow*oh: %d x %d\n", coreParam.renderWidth, coreParam.renderHeight, coreParam.pixelWidth, coreParam.pixelHeight); 
+  
    input_poll_cb();
 
    retro_input();

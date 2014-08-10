@@ -53,7 +53,6 @@ std::string System_GetProperty(SystemProperty prop) { return ""; }
 void NativeUpdate(InputState &input_state) { }
 void NativeRender()
 {
-   libretro_framebuffer = fbo_create_from_native_fbo((GLuint) hw_render.get_current_framebuffer(), libretro_framebuffer);
    fbo_override_backbuffer(libretro_framebuffer);
 
    glstate.Restore();
@@ -72,6 +71,10 @@ void NativeRender()
    if (coreState == CORE_NEXTFRAME)
       // set back to running for the next frame
       coreState = CORE_RUNNING;
+
+   bool useBufferedRendering = g_Config.iRenderingMode != 0;
+   if (useBufferedRendering)
+      fbo_unbind();
 }
 void NativeResized() { }
 InputState input_state;
@@ -149,6 +152,7 @@ void retro_set_environment(retro_environment_t cb)
       { "ppsspp_texture_deposterize", "Texture Deposterize; disabled|enabled" }, 
       { "ppsspp_gpu_hardware_transform", "GPU Hardware T&L; enabled|disabled" },
       { "ppsspp_vertex_cache", "Vertex Cache (Speedhack); disabled|enabled" },
+      { "ppsspp_prescale_uv", "Prescale UV (Speedhack); disabled|enabled" },
       { "ppsspp_separate_cpu_thread", "CPU Threading; disabled|enabled" },
       { "ppsspp_separate_io_thread", "IO Threading; disabled|enabled" },
       { "ppsspp_unsafe_func_replacements", "Unsafe FuncReplacements; enabled|disabled" },
@@ -614,6 +618,18 @@ static void check_variables(void)
    else
       g_Config.iRenderingMode = 1;
 
+   var.key = "ppsspp_prescale_uv";
+   var.value = NULL;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      if (!strcmp(var.value, "enabled"))
+         g_Config.bPrescaleUV = 1;
+      else if (!strcmp(var.value, "disabled"))
+         g_Config.bPrescaleUV = 0;
+   }
+   else
+      g_Config.bPrescaleUV = 0;
 }
 
 
@@ -805,6 +821,7 @@ void retro_run(void)
 
       host->BootDone();
       _initialized = true;
+      libretro_framebuffer = fbo_create_from_native_fbo((GLuint) hw_render.get_current_framebuffer(), libretro_framebuffer);
    }
 
 #if 0

@@ -53,7 +53,6 @@ std::string System_GetProperty(SystemProperty prop) { return ""; }
 void NativeUpdate(InputState &input_state) { }
 void NativeRender()
 {
-   libretro_framebuffer = fbo_create_from_native_fbo((GLuint) hw_render.get_current_framebuffer(), libretro_framebuffer);
    fbo_override_backbuffer(libretro_framebuffer);
 
    glstate.Restore();
@@ -72,6 +71,10 @@ void NativeRender()
    if (coreState == CORE_NEXTFRAME)
       // set back to running for the next frame
       coreState = CORE_RUNNING;
+
+   bool useBufferedRendering = g_Config.iRenderingMode != 0;
+   if (useBufferedRendering)
+      fbo_unbind();
 }
 void NativeResized() { }
 InputState input_state;
@@ -806,6 +809,7 @@ void retro_run(void)
 
       host->BootDone();
       _initialized = true;
+      libretro_framebuffer = fbo_create_from_native_fbo((GLuint) hw_render.get_current_framebuffer(), libretro_framebuffer);
    }
 
 #if 0

@@ -152,6 +152,7 @@ void retro_set_environment(retro_environment_t cb)
       { "ppsspp_texture_deposterize", "Texture Deposterize; disabled|enabled" }, 
       { "ppsspp_gpu_hardware_transform", "GPU Hardware T&L; enabled|disabled" },
       { "ppsspp_vertex_cache", "Vertex Cache (Speedhack); disabled|enabled" },
+      { "ppsspp_prescale_uv", "Prescale UV (Speedhack); disabled|enabled" },
       { "ppsspp_separate_cpu_thread", "CPU Threading; disabled|enabled" },
       { "ppsspp_separate_io_thread", "IO Threading; disabled|enabled" },
       { "ppsspp_unsafe_func_replacements", "Unsafe FuncReplacements; enabled|disabled" },
@@ -617,6 +618,18 @@ static void check_variables(void)
    else
       g_Config.iRenderingMode = 1;
 
+   var.key = "ppsspp_prescale_uv";
+   var.value = NULL;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      if (!strcmp(var.value, "enabled"))
+         g_Config.bPrescaleUV = 1;
+      else if (!strcmp(var.value, "disabled"))
+         g_Config.bPrescaleUV = 0;
+   }
+   else
+      g_Config.bPrescaleUV = 0;
 }
 
 

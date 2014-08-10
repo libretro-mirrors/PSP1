@@ -7,6 +7,7 @@
 #include "Core/HLE/sceCtrl.h"
 #include "Core/HLE/sceDisplay.h"
 #include "Core/HLE/sceUtility.h"
+#include "Core/HLE/__sceAudio.h"
 #include "Core/Host.h"
 #include "Core/SaveState.h"
 #include "Core/System.h"
@@ -67,7 +68,7 @@ void NativeRender()
 
    // Run until CORE_NEXTFRAME
    while (coreState == CORE_RUNNING)
-      PSP_RunLoopFor(blockTicks);
+      PSP_RunLoopUntil(CoreTiming::GetTicks() + blockTicks);
 
    // Hopefully coreState is now CORE_NEXTFRAME
    if (coreState == CORE_NEXTFRAME)
@@ -86,16 +87,6 @@ extern "C"
 retro_hw_get_proc_address_t libretro_get_proc_address;
 }
 
-static void update_sound(void)
-{
-   if (libretro_mixer && audio_batch_cb)
-   {
-      int16_t audio[8192 * 2];
-      int samples = libretro_mixer->Mix(audio, 8192);
-      audio_batch_cb(audio, samples);
-   }
-}
-
 class LibretroHost : public Host {
 public:
 	LibretroHost() {
@@ -112,7 +103,15 @@ public:
 	virtual void ShutdownGL() {}
 
 	virtual void InitSound(PMixer *mixer) { libretro_mixer = mixer; };
-	virtual void UpdateSound() { update_sound(); }
+	virtual void UpdateSound()
+   {
+      if (libretro_mixer && audio_batch_cb)
+      {
+         int16_t audio[8192 * 2];
+         int samples = __AudioMix(audio, 8192);
+         audio_batch_cb(audio, samples);
+      }
+   }
 	virtual void ShutdownSound() { libretro_mixer = nullptr; };
 
 	virtual void BootDone() {}
@@ -902,8 +901,6 @@ void retro_run(void)
 
    NativeRender();
 
-
-   update_sound();
    video_cb(RETRO_HW_FRAME_BUFFER_VALID, screen_width, screen_height, 0);
 }
 

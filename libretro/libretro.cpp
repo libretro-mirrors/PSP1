@@ -847,8 +847,6 @@ void retro_run(void)
 		   gpu_refresh = false;
 	   }
    }
-
-   log_cb(RETRO_LOG_DEBUG, "iw*ih: %d x %d ow*oh: %d x %d\n", coreParam.renderWidth, coreParam.renderHeight, coreParam.pixelWidth, coreParam.pixelHeight); 
   
    input_poll_cb();
 

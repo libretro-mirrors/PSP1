@@ -133,6 +133,7 @@ void retro_set_environment(retro_environment_t cb)
       { "ppsspp_auto_frameskip", "Auto Frameskip; disabled|enabled" },
       { "ppsspp_frameskip", "Frameskip; 0|1|2|3|4|5|6|7|8|9" },
       { "ppsspp_framerate_limit", "Framerate limit; 0|15|20|30|45|50|60" },
+      { "ppsspp_force_max_fps", "Force Max FPS; disabled|enabled" },
       { "ppsspp_internal_resolution",
          "Internal Resolution ; 480x272|960x544|1440x816|1920x1088|2400x1360|2880x1632|3360x1904|3840x2176|4320x2448|4800x2720" 
       },
@@ -685,6 +686,19 @@ static void check_variables(void)
    }
    else
       g_Config.iRenderingMode = 1;
+
+   var.key = "ppsspp_force_max_fps";
+   var.value = NULL;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      if (!strcmp(var.value, "disabled"))
+         g_Config.iForceMaxEmulatedFPS = 0;
+      else if (!strcmp(var.value, "enabled"))
+         g_Config.iForceMaxEmulatedFPS = 60;
+   }
+   else
+      g_Config.iForceMaxEmulatedFPS = 0;
 
    var.key = "ppsspp_prescale_uv";
    var.value = NULL;

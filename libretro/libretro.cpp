@@ -132,11 +132,12 @@ void retro_set_environment(retro_environment_t cb)
       { "ppsspp_rendering_mode", "Rendering Mode; buffered|nonbuffered|read_framebuffers_to_memory_cpu|read_framebuffers_to_memory_gpu" },
       { "ppsspp_auto_frameskip", "Auto Frameskip; disabled|enabled" },
       { "ppsspp_frameskip", "Frameskip; 0|1|2|3|4|5|6|7|8|9" },
+      { "ppsspp_framerate_limit", "Framerate limit; 0|15|20|30|45|50|60" },
       { "ppsspp_internal_resolution",
          "Internal Resolution ; 480x272|960x544|1440x816|1920x1088|2400x1360|2880x1632|3360x1904|3840x2176|4320x2448|4800x2720" 
       },
       { "ppsspp_output_resolution",
-         "Output Resolution ; 480x272|960x544|1440x816|1920x1088|2400x1360|2880x1632|3360x1904|3840x2176|4320x2448|4800x2720" 
+         "Output Resolution (restart); 480x272|960x544|1440x816|1920x1088|2400x1360|2880x1632|3360x1904|3840x2176|4320x2448|4800x2720" 
       },
       { "ppsspp_button_preference", "Confirmation Button; cross|circle" },
       { "ppsspp_fast_memory", "Fast Memory (Speedhack); disabled|enabled" },
@@ -408,6 +409,17 @@ static void check_variables(void)
    }
    else
       g_Config.iFrameSkip = 0;
+
+   var.key = "ppsspp_framerate_limit";
+   var.value = NULL;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      int new_val = atoi(var.value);
+      g_Config.iFpsLimit = new_val;
+   }
+   else
+      g_Config.iFpsLimit = 0;
 
    var.key = "ppsspp_language";
    var.value = NULL;
@@ -842,6 +854,40 @@ void retro_run(void)
 	   check_variables();
 	   if (gpu_refresh)
 	   {
+         switch (coreParam.renderWidth)
+         {
+            case 480:
+               g_Config.iInternalResolution = 1;
+               break;
+            case 960:
+               g_Config.iInternalResolution = 2;
+               break;
+            case 1440:
+               g_Config.iInternalResolution = 3;
+               break;
+            case 1920:
+               g_Config.iInternalResolution = 4;
+               break;
+            case 2400:
+               g_Config.iInternalResolution = 5;
+               break;
+            case 2880:
+               g_Config.iInternalResolution = 6;
+               break;
+            case 3360:
+               g_Config.iInternalResolution = 7;
+               break;
+            case 3840:
+               g_Config.iInternalResolution = 8;
+               break;
+            case 4320:
+               g_Config.iInternalResolution = 9;
+               break;
+            case 4800:
+               g_Config.iInternalResolution = 10;
+               break;
+
+         }
 		   gpu->ClearCacheNextFrame();
 		   gpu->Resized();		   	   
 		   gpu_refresh = false;

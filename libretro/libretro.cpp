@@ -1011,7 +1011,7 @@ void retro_run(void)
 
    NativeRender();
 
-   video_cb(RETRO_HW_FRAME_BUFFER_VALID, screen_width, screen_height, 0);
+   video_cb(((gstate_c.skipDrawReason & SKIPDRAW_SKIPFRAME) == 0) ? NULL : RETRO_HW_FRAME_BUFFER_VALID, screen_width, screen_height, 0);
 }
 
 void retro_unload_game(void)

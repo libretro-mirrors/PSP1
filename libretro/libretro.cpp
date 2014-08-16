@@ -835,8 +835,6 @@ static void retro_input(void)
    int i;
    float analogX, analogY;
 
-
-
    static unsigned map[] = {
       RETRO_DEVICE_ID_JOYPAD_UP,
       RETRO_DEVICE_ID_JOYPAD_DOWN,
@@ -852,6 +850,9 @@ static void retro_input(void)
       RETRO_DEVICE_ID_JOYPAD_SELECT,
    };
 
+	if (coreState == CORE_POWERDOWN)
+      return;
+
    for (i = 0; i < 12; i++)
    {
       if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, map[i]))
@@ -860,41 +861,47 @@ static void retro_input(void)
          __CtrlButtonUp  (buttonMap[i]);
    }
 
-   analogX = (float) input_state_cb(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_X) / 32768.0f;
-   analogY = (float) input_state_cb(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_Y) / -32768.0f;
+   analogX = (float)input_state_cb(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_X) / 32768.0f;
+   analogY = (float)input_state_cb(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_Y) / -32768.0f;
    __CtrlSetAnalogX(analogX);
    __CtrlSetAnalogY(analogY);
 }
 
 
-
-
 static std::thread *input_thread = NULL;
 static bool running = false;
+
+static inline void rarch_sleep(unsigned msec)
+{
+#if defined(__CELLOS_LV2__) && !defined(__PSL1GHT__)
+   sys_timer_usleep(1000 * msec);
+#elif defined(PSP)
+   sceKernelDelayThread(1000 * msec);
+#elif defined(_WIN32)
+   Sleep(msec);
+#elif defined(XENON)
+   udelay(1000 * msec);
+#elif defined(GEKKO) || defined(__PSL1GHT__) || defined(__QNX__)
+   usleep(1000 * msec);
+#else
+   struct timespec tv = {0};
+   tv.tv_sec = msec / 1000;
+   tv.tv_nsec = (msec % 1000) * 1000000;
+   nanosleep(&tv, NULL);
+#endif
+}
 
 void retro_input_poll_thread()
 {
 	setCurrentThreadName("Input Thread");
-	while (threaded_input)
-	{
-#ifdef _WIN32
-		__try
-		{
-			input_poll_cb();
-			retro_input();
-		}
-		__except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH)
-		{
-			log_cb(RETRO_LOG_DEBUG, "ACCESS VIOLATION when polling input\n");
-		}
-#else
-		//TODO: add exception handling code for other platforms
-		input_poll_cb();
-		retro_input();
-#endif		
-		Sleep(4);
-		
-	}
+
+	while (threaded_input && coreState != CORE_POWERDOWN)
+   {
+      if (input_poll_cb)
+         input_poll_cb();
+      retro_input();
+      rarch_sleep(4);
+   }
 }
 
 void retro_run(void)
@@ -955,7 +962,8 @@ void retro_run(void)
    }
    else
    {
-	   input_poll_cb();
+      if (input_poll_cb)
+         input_poll_cb();
 	   retro_input();
    }
 

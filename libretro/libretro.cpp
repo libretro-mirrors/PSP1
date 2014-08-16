@@ -19,6 +19,8 @@
 #include "input/input_state.h"
 #include "native/gfx_es2/fbo.h"
 #include "native/gfx_es2/gl_state.h"
+#include "native/thread/thread.h"
+#include "native/thread/threadutil.h"
 
 #include <cstring>
 
@@ -47,6 +49,7 @@ static bool _initialized;
 static PMixer *libretro_mixer;
 static FBO *libretro_framebuffer;
 static bool gpu_refresh = false;
+static bool threaded_input = false;
 
 static uint32_t screen_width, screen_height,
                 screen_pitch;
@@ -161,6 +164,7 @@ void retro_set_environment(retro_environment_t cb)
       { "ppsspp_separate_io_thread", "IO Threading; disabled|enabled" },
       { "ppsspp_unsafe_func_replacements", "Unsafe FuncReplacements; enabled|disabled" },
       { "ppsspp_sound_speedhack", "Sound Speedhack; disabled|enabled" },
+	  { "ppsspp_threaded_input", "Threaded input hack; disabled|enabled" },
       { NULL, NULL },
    };
 
@@ -223,8 +227,6 @@ void retro_init(void)
 }
 
 void retro_deinit(void) {
-	//fix me: force core to exit here since it's getting locked when texture scaling is enabled
-	//exit(EXIT_FAILURE);
 }
 
 void retro_set_controller_port_device(unsigned port, unsigned device)
@@ -712,6 +714,18 @@ static void check_variables(void)
    }
    else
       g_Config.bPrescaleUV = 0;
+   var.key = "ppsspp_threaded_input";
+   var.value = NULL;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+	   if (!strcmp(var.value, "enabled"))
+		   threaded_input = true;
+	   else if (!strcmp(var.value, "disabled"))
+		   threaded_input = false;
+   }
+   else
+	   threaded_input = false;
 }
 
 
@@ -793,15 +807,6 @@ bool retro_load_game(const struct retro_game_info *game)
    return true;
 }
 
-void retro_unload_game(void)
-{
-   if (libretro_framebuffer)
-      fbo_destroy(libretro_framebuffer);
-   libretro_framebuffer = NULL;
-
-   PSP_Shutdown();
-}
-
 static bool should_reset = false;
 
 void retro_reset(void)
@@ -829,6 +834,8 @@ static void retro_input(void)
 {
    int i;
    float analogX, analogY;
+
+
 
    static unsigned map[] = {
       RETRO_DEVICE_ID_JOYPAD_UP,
@@ -859,6 +866,36 @@ static void retro_input(void)
    __CtrlSetAnalogY(analogY);
 }
 
+
+
+
+static std::thread *input_thread = NULL;
+static bool running = false;
+
+void retro_input_poll_thread()
+{
+	setCurrentThreadName("Input Thread");
+	while (threaded_input)
+	{
+#ifdef _WIN32
+		__try
+		{
+			input_poll_cb();
+			retro_input();
+		}
+		__except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH)
+		{
+			log_cb(RETRO_LOG_DEBUG, "ACCESS VIOLATION when polling input\n");
+		}
+#else
+		//TODO: add exception handling code for other platforms
+		input_poll_cb();
+		retro_input();
+#endif		
+		Sleep(4);
+		
+	}
+}
 
 void retro_run(void)
 {
@@ -908,9 +945,19 @@ void retro_run(void)
 	   }
    }
   
-   input_poll_cb();
-
-   retro_input();
+   if (threaded_input)
+   {
+	   if (!input_thread)
+	   {
+		   input_thread = new std::thread(&retro_input_poll_thread);
+		   input_thread->detach();
+	   }
+   }
+   else
+   {
+	   input_poll_cb();
+	   retro_input();
+   }
 
    if (should_reset)
       PSP_Shutdown();
@@ -962,6 +1009,21 @@ void retro_run(void)
    video_cb(RETRO_HW_FRAME_BUFFER_VALID, screen_width, screen_height, 0);
 }
 
+void retro_unload_game(void)
+{
+	threaded_input = false;
+	if (libretro_framebuffer)
+		fbo_destroy(libretro_framebuffer);
+	libretro_framebuffer = NULL;
+
+	PSP_Shutdown();
+
+	if (input_thread)
+	{
+		delete input_thread;
+		input_thread = NULL;
+	}
+}
 unsigned retro_get_region(void)
 {
    return RETRO_REGION_NTSC;

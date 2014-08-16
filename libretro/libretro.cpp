@@ -955,10 +955,7 @@ void retro_run(void)
    if (threaded_input)
    {
 	   if (!input_thread)
-	   {
 		   input_thread = new std::thread(&retro_input_poll_thread);
-		   input_thread->detach();
-	   }
    }
    else
    {
@@ -1019,7 +1016,9 @@ void retro_run(void)
 
 void retro_unload_game(void)
 {
-	threaded_input = false;
+   if (threaded_input)
+      threaded_input = false;
+
 	if (libretro_framebuffer)
 		fbo_destroy(libretro_framebuffer);
 	libretro_framebuffer = NULL;
@@ -1028,6 +1027,7 @@ void retro_unload_game(void)
 
 	if (input_thread)
 	{
+      input_thread->join();
 		delete input_thread;
 		input_thread = NULL;
 	}

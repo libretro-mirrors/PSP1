@@ -145,6 +145,7 @@ void retro_set_environment(retro_environment_t cb)
       },
       { "ppsspp_button_preference", "Confirmation Button; cross|circle" },
       { "ppsspp_fast_memory", "Fast Memory (Speedhack); disabled|enabled" },
+      { "ppsspp_block_transfer_gpu", "Block Transfer GPU; enabled|disabled" },
       { "ppsspp_texture_scaling_level", "Texture Scaling Level; 0|1|2|3|4|5" },
       { "ppsspp_texture_scaling_type", "Texture Scaling Type; xbrz|hybrid|bicubic|hybrid_bicubic" },
 #ifdef USING_GLES2
@@ -471,6 +472,19 @@ static void check_variables(void)
    }
    else
          g_Config.bAutoFrameSkip = false;
+
+   var.key = "ppsspp_block_transfer_gpu";
+   var.value = NULL;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      if (!strcmp(var.value, "enabled"))
+         g_Config.bBlockTransferGPU = true;
+      else if (!strcmp(var.value, "disabled"))
+         g_Config.bBlockTransferGPU = false;
+   }
+   else
+      g_Config.bBlockTransferGPU = true;
 
    var.key = "ppsspp_texture_scaling_type";
    var.value = NULL;

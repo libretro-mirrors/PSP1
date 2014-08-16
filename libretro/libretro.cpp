@@ -895,7 +895,7 @@ void retro_input_poll_thread()
 {
 	setCurrentThreadName("Input Thread");
 
-	while (threaded_input && coreState != CORE_POWERDOWN)
+	while (threaded_input)
    {
       if (input_poll_cb)
          input_poll_cb();

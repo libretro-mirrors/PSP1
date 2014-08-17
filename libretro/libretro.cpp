@@ -799,7 +799,6 @@ bool retro_load_game(const struct retro_game_info *game)
    g_Config.flash0Directory       = retro_base_dir + "flash0/";
    g_Config.internalDataDirectory = retro_base_dir;
    g_Config.iShowFPSCounter = false;
-   g_Config.bVertexDecoderJit = (coreParam.cpuCore == CPU_JIT) ? true : false;
    g_Config.bFrameSkipUnthrottle = false;
    g_Config.bVSync = false;
    g_Config.bEnableLogging = true;
@@ -818,6 +817,9 @@ bool retro_load_game(const struct retro_game_info *game)
 
    _initialized = false;
    check_variables();
+
+   g_Config.bVertexDecoderJit = (coreParam.cpuCore == CPU_JIT) ? true : false;
+
    return true;
 }
 

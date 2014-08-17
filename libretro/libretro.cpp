@@ -144,7 +144,7 @@ void retro_set_environment(retro_environment_t cb)
          "Output Resolution (restart); 480x272|960x544|1440x816|1920x1088|2400x1360|2880x1632|3360x1904|3840x2176|4320x2448|4800x2720" 
       },
       { "ppsspp_button_preference", "Confirmation Button; cross|circle" },
-      { "ppsspp_fast_memory", "Fast Memory (Speedhack); disabled|enabled" },
+      { "ppsspp_fast_memory", "Fast Memory (Speedhack); enabled|disabled" },
       { "ppsspp_block_transfer_gpu", "Block Transfer GPU; enabled|disabled" },
       { "ppsspp_texture_scaling_level", "Texture Scaling Level; 1|2|3|4|5|0" },
       { "ppsspp_texture_scaling_type", "Texture Scaling Type; xbrz|hybrid|bicubic|hybrid_bicubic" },
@@ -375,7 +375,7 @@ static void check_variables(void)
          g_Config.bFastMemory = false;
    }
    else
-         g_Config.bFastMemory = false;
+         g_Config.bFastMemory = true;
 
    var.key = "ppsspp_vertex_cache";
    var.value = NULL;

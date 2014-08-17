@@ -146,7 +146,7 @@ void retro_set_environment(retro_environment_t cb)
       { "ppsspp_button_preference", "Confirmation Button; cross|circle" },
       { "ppsspp_fast_memory", "Fast Memory (Speedhack); disabled|enabled" },
       { "ppsspp_block_transfer_gpu", "Block Transfer GPU; enabled|disabled" },
-      { "ppsspp_texture_scaling_level", "Texture Scaling Level; 0|1|2|3|4|5" },
+      { "ppsspp_texture_scaling_level", "Texture Scaling Level; 1|2|3|4|5|0" },
       { "ppsspp_texture_scaling_type", "Texture Scaling Type; xbrz|hybrid|bicubic|hybrid_bicubic" },
 #ifdef USING_GLES2
       // TODO/FIXME - several GLES2-only devices actually have 
@@ -159,7 +159,7 @@ void retro_set_environment(retro_environment_t cb)
       { "ppsspp_texture_deposterize", "Texture Deposterize; disabled|enabled" }, 
 	  { "ppsspp_internal_shader", "Internal Shader; off|fxaa|crt|natural|vignette|grayscale|bloom|sharpen|inverse|scanlines|cartoon|4xHQ|aa-color|upscale" },
       { "ppsspp_gpu_hardware_transform", "GPU Hardware T&L; enabled|disabled" },
-      { "ppsspp_vertex_cache", "Vertex Cache (Speedhack); disabled|enabled" },
+      { "ppsspp_vertex_cache", "Vertex Cache (Speedhack); enabled|disabled" },
       { "ppsspp_prescale_uv", "Prescale UV (Speedhack); disabled|enabled" },
       { "ppsspp_separate_cpu_thread", "CPU Threading; disabled|enabled" },
       { "ppsspp_separate_io_thread", "IO Threading; disabled|enabled" },
@@ -388,7 +388,7 @@ static void check_variables(void)
          g_Config.bVertexCache = false;
    }
    else
-         g_Config.bVertexCache = false;
+         g_Config.bVertexCache = true;
 
    var.key = "ppsspp_gpu_hardware_transform";
    var.value = NULL;

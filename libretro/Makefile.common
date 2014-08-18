@@ -302,6 +302,7 @@ CXXFILES += $(NATIVEDIR)/file/chunk_file.cpp \
 				$(COREDIR)/HLE/scePspNpDrm_user.cpp \
 				$(COREDIR)/HLE/sceNp.cpp \
 				$(COREDIR)/HLE/scePauth.cpp \
+				$(COREDIR)/HLE/sceUsbGps.cpp \
 				$(COREDIR)/HW/SimpleAudioDec.cpp \
 				$(COREDIR)/HW/AsyncIOManager.cpp \
 				$(COREDIR)/HW/MediaEngine.cpp \

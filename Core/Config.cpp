@@ -541,6 +541,7 @@ static ConfigSetting controlSettings[] = {
 	ConfigSetting("AnalogStickX", &g_Config.fAnalogStickX, -1.0f),
 	ConfigSetting("AnalogStickY", &g_Config.fAnalogStickY, -1.0f),
 	ConfigSetting("AnalogStickScale", &g_Config.fAnalogStickScale, defaultControlScale),
+	ConfigSetting("AnalogLimiterDeadzone", &g_Config.fAnalogLimiterDeadzone, 0.6f),
 
 	ConfigSetting(false),
 };
@@ -780,7 +781,15 @@ void Config::Load(const char *iniFileName, const char *controllerIniFilename) {
 		fAnalogStickY /= screen_height;
 	}
 	
-	if (dismissedVersion == upgradeVersion) {
+	const char *gitVer = PPSSPP_GIT_VERSION;
+	Version installed(gitVer);
+	Version upgrade(upgradeVersion);
+	const bool versionsValid = installed.IsValid() && upgrade.IsValid();
+
+	// Do this regardless of iRunCount to prevent a silly bug where one might use an older
+	// build of PPSSPP, receive an upgrade notice, then start a newer version, and still receive the upgrade notice,
+	// even if said newer version is >= the upgrade found online.
+	if ((dismissedVersion == upgradeVersion) || (versionsValid && (installed >= upgrade))) {
 		upgradeMessage = "";
 	}
 

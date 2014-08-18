@@ -233,6 +233,12 @@ public:
 		}
 	}
 
+	bool HasReachedEnd() {
+		bool videoPtsEnd = (s64)psmfPlayerAvcAu.pts >= (s64)totalDurationTimestamp - VIDEO_FRAME_DURATION_TS;
+		// If we're out of video data and have no audio, it's over even if the pts isn't there yet.
+		return videoPtsEnd || (mediaengine->IsVideoEnd() && mediaengine->IsNoAudioData());
+	}
+
 	u32 filehandle;
 	u32 fileoffset;
 	int readSize;
@@ -1082,10 +1088,14 @@ int _PsmfPlayerFillRingbuffer(PsmfPlayer *psmfplayer) {
 		if (addMax <= 0)
 			break;
 	} while (size > 0);
+
 	if (psmfplayer->readSize >= psmfplayer->streamSize && videoLoopStatus == PSMF_PLAYER_CONFIG_LOOP) {
-		// start looping
-		psmfplayer->readSize = 0;
-		pspFileSystem.SeekFile(psmfplayer->filehandle, psmfplayer->fileoffset, FILEMOVE_BEGIN);
+		// Start looping, but only if we've finished.
+		if (psmfplayer->HasReachedEnd()) {
+			psmfplayer->readSize = 0;
+			pspFileSystem.SeekFile(psmfplayer->filehandle, psmfplayer->fileoffset, FILEMOVE_BEGIN);
+			psmfplayer->mediaengine->reloadStream();
+		}
 	}
 	return 0;
 }
@@ -1413,8 +1423,7 @@ int scePsmfPlayerUpdate(u32 psmfPlayer)
 	}
 
 	DEBUG_LOG(ME, "scePsmfPlayerUpdate(%08x)", psmfPlayer);
-	bool videoPtsEnd = (s64)psmfplayer->psmfPlayerAvcAu.pts >= (s64)psmfplayer->totalDurationTimestamp - VIDEO_FRAME_DURATION_TS;
-	if (videoPtsEnd || (psmfplayer->mediaengine->IsVideoEnd() && psmfplayer->mediaengine->IsNoAudioData())) {
+	if (psmfplayer->HasReachedEnd()) {
 		if (videoLoopStatus == PSMF_PLAYER_CONFIG_NO_LOOP && psmfplayer->videoStep >= 1) {
 			if (psmfplayer->status != PSMF_PLAYER_STATUS_PLAYING_FINISHED) {
 				psmfplayer->ScheduleFinish(psmfPlayer);
@@ -1464,7 +1473,7 @@ int scePsmfPlayerGetVideoData(u32 psmfPlayer, u32 videoDataAddr)
 		return ERROR_PSMFPLAYER_INVALID_STATUS;
 	}
 	auto videoData = PSPPointer<PsmfVideoData>::Create(videoDataAddr);
-	if (!videoData.IsValid() || !Memory::IsValidAddress(videoData->displaybuf)) {
+	if (!videoData.IsValid()) {
 		ERROR_LOG(ME, "scePsmfPlayerGetVideoData(%08x, %08x): invalid data pointer", psmfPlayer, videoDataAddr);
 		// Technically just crashes if videoData is not valid.
 		return SCE_KERNEL_ERROR_INVALID_POINTER;
@@ -1495,6 +1504,12 @@ int scePsmfPlayerGetVideoData(u32 psmfPlayer, u32 videoDataAddr)
 	}
 	// In case we change warm up later, save a high value in savestates - video started.
 	psmfplayer->warmUp = 10000;
+
+	// It's fine to pass an invalid value here if it's still warming up, but after that it's not okay.
+	if (!Memory::IsValidAddress(videoData->displaybuf)) {
+		ERROR_LOG(ME, "scePsmfPlayerGetVideoData(%08x, %08x): invalid buffer pointer %08x", psmfPlayer, videoDataAddr, videoData->displaybuf);
+		return SCE_KERNEL_ERROR_INVALID_POINTER;
+	}
 
 	bool doVideoStep = true;
 	if (psmfplayer->playMode == PSMF_PLAYER_MODE_PAUSE) {

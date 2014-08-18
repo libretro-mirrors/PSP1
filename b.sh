@@ -12,7 +12,7 @@ fi
 
 # Check Symbian NDK
 if [ ! -z "$EPOCROOT" ]; then
-	QMAKE_ARGS="-spec symbian-sbsv2"
+	QMAKE_ARGS="-spec symbian-sbsv2 ${QMAKE_ARGS}"
 	CMAKE=0
 	PACKAGE=1
 	MAKE_OPT="release-gcce ${MAKE_OPT}"

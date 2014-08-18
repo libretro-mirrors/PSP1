@@ -73,14 +73,16 @@ static inline s16 adjustvolume(s16 sample, int vol) {
 #endif
 }
 
-void hleAudioUpdate(u64 userdata, int cyclesLate) {
+void hleAudioUpdate(u64 userdata, int cyclesLate)
+{
 	// Schedule the next cycle first.  __AudioUpdate() may consume cycles.
 	CoreTiming::ScheduleEvent(audioIntervalCycles - cyclesLate, eventAudioUpdate, 0);
 
 	__AudioUpdate();
 }
 
-void hleHostAudioUpdate(u64 userdata, int cyclesLate) {
+void hleHostAudioUpdate(u64 userdata, int cyclesLate)
+{
 	CoreTiming::ScheduleEvent(audioHostIntervalCycles - cyclesLate, eventHostAudioUpdate, 0);
 
 	// Not all hosts need this call to poke their audio system once in a while, but those that don't
@@ -88,7 +90,8 @@ void hleHostAudioUpdate(u64 userdata, int cyclesLate) {
 	host->UpdateSound();
 }
 
-void __AudioCPUMHzChange() {
+void __AudioCPUMHzChange()
+{
 	audioIntervalCycles = (int)(usToCycles(1000000ULL) * hwBlockSize / hwSampleRate);
 	audioHostIntervalCycles = (int)(usToCycles(1000000ULL) * hostAttemptBlockSize / hwSampleRate);
 }
@@ -136,7 +139,8 @@ void __AudioInit() {
 	CoreTiming::RegisterMHzChangeCallback(&__AudioCPUMHzChange);
 }
 
-void __AudioDoState(PointerWrap &p) {
+void __AudioDoState(PointerWrap &p)
+{
 	auto s = p.Section("sceAudio", 1);
 	if (!s)
 		return;
@@ -163,7 +167,8 @@ void __AudioDoState(PointerWrap &p) {
 	__AudioCPUMHzChange();
 }
 
-void __AudioShutdown() {
+void __AudioShutdown()
+{
 	delete [] mixBuffer;
 
 	mixBuffer = 0;
@@ -171,102 +176,114 @@ void __AudioShutdown() {
 		chans[i].clear();
 }
 
-u32 __AudioEnqueue(AudioChannel &chan, int chanNum, bool blocking) {
+u32 __AudioEnqueue(AudioChannel &chan, int chanNum, bool blocking)
+{
 	u32 ret = chan.sampleCount;
 
-	if (chan.sampleAddress == 0) {
-		// For some reason, multichannel audio lies and returns the sample count here.
-		if (chanNum == PSP_AUDIO_CHANNEL_SRC || chanNum == PSP_AUDIO_CHANNEL_OUTPUT2) {
-			ret = 0;
-		}
-	}
+	if (chan.sampleAddress == 0)
+   {
+      // For some reason, multichannel audio lies and returns the sample count here.
+      if (chanNum == PSP_AUDIO_CHANNEL_SRC || chanNum == PSP_AUDIO_CHANNEL_OUTPUT2)
+         ret = 0;
+   }
 
 	// If there's anything on the queue at all, it should be busy, but we try to be a bit lax.
 	//if (chan.sampleQueue.size() > chan.sampleCount * 2 * chanQueueMaxSizeFactor || chan.sampleAddress == 0) {
-	if (chan.sampleQueue.size() > 0) {
-		if (blocking) {
-			// TODO: Regular multichannel audio seems to block for 64 samples less?  Or enqueue the first 64 sync?
-			int blockSamples = (int)chan.sampleQueue.size() / 2 / chanQueueMinSizeFactor;
+	if (chan.sampleQueue.size() > 0)
+   {
+      if (blocking)
+      {
+         // TODO: Regular multichannel audio seems to block for 64 samples less?  Or enqueue the first 64 sync?
+         int blockSamples = (int)chan.sampleQueue.size() / 2 / chanQueueMinSizeFactor;
 
-			if (__KernelIsDispatchEnabled()) {
-				AudioChannelWaitInfo waitInfo = {__KernelGetCurThread(), blockSamples};
-				chan.waitingThreads.push_back(waitInfo);
-				// Also remember the value to return in the waitValue.
-				__KernelWaitCurThread(WAITTYPE_AUDIOCHANNEL, (SceUID)chanNum + 1, ret, 0, false, "blocking audio");
-			} else {
-				// TODO: Maybe we shouldn't take this audio after all?
-				ret = SCE_KERNEL_ERROR_CAN_NOT_WAIT;
-			}
+         if (__KernelIsDispatchEnabled())
+         {
+            AudioChannelWaitInfo waitInfo = {__KernelGetCurThread(), blockSamples};
+            chan.waitingThreads.push_back(waitInfo);
+            // Also remember the value to return in the waitValue.
+            __KernelWaitCurThread(WAITTYPE_AUDIOCHANNEL, (SceUID)chanNum + 1, ret, 0, false, "blocking audio");
+         }
+         else // TODO: Maybe we shouldn't take this audio after all?
+            ret = SCE_KERNEL_ERROR_CAN_NOT_WAIT;
 
-			// Fall through to the sample queueing, don't want to lose the samples even though
-			// we're getting full.  The PSP would enqueue after blocking.
-		} else {
-			// Non-blocking doesn't even enqueue, but it's not commonly used.
-			return SCE_ERROR_AUDIO_CHANNEL_BUSY;
-		}
-	}
+         // Fall through to the sample queueing, don't want to lose the samples even though
+         // we're getting full.  The PSP would enqueue after blocking.
+      }
+      else // Non-blocking doesn't even enqueue, but it's not commonly used.
+         return SCE_ERROR_AUDIO_CHANNEL_BUSY;
+   }
 
-	if (chan.sampleAddress == 0) {
+	if (chan.sampleAddress == 0)
 		return ret;
-	}
 
 	int leftVol = chan.leftVolume;
 	int rightVol = chan.rightVolume;
 
-	if (leftVol == (1 << 15) && rightVol == (1 << 15) && chan.format == PSP_AUDIO_FORMAT_STEREO && IS_LITTLE_ENDIAN) {
-		// TODO: Add mono->stereo conversion to this path.
+	if (leftVol == (1 << 15) && rightVol == (1 << 15) && chan.format == PSP_AUDIO_FORMAT_STEREO && IS_LITTLE_ENDIAN)
+   {
+      // TODO: Add mono->stereo conversion to this path.
 
-		// Good news: the volume doesn't affect the values at all.
-		// We can just do a direct memory copy.
-		const u32 totalSamples = chan.sampleCount * (chan.format == PSP_AUDIO_FORMAT_STEREO ? 2 : 1);
-		s16 *buf1 = 0, *buf2 = 0;
-		size_t sz1, sz2;
-		chan.sampleQueue.pushPointers(totalSamples, &buf1, &sz1, &buf2, &sz2);
+      // Good news: the volume doesn't affect the values at all.
+      // We can just do a direct memory copy.
+      const u32 totalSamples = chan.sampleCount * (chan.format == PSP_AUDIO_FORMAT_STEREO ? 2 : 1);
+      s16 *buf1 = 0, *buf2 = 0;
+      size_t sz1, sz2;
+      chan.sampleQueue.pushPointers(totalSamples, &buf1, &sz1, &buf2, &sz2);
 
-		if (Memory::IsValidAddress(chan.sampleAddress + (totalSamples - 1) * sizeof(s16_le))) {
-			Memory::Memcpy(buf1, chan.sampleAddress, (u32)sz1 * sizeof(s16));
-			if (buf2)
-				Memory::Memcpy(buf2, chan.sampleAddress + (u32)sz1 * sizeof(s16), (u32)sz2 * sizeof(s16));
-		}
-	} else {
-		// Remember that maximum volume allowed is 0xFFFFF so left shift is no issue.
-		// This way we can optimally shift by 16.
-		leftVol <<=1;
-		rightVol <<=1;
+      if (Memory::IsValidAddress(chan.sampleAddress + (totalSamples - 1) * sizeof(s16_le)))
+      {
+         Memory::Memcpy(buf1, chan.sampleAddress, (u32)sz1 * sizeof(s16));
+         if (buf2)
+            Memory::Memcpy(buf2, chan.sampleAddress + (u32)sz1 * sizeof(s16), (u32)sz2 * sizeof(s16));
+      }
+   }
+   else
+   {
+      // Remember that maximum volume allowed is 0xFFFFF so left shift is no issue.
+      // This way we can optimally shift by 16.
+      leftVol <<=1;
+      rightVol <<=1;
 
-		if (chan.format == PSP_AUDIO_FORMAT_STEREO) {
-			const u32 totalSamples = chan.sampleCount * 2;
+      if (chan.format == PSP_AUDIO_FORMAT_STEREO)
+      {
+         const u32 totalSamples = chan.sampleCount * 2;
 
-			s16_le *sampleData = (s16_le *) Memory::GetPointer(chan.sampleAddress);
+         s16_le *sampleData = (s16_le *) Memory::GetPointer(chan.sampleAddress);
 
-			// Walking a pointer for speed.  But let's make sure we wouldn't trip on an invalid ptr.
-			if (Memory::IsValidAddress(chan.sampleAddress + (totalSamples - 1) * sizeof(s16_le))) {
-				s16 *buf1 = 0, *buf2 = 0;
-				size_t sz1, sz2;
-				chan.sampleQueue.pushPointers(totalSamples, &buf1, &sz1, &buf2, &sz2);
+         // Walking a pointer for speed.  But let's make sure we wouldn't trip on an invalid ptr.
+         if (Memory::IsValidAddress(chan.sampleAddress + (totalSamples - 1) * sizeof(s16_le))) {
+            s16 *buf1 = 0, *buf2 = 0;
+            size_t sz1, sz2;
+            chan.sampleQueue.pushPointers(totalSamples, &buf1, &sz1, &buf2, &sz2);
 
-				// TODO: SSE/NEON (VQDMULH) implementations
-				for (u32 i = 0; i < sz1; i += 2) {
-					buf1[i] = adjustvolume(sampleData[i], leftVol);
-					buf1[i + 1] = adjustvolume(sampleData[i + 1], rightVol);
-				}
-				if (buf2) {
-					sampleData += sz1;
-					for (u32 i = 0; i < sz2; i += 2) {
-						buf2[i] = adjustvolume(sampleData[i], leftVol);
-						buf2[i + 1] = adjustvolume(sampleData[i + 1], rightVol);
-					}
-				}
-			}
-		} else if (chan.format == PSP_AUDIO_FORMAT_MONO) {
-			for (u32 i = 0; i < chan.sampleCount; i++) {
-				// Expand to stereo
-				s16 sample = (s16)Memory::Read_U16(chan.sampleAddress + 2 * i);
-				chan.sampleQueue.push(adjustvolume(sample, leftVol));
-				chan.sampleQueue.push(adjustvolume(sample, rightVol));
-			}
-		}
-	}
+            // TODO: SSE/NEON (VQDMULH) implementations
+            for (u32 i = 0; i < sz1; i += 2)
+            {
+               buf1[i] = adjustvolume(sampleData[i], leftVol);
+               buf1[i + 1] = adjustvolume(sampleData[i + 1], rightVol);
+            }
+            if (buf2)
+            {
+               sampleData += sz1;
+               for (u32 i = 0; i < sz2; i += 2)
+               {
+                  buf2[i] = adjustvolume(sampleData[i], leftVol);
+                  buf2[i + 1] = adjustvolume(sampleData[i + 1], rightVol);
+               }
+            }
+         }
+      }
+      else if (chan.format == PSP_AUDIO_FORMAT_MONO)
+      {
+         for (u32 i = 0; i < chan.sampleCount; i++)
+         {
+            // Expand to stereo
+            s16 sample = (s16)Memory::Read_U16(chan.sampleAddress + 2 * i);
+            chan.sampleQueue.push(adjustvolume(sample, leftVol));
+            chan.sampleQueue.push(adjustvolume(sample, rightVol));
+         }
+      }
+   }
 	return ret;
 }
 
@@ -309,97 +326,93 @@ void __AudioSetOutputFrequency(int freq) {
 // Mix samples from the various audio channels into a single sample queue.
 // This single sample queue is where __AudioMix should read from. If the sample queue is full, we should
 // just sleep the main emulator thread a little.
-void __AudioUpdate() {
+void __AudioUpdate()
+{
 	// Audio throttle doesn't really work on the PSP since the mixing intervals are so closely tied
 	// to the CPU. Much better to throttle the frame rate on frame display and just throw away audio
 	// if the buffer somehow gets full.
 	bool firstChannel = true;
 
-	for (u32 i = 0; i < PSP_AUDIO_CHANNEL_MAX + 1; i++)	{
-		if (!chans[i].reserved)
-			continue;
+	for (u32 i = 0; i < PSP_AUDIO_CHANNEL_MAX + 1; i++)
+   {
+      if (!chans[i].reserved)
+         continue;
 
-		__AudioWakeThreads(chans[i], 0, hwBlockSize);
+      __AudioWakeThreads(chans[i], 0, hwBlockSize);
 
-		if (!chans[i].sampleQueue.size()) {
-			continue;
-		}
+      if (!chans[i].sampleQueue.size())
+         continue;
 
-		const s16 *buf1 = 0, *buf2 = 0;
-		size_t sz1, sz2;
+      const s16 *buf1 = 0, *buf2 = 0;
+      size_t sz1, sz2;
 
-		chans[i].sampleQueue.popPointers(hwBlockSize * 2, &buf1, &sz1, &buf2, &sz2);
+      chans[i].sampleQueue.popPointers(hwBlockSize * 2, &buf1, &sz1, &buf2, &sz2);
 
-		if (firstChannel) {
-			for (size_t s = 0; s < sz1; s++)
-				mixBuffer[s] = buf1[s];
-			if (buf2) {
-				for (size_t s = 0; s < sz2; s++)
-					mixBuffer[s + sz1] = buf2[s];
-			}
-			firstChannel = false;
-		} else {
-			for (size_t s = 0; s < sz1; s++)
-				mixBuffer[s] += buf1[s];
-			if (buf2) {
-				for (size_t s = 0; s < sz2; s++)
-					mixBuffer[s + sz1] += buf2[s];
-			}
-		}
-	}
+      if (firstChannel)
+      {
+         for (size_t s = 0; s < sz1; s++)
+            mixBuffer[s] = buf1[s];
+         if (buf2) {
+            for (size_t s = 0; s < sz2; s++)
+               mixBuffer[s + sz1] = buf2[s];
+         }
+         firstChannel = false;
+      }
+      else
+      {
+         for (size_t s = 0; s < sz1; s++)
+            mixBuffer[s] += buf1[s];
+         if (buf2)
+         {
+            for (size_t s = 0; s < sz2; s++)
+               mixBuffer[s + sz1] += buf2[s];
+         }
+      }
+   }
 
-	if (firstChannel) {
+	if (firstChannel)
 		memset(mixBuffer, 0, hwBlockSize * 2 * sizeof(s32));
-	}
 
-	if (g_Config.bEnableSound) {
+	if (g_Config.bEnableSound)
+   {
+      if (outAudioQueue.room() >= hwBlockSize * 2)
+      {
+         s16 *buf1 = 0, *buf2 = 0;
+         size_t sz1, sz2;
+         outAudioQueue.pushPointers(hwBlockSize * 2, &buf1, &sz1, &buf2, &sz2);
 
-		if (outAudioQueue.room() >= hwBlockSize * 2) {
-			s16 *buf1 = 0, *buf2 = 0;
-			size_t sz1, sz2;
-			outAudioQueue.pushPointers(hwBlockSize * 2, &buf1, &sz1, &buf2, &sz2);
-			
-			for (size_t s = 0; s < sz1; s++)
-				buf1[s] = clamp_s16(mixBuffer[s]);
-			if (buf2) {
-				for (size_t s = 0; s < sz2; s++)
-					buf2[s] = clamp_s16(mixBuffer[s + sz1]);
-			}
-		} else {
-			// This happens quite a lot. There's still something slightly off
-			// about the amount of audio we produce.
-		}
-	}
+         for (size_t s = 0; s < sz1; s++)
+            buf1[s] = clamp_s16(mixBuffer[s]);
+
+         if (buf2)
+         {
+            for (size_t s = 0; s < sz2; s++)
+               buf2[s] = clamp_s16(mixBuffer[s + sz1]);
+         }
+      }
+   }
 }
 
 // numFrames is number of stereo frames.
 // This is called from *outside* the emulator thread.
 int __AudioMix(short *outstereo, int numFrames)
 {
-
-	// TODO: if mixFrequency != the actual output frequency, resample!
 	int underrun = -1;
-	s16 sampleL = 0;
-	s16 sampleR = 0;
-
 	const s16 *buf1 = 0, *buf2 = 0;
 	size_t sz1, sz2;
-	{
-		outAudioQueue.popPointers(numFrames * 2, &buf1, &sz1, &buf2, &sz2);
 
-		memcpy(outstereo, buf1, sz1 * sizeof(s16));
-		if (buf2) {
-			memcpy(outstereo + sz1, buf2, sz2 * sizeof(s16));
-		}
-	}
+   outAudioQueue.popPointers(numFrames * 2, &buf1, &sz1, &buf2, &sz2);
+
+   memcpy(outstereo, buf1, sz1 * sizeof(s16));
+   if (buf2)
+      memcpy(outstereo + sz1, buf2, sz2 * sizeof(s16));
 
 	int remains = (int)(numFrames * 2 - sz1 - sz2);
 	if (remains > 0)
 		memset(outstereo + numFrames * 2 - remains, 0, remains*sizeof(s16));
 
-	if (sz1 + sz2 < (size_t)numFrames) {
-		underrun = (int)(sz1 + sz2) / 2;
-      // we always grab everything in the queue in libretro, don't spam logs about it
-	}
+	if (sz1 + sz2 < (size_t)numFrames)
+		underrun = (int)(sz1 + sz2) / 2; // we always grab everything in the queue in libretro, don't spam logs about it
+
 	return underrun >= 0 ? underrun : numFrames;
 }

@@ -393,7 +393,6 @@ void __AudioUpdate()
 // This is called from *outside* the emulator thread.
 int __AudioMix(short *outstereo, int numFrames)
 {
-	int underrun = -1;
 	const s16 *buf1 = 0, *buf2 = 0;
 	size_t sz1, sz2;
 

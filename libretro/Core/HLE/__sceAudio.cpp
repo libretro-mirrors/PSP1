@@ -331,7 +331,7 @@ void __AudioUpdate()
 	// Audio throttle doesn't really work on the PSP since the mixing intervals are so closely tied
 	// to the CPU. Much better to throttle the frame rate on frame display and just throw away audio
 	// if the buffer somehow gets full.
-	bool firstChannel = true;
+   memset(mixBuffer, 0, hwBlockSize * 2 * sizeof(s32));
 
 	for (u32 i = 0; i < PSP_AUDIO_CHANNEL_MAX + 1; i++)
    {
@@ -348,30 +348,14 @@ void __AudioUpdate()
 
       chans[i].sampleQueue.popPointers(hwBlockSize * 2, &buf1, &sz1, &buf2, &sz2);
 
-      if (firstChannel)
+      for (size_t s = 0; s < sz1; s++)
+         mixBuffer[s] += buf1[s];
+      if (buf2)
       {
-         for (size_t s = 0; s < sz1; s++)
-            mixBuffer[s] = buf1[s];
-         if (buf2) {
-            for (size_t s = 0; s < sz2; s++)
-               mixBuffer[s + sz1] = buf2[s];
-         }
-         firstChannel = false;
-      }
-      else
-      {
-         for (size_t s = 0; s < sz1; s++)
-            mixBuffer[s] += buf1[s];
-         if (buf2)
-         {
-            for (size_t s = 0; s < sz2; s++)
-               mixBuffer[s + sz1] += buf2[s];
-         }
+         for (size_t s = 0; s < sz2; s++)
+            mixBuffer[s + sz1] += buf2[s];
       }
    }
-
-	if (firstChannel)
-		memset(mixBuffer, 0, hwBlockSize * 2 * sizeof(s32));
 
    {
       s16 *buf1 = 0, *buf2 = 0;

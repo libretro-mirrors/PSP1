@@ -245,6 +245,10 @@ void GameSettingsScreen::CreateViews() {
 	PopupMultiChoice *texFilter = graphicsSettings->Add(new PopupMultiChoice(&g_Config.iTexFiltering, gs->T("Texture Filter"), texFilters, 1, ARRAY_SIZE(texFilters), gs, screenManager()));
 	texFilter->SetDisabledPtr(&g_Config.bSoftwareRendering);
 
+	static const char *bufFilters[] = { "Linear", "Nearest", };
+	PopupMultiChoice *bufFilter = graphicsSettings->Add(new PopupMultiChoice(&g_Config.iBufFilter, gs->T("Screen Scaling Filter"), bufFilters, 1, ARRAY_SIZE(bufFilters), gs, screenManager()));
+	bufFilter->SetDisabledPtr(&g_Config.bSoftwareRendering);
+
 	graphicsSettings->Add(new ItemHeader(gs->T("Hack Settings", "Hack Settings (these WILL cause glitches)")));
 	graphicsSettings->Add(new CheckBox(&g_Config.bTimerHack, gs->T("Timer Hack")));
 	CheckBox *alphaHack = graphicsSettings->Add(new CheckBox(&g_Config.bDisableAlphaTest, gs->T("Disable Alpha Test (PowerVR speedup)")));
@@ -292,14 +296,9 @@ void GameSettingsScreen::CreateViews() {
 
 	audioSettings->Add(new ItemHeader(ms->T("Audio")));
 
-	PopupSliderChoice *sfxVol = audioSettings->Add(new PopupSliderChoice(&g_Config.iSFXVolume, 0, MAX_CONFIG_VOLUME, a->T("SFX volume"), screenManager()));
-	sfxVol->SetEnabledPtr(&g_Config.bEnableSound);
-	PopupSliderChoice *bgmVol = audioSettings->Add(new PopupSliderChoice(&g_Config.iBGMVolume, 0, MAX_CONFIG_VOLUME, a->T("BGM volume"), screenManager()));
-	bgmVol->SetEnabledPtr(&g_Config.bEnableSound);
-
 	audioSettings->Add(new CheckBox(&g_Config.bEnableSound, a->T("Enable Sound")));
 	static const char *latency[] = { "Low", "Medium", "High" };
-	PopupMultiChoice *lowAudio = audioSettings->Add(new PopupMultiChoice(&g_Config.IaudioLatency, a->T("Audio Latency"), latency, 0, ARRAY_SIZE(latency), gs, screenManager()));
+	PopupMultiChoice *lowAudio = audioSettings->Add(new PopupMultiChoice(&g_Config.iAudioLatency, a->T("Audio Latency"), latency, 0, ARRAY_SIZE(latency), gs, screenManager()));
 	lowAudio->SetEnabledPtr(&g_Config.bEnableSound);
 
 	audioSettings->Add(new ItemHeader(a->T("Audio hacks")));

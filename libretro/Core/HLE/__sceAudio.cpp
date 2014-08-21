@@ -403,12 +403,5 @@ int __AudioMix(short *outstereo, int numFrames)
    if (buf2)
       memcpy(outstereo + sz1, buf2, sz2 * sizeof(s16));
 
-	int remains = (int)(numFrames * 2 - sz1 - sz2);
-	if (remains > 0)
-		memset(outstereo + numFrames * 2 - remains, 0, remains*sizeof(s16));
-
-	if (sz1 + sz2 < (size_t)numFrames)
-		underrun = (int)(sz1 + sz2) / 2; // we always grab everything in the queue in libretro, don't spam logs about it
-
-	return underrun >= 0 ? underrun : numFrames;
+	return ((sz1 + sz2) / 2);
 }

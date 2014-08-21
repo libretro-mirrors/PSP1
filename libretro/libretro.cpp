@@ -108,8 +108,8 @@ public:
 	virtual void InitSound(PMixer *mixer) { libretro_mixer = mixer; };
 	virtual void UpdateSound()
    {
-      int16_t audio[8192 * 2];
-      int samples = __AudioMix(audio, 8192);
+      int16_t audio[512 * 2];
+      int samples = __AudioMix(audio, (g_Config.iAudioLatency) ? 512 : 256);
 #if 0
       if (log_cb)
          log_cb(RETRO_LOG_INFO, "samples: %d\n", samples);

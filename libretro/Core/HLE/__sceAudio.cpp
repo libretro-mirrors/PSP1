@@ -373,22 +373,18 @@ void __AudioUpdate()
 	if (firstChannel)
 		memset(mixBuffer, 0, hwBlockSize * 2 * sizeof(s32));
 
-	if (g_Config.bEnableSound)
    {
-      if (outAudioQueue.room() >= hwBlockSize * 2)
+      s16 *buf1 = 0, *buf2 = 0;
+      size_t sz1, sz2;
+      outAudioQueue.pushPointers(hwBlockSize * 2, &buf1, &sz1, &buf2, &sz2);
+
+      for (size_t s = 0; s < sz1; s++)
+         buf1[s] = clamp_s16(mixBuffer[s]);
+
+      if (buf2)
       {
-         s16 *buf1 = 0, *buf2 = 0;
-         size_t sz1, sz2;
-         outAudioQueue.pushPointers(hwBlockSize * 2, &buf1, &sz1, &buf2, &sz2);
-
-         for (size_t s = 0; s < sz1; s++)
-            buf1[s] = clamp_s16(mixBuffer[s]);
-
-         if (buf2)
-         {
-            for (size_t s = 0; s < sz2; s++)
-               buf2[s] = clamp_s16(mixBuffer[s + sz1]);
-         }
+         for (size_t s = 0; s < sz2; s++)
+            buf2[s] = clamp_s16(mixBuffer[s + sz1]);
       }
    }
 }

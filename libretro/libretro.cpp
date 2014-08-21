@@ -421,10 +421,10 @@ static void check_variables(void)
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
       int new_val = atoi(var.value);
-      g_Config.IaudioLatency = new_val;
+      g_Config.iAudioLatency = new_val;
    }
    else
-      g_Config.IaudioLatency = 0;
+      g_Config.iAudioLatency = 0;
 
    var.key = "ppsspp_framerate_limit";
    var.value = NULL;
@@ -1032,7 +1032,7 @@ void retro_run(void)
 #if 0
    if (log_cb)
       //log_cb(RETRO_LOG_INFO, "Locked CPU Speed: %d\n", g_Config.iLockedCPUSpeed);
-      //log_cb(RETRO_LOG_INFO, "Audio Latency: %d\n", g_Config.IaudioLatency);
+      //log_cb(RETRO_LOG_INFO, "Audio Latency: %d\n", g_Config.iAudioLatency);
       //log_cb(RETRO_LOG_INFO, "Rendering Mode: %d\n", g_Config.iRenderingMode);
       log_cb(RETRO_LOG_INFO, "Function replacements: %d\n", g_Config.bFuncReplacements);
 #endif

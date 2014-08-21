@@ -108,12 +108,13 @@ public:
 	virtual void InitSound(PMixer *mixer) { libretro_mixer = mixer; };
 	virtual void UpdateSound()
    {
-      if (libretro_mixer && audio_batch_cb)
-      {
-         int16_t audio[8192 * 2];
-         int samples = __AudioMix(audio, 8192);
-         audio_batch_cb(audio, samples);
-      }
+      int16_t audio[8192 * 2];
+      int samples = __AudioMix(audio, 8192);
+#if 0
+      if (log_cb)
+         log_cb(RETRO_LOG_INFO, "samples: %d\n", samples);
+#endif
+      audio_batch_cb(audio, samples);
    }
 	virtual void ShutdownSound() { libretro_mixer = nullptr; };
 

@@ -184,6 +184,7 @@ CXXFILES += $(NATIVEDIR)/file/chunk_file.cpp \
 				$(NATIVEDIR)/input/gesture_detector.cpp \
 				$(NATIVEDIR)/input/input_state.cpp \
 				$(NATIVEDIR)/math/fast/fast_math.cpp \
+				$(NATIVEDIR)/math/fast/fast_matrix.cpp \
 				$(NATIVEDIR)/math/curves.cpp \
 				$(NATIVEDIR)/math/expression_parser.cpp \
 				$(NATIVEDIR)/math/lin/plane.cpp \

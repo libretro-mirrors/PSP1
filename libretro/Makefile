@@ -82,6 +82,9 @@ else ifneq (,$(findstring imx6,$(platform)))
    PLATFORM_EXT := unix
    WITH_DYNAREC=arm
    HAVE_NEON=1
+	FFMPEGINCFLAGS += -I$(FFMPEGDIR)/linux/armv7/include
++	FFMPEGLIBDIR :=   $(FFMPEGDIR)/linux/armv7/lib
++	FFMPEGLDFLAGS += -L$(FFMPEGLIBDIR) -lavformat -lavcodec -lavutil -lswresample -lswscale
 else ifneq (,$(findstring osx,$(platform)))
    TARGET := $(TARGET_NAME)_libretro.dylib
    LDFLAGS += -dynamiclib
@@ -219,7 +222,7 @@ COREFLAGS += -DSINGLE_THREAD
 endif
 
 ifeq ($(GLES), 1)
-GLFLAGS += -DGLES -DHAVE_OPENGLES2 -DDISABLE_3POINT
+GLFLAGS += -DGLES -DHAVE_OPENGLES2 -DUSING_GLES2
 else
 GLFLAGS += -DHAVE_OPENGL
 endif

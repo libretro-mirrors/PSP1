@@ -49,100 +49,91 @@ int hostAttemptBlockSize = 512;
 static int audioIntervalCycles;
 static int audioHostIntervalCycles;
 
+#define MIXBUFFER_QUEUE (512 * 16)
+
 static s32 *mixBuffer;
+static s16 mixBufferQueue[MIXBUFFER_QUEUE];
+static int mixBufferHead = 0;
+static int mixBufferTail = 0;
+static int mixBufferCount = 0; // sacrifice 4 bytes for a simpler implementation. may optimize away in the future.
 
-template <int N>
-class FixedSizeQueueLR {
-public:
-	FixedSizeQueueLR() {
-		storage_ = (s16*)calloc(1, N * sizeof(s16));
-		clear();
-	}
+static void queue_clear(void)
+{
+   mixBufferHead = 0;
+   mixBufferTail = 0;
+   mixBufferCount = 0;
+}
 
-	~FixedSizeQueueLR() {
-      if (storage_)
-         free(storage_);
-	}
+// Gets pointers to write to directly.
+static void queue_pushPointers(size_t size, s16 **dest1, size_t *sz1, s16 **dest2, size_t *sz2)
+{
+   *dest1 = (s16*)&mixBufferQueue[mixBufferTail];
 
-	void clear() {
-		head_ = 0;
-		tail_ = 0;
-		count_ = 0;
-	}
+   if (mixBufferTail + (int)size < MIXBUFFER_QUEUE)
+   {
+      *sz1 = size;
+      mixBufferTail += (int)size;
+      if (mixBufferTail == MIXBUFFER_QUEUE)
+         mixBufferTail = 0;
+      *dest2 = 0;
+      *sz2 = 0;
+   }
+   else
+   {
+      *sz1 = MIXBUFFER_QUEUE - mixBufferTail;
+      mixBufferTail = (int)(size - *sz1);
+      *dest2 = (s16*)&mixBufferQueue[0];
+      *sz2 = mixBufferTail;
+   }
+   mixBufferCount += (int)size;
+}
 
-	// Gets pointers to write to directly.
-	void pushPointers(size_t size, s16 **dest1, size_t *sz1, s16 **dest2, size_t *sz2) {
-      *dest1 = (s16*)&storage_[tail_];
-		if (tail_ + (int)size < N)
-      {
-			*sz1 = size;
-			tail_ += (int)size;
-			if (tail_ == N) tail_ = 0;
-			*dest2 = 0;
-			*sz2 = 0;
-		}
-      else
-      {
-			*sz1 = N - tail_;
-			tail_ = (int)(size - *sz1);
-			*dest2 = (s16*)&storage_[0];
-			*sz2 = tail_;
-		}
-		count_ += (int)size;
-	}
+static void queue_popPointers(size_t size, const s16 **src1, size_t *sz1, const s16 **src2, size_t *sz2)
+{
+   if ((int)size > mixBufferCount)
+      size = mixBufferCount;
 
-	void popPointers(size_t size, const s16 **src1, size_t *sz1, const s16 **src2, size_t *sz2) {
-		if ((int)size > count_) size = count_;
+   *src1 = (s16*)&mixBufferQueue[mixBufferHead];
+   if (mixBufferHead + size < MIXBUFFER_QUEUE)
+   {
+      *sz1 = size;
+      mixBufferHead += (int)size;
+      if (mixBufferHead == MIXBUFFER_QUEUE)
+         mixBufferHead = 0;
+      *src2 = 0;
+      *sz2 = 0;
+   }
+   else
+   {
+      *sz1 = MIXBUFFER_QUEUE - mixBufferHead;
+      mixBufferHead = (int)(size - *sz1);
+      *src2 = (s16*)&mixBufferQueue[0];
+      *sz2 = mixBufferHead;
+   }
+   mixBufferCount -= (int)size;
+}
 
-      *src1 = (s16*)&storage_[head_];
-		if (head_ + size < N) {
-			*sz1 = size;
-			head_ += (int)size;
-			if (head_ == N) head_ = 0;
-			*src2 = 0;
-			*sz2 = 0;
-		} else {
-			*sz1 = N - head_;
-			head_ = (int)(size - *sz1);
-			*src2 = (s16*)&storage_[0];
-			*sz2 = head_;
-		}
-		count_ -= (int)size;
-	}
-
-	void DoState(PointerWrap &p) {
-		int size = N;
-		p.Do(size);
-		if (size != N)
-		{
-			ERROR_LOG(COMMON, "Savestate failure: Incompatible queue size.");
-			return;
-		}
-		p.DoArray<s16>(storage_, N);
-		p.Do(head_);
-		p.Do(tail_);
-		p.Do(count_);
-		p.DoMarker("FixedSizeQueueLR");
-	}
-
-private:
-	s16 *storage_;
-	int head_;
-	int tail_;
-	int count_;  // sacrifice 4 bytes for a simpler implementation. may optimize away in the future.
-
-	// Make copy constructor private for now.
-	FixedSizeQueueLR(FixedSizeQueueLR &other) {	}
-};
+static void queue_DoState(PointerWrap &p)
+{
+   int size = MIXBUFFER_QUEUE;
+   p.Do(size);
+   if (size != MIXBUFFER_QUEUE)
+   {
+      ERROR_LOG(COMMON, "Savestate failure: Incompatible queue size.");
+      return;
+   }
+   p.DoArray<s16>(mixBufferQueue, MIXBUFFER_QUEUE);
+   p.Do(mixBufferHead);
+   p.Do(mixBufferTail);
+   p.Do(mixBufferCount);
+   p.DoMarker("FixedSizeQueueLR");
+}
 
 // High and low watermarks, basically.  For perfect emulation, the correct values are 0 and 1, respectively.
 // TODO: Tweak. Hm, there aren't actually even used currently...
 static int chanQueueMaxSizeFactor;
 static int chanQueueMinSizeFactor;
 
-// TODO: Need to replace this with something lockless. Mutexes in the audio pipeline
-// is bad mojo.
-FixedSizeQueueLR<512 * 16> outAudioQueue;
 
 static inline s16 adjustvolume(s16 sample, int vol) {
 #ifdef ARM
@@ -218,7 +209,7 @@ void __AudioInit() {
 	mixBuffer = new s32[hwBlockSize * 2];
 	memset(mixBuffer, 0, hwBlockSize * 2 * sizeof(s32));
 
-	outAudioQueue.clear();
+   queue_clear();
 	CoreTiming::RegisterMHzChangeCallback(&__AudioCPUMHzChange);
 }
 
@@ -235,7 +226,7 @@ void __AudioDoState(PointerWrap &p)
 
 	p.Do(mixFrequency);
 
-   outAudioQueue.DoState(p);
+   queue_DoState(p);
 
 	int chanCount = ARRAY_SIZE(chans);
 	p.Do(chanCount);
@@ -443,7 +434,7 @@ void __AudioUpdate()
    {
       s16 *buf1 = 0, *buf2 = 0;
       size_t sz1, sz2;
-      outAudioQueue.pushPointers(hwBlockSize * 2, &buf1, &sz1, &buf2, &sz2);
+      queue_pushPointers(hwBlockSize * 2, &buf1, &sz1, &buf2, &sz2);
 
       for (size_t s = 0; s < sz1; s++)
          buf1[s] = clamp_s16(mixBuffer[s]);
@@ -463,7 +454,7 @@ int __AudioMix(short *outstereo, int numFrames)
 	const s16 *buf1 = 0, *buf2 = 0;
 	size_t sz1, sz2;
 
-   outAudioQueue.popPointers(numFrames * 2, &buf1, &sz1, &buf2, &sz2);
+   queue_popPointers(numFrames * 2, &buf1, &sz1, &buf2, &sz2);
 
    memcpy(outstereo, buf1, sz1 * sizeof(s16));
    if (buf2)

@@ -315,9 +315,9 @@ u32 __AudioEnqueue(AudioChannel &chan, int chanNum, bool blocking)
 
       if (Memory::IsValidAddress(chan.sampleAddress + (totalSamples - 1) * sizeof(s16_le)))
       {
-         Memory::Memcpy(buf1, chan.sampleAddress, (u32)sz1 * sizeof(s16));
+         Memory::MemcpyUnchecked(buf1, chan.sampleAddress, (u32)sz1 * sizeof(s16));
          if (buf2)
-            Memory::Memcpy(buf2, chan.sampleAddress + (u32)sz1 * sizeof(s16), (u32)sz2 * sizeof(s16));
+            Memory::MemcpyUnchecked(buf2, chan.sampleAddress + (u32)sz1 * sizeof(s16), (u32)sz2 * sizeof(s16));
       }
    }
    else

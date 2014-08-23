@@ -196,6 +196,8 @@ CXXFILES += $(NATIVEDIR)/file/chunk_file.cpp \
 				$(NATIVEDIR)/net/resolve.cpp \
 				$(NATIVEDIR)/net/url.cpp \
 				$(NATIVEDIR)/profiler/profiler.cpp \
+				$(NATIVEDIR)/thin3d/thin3d.cpp \
+				$(NATIVEDIR)/thin3d/thin3d_gl.cpp \
 				$(NATIVEDIR)/thread/prioritizedworkqueue.cpp \
 				$(NATIVEDIR)/thread/threadutil.cpp \
 				$(NATIVEDIR)/ui/screen.cpp \

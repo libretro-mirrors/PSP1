@@ -287,9 +287,12 @@ if(ARM)
 		Common/ArmEmitter.cpp
 		Common/ArmThunk.cpp)
 elseif(X86)
+	# ARMEmitter is here for the unit tests and don't really hurt otherwise.
 	set(CommonExtra ${CommonExtra}
 		Common/ABI.cpp
 		Common/ABI.h
+		Common/ArmEmitter.h
+		Common/ArmEmitter.cpp
 		Common/CPUDetect.cpp
 		Common/CPUDetect.h
 		Common/Thunk.cpp
@@ -772,11 +775,11 @@ if(LIBRETRO)
 		libretro/libretro_osm.cpp)
 else()
 	set(NativeAppSource
+		android/jni/TestRunner.cpp
 		UI/NativeApp.cpp
 		UI/BackgroundAudio.cpp
 		UI/DevScreens.cpp
 		UI/EmuScreen.cpp
-		android/jni/TestRunner.cpp
 		UI/GameInfoCache.cpp
 		UI/MainScreen.cpp
 		UI/MiscScreens.cpp
@@ -787,7 +790,6 @@ else()
 		UI/TouchControlLayoutScreen.cpp
 		UI/TouchControlVisibilityScreen.cpp
 		UI/GamepadEmu.cpp
-		UI/UIShader.cpp
 		UI/OnScreenDisplay.cpp
 		UI/ControlMappingScreen.cpp
 		UI/Store.cpp
@@ -799,7 +801,6 @@ else()
 			set(NativeAppSource ${NativeAppSource} android/jni/ArmEmitterTest.cpp)
 		endif()
 		set(nativeExtra ${nativeExtra} ${NativeAppSource})
-	endif()
 endif()
 
 add_library(native STATIC
@@ -923,6 +924,9 @@ add_library(native STATIC
 	native/net/url.h
 	native/profiler/profiler.cpp
 	native/profiler/profiler.h
+	native/thin3d/thin3d.cpp
+	native/thin3d/thin3d.h
+	native/thin3d/thin3d_gl.cpp
 	native/thread/prioritizedworkqueue.cpp
 	native/thread/prioritizedworkqueue.h
 	native/thread/threadutil.cpp

@@ -20,7 +20,6 @@
 #include "Globals.h" // only for clamp_s16
 #include "Common/CommonTypes.h"
 #include "Common/ChunkFile.h"
-#include "Common/FixedSizeQueue.h"
 #include "Common/Atomics.h"
 
 #include "Core/CoreTiming.h"
@@ -52,6 +51,91 @@ static int audioHostIntervalCycles;
 
 static s32 *mixBuffer;
 
+template <int N>
+class FixedSizeQueueLR {
+public:
+	FixedSizeQueueLR() {
+		storage_ = (s16*)calloc(1, N * sizeof(s16));
+		clear();
+	}
+
+	~FixedSizeQueueLR() {
+      if (storage_)
+         free(storage_);
+	}
+
+	void clear() {
+		head_ = 0;
+		tail_ = 0;
+		count_ = 0;
+	}
+
+	// Gets pointers to write to directly.
+	void pushPointers(size_t size, s16 **dest1, size_t *sz1, s16 **dest2, size_t *sz2) {
+      *dest1 = (s16*)&storage_[tail_];
+		if (tail_ + (int)size < N)
+      {
+			*sz1 = size;
+			tail_ += (int)size;
+			if (tail_ == N) tail_ = 0;
+			*dest2 = 0;
+			*sz2 = 0;
+		}
+      else
+      {
+			*sz1 = N - tail_;
+			tail_ = (int)(size - *sz1);
+			*dest2 = (s16*)&storage_[0];
+			*sz2 = tail_;
+		}
+		count_ += (int)size;
+	}
+
+	void popPointers(size_t size, const s16 **src1, size_t *sz1, const s16 **src2, size_t *sz2) {
+		if ((int)size > count_) size = count_;
+
+		if (head_ + size < N) {
+			*src1 = (s16*)&storage_[head_];
+			*sz1 = size;
+			head_ += (int)size;
+			if (head_ == N) head_ = 0;
+			*src2 = 0;
+			*sz2 = 0;
+		} else {
+			*src1 = (s16*)&storage_[head_];
+			*sz1 = N - head_;
+			head_ = (int)(size - *sz1);
+			*src2 = (s16*)&storage_[0];
+			*sz2 = head_;
+		}
+		count_ -= (int)size;
+	}
+
+	void DoState(PointerWrap &p) {
+		int size = N;
+		p.Do(size);
+		if (size != N)
+		{
+			ERROR_LOG(COMMON, "Savestate failure: Incompatible queue size.");
+			return;
+		}
+		p.DoArray<s16>(storage_, N);
+		p.Do(head_);
+		p.Do(tail_);
+		p.Do(count_);
+		p.DoMarker("FixedSizeQueueLR");
+	}
+
+private:
+	s16 *storage_;
+	int head_;
+	int tail_;
+	int count_;  // sacrifice 4 bytes for a simpler implementation. may optimize away in the future.
+
+	// Make copy constructor private for now.
+	FixedSizeQueueLR(FixedSizeQueueLR &other) {	}
+};
+
 // High and low watermarks, basically.  For perfect emulation, the correct values are 0 and 1, respectively.
 // TODO: Tweak. Hm, there aren't actually even used currently...
 static int chanQueueMaxSizeFactor;
@@ -59,7 +143,7 @@ static int chanQueueMinSizeFactor;
 
 // TODO: Need to replace this with something lockless. Mutexes in the audio pipeline
 // is bad mojo.
-FixedSizeQueue<s16, 512 * 16> outAudioQueue;
+FixedSizeQueueLR<512 * 16> outAudioQueue;
 
 static inline s16 adjustvolume(s16 sample, int vol) {
 #ifdef ARM

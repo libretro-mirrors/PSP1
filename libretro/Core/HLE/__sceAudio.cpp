@@ -94,15 +94,14 @@ public:
 	void popPointers(size_t size, const s16 **src1, size_t *sz1, const s16 **src2, size_t *sz2) {
 		if ((int)size > count_) size = count_;
 
+      *src1 = (s16*)&storage_[head_];
 		if (head_ + size < N) {
-			*src1 = (s16*)&storage_[head_];
 			*sz1 = size;
 			head_ += (int)size;
 			if (head_ == N) head_ = 0;
 			*src2 = 0;
 			*sz2 = 0;
 		} else {
-			*src1 = (s16*)&storage_[head_];
 			*sz1 = N - head_;
 			head_ = (int)(size - *sz1);
 			*src2 = (s16*)&storage_[0];

@@ -10,25 +10,34 @@ CPUFLAGS  :=
 
 UNAME=$(shell uname -a)
 
-ifeq ($(platform),)
-platform = unix
-ifeq ($(UNAME),)
-   platform = win
-else ifneq ($(findstring MINGW,$(UNAME)),)
-   platform = win
-else ifneq ($(findstring Darwin,$(UNAME)),)
-   platform = osx
-else ifneq ($(findstring win,$(UNAME)),)
-   platform = win
-endif
+# Cross compile ?
+
+ifeq (,$(ARCH))
+  ARCH = $(shell uname -m)
 endif
 
-ifeq ($(firstword $(filter x86_64,$(UNAME))),x86_64)
-	WITH_DYNAREC=x86_64
+# Target Dynarec
+WITH_DYNAREC = $(ARCH)
+FFMPEG_ARCH = $(ARCH)
+
+ifeq ($(ARCH), i386)
+   WITH_DYNAREC = x86
+   FFMPEG_ARCH = x86
 endif
-ifeq ($(firstword $(filter amd64,$(UNAME))),amd64)
-	WITH_DYNAREC=x86_64
+
+ifeq ($(platform),)
+   platform = unix
+   ifeq ($(UNAME),)
+      platform = win
+   else ifneq ($(findstring MINGW,$(UNAME)),)
+      platform = win
+   else ifneq ($(findstring Darwin,$(UNAME)),)
+      platform = osx
+   else ifneq ($(findstring win,$(UNAME)),)
+      platform = win
+   endif
 endif
+
 
 # Dirs
 ROOTDIR        = ..
@@ -51,9 +60,9 @@ ifneq (,$(findstring unix,$(platform)))
    TARGET := $(TARGET_NAME)_libretro.so
    LDFLAGS += -shared -Wl,--version-script=link.T -Wl,--no-undefined
    
-	FFMPEGINCFLAGS += -I$(FFMPEGDIR)/linux/x86_64/include
-	FFMPEGLIBDIR :=   $(FFMPEGDIR)/linux/x86_64/lib
-	FFMPEGLDFLAGS += -L$(FFMPEGLIBDIR) -lavformat -lavcodec -lavutil -lswresample -lswscale
+   FFMPEGINCFLAGS += -I$(FFMPEGDIR)/linux/$(FFMPEG_ARCH)/include
+   FFMPEGLIBDIR :=   $(FFMPEGDIR)/linux/$(FFMPEG_ARCH)/lib
+   FFMPEGLDFLAGS += -L$(FFMPEGLIBDIR) -lavformat -lavcodec -lavutil -lswresample -lswscale
    fpic = -fPIC
 ifneq (,$(findstring gles,$(platform)))
    GLES = 1
@@ -69,7 +78,7 @@ else ifneq (,$(findstring rpi,$(platform)))
    GLES = 1
    GL_LIB := -lGLESv2
    INCFLAGS += -I/opt/vc/include
-	CPUFLAGS += -DARMv5_ONLY 
+   CPUFLAGS += -DARMv5_ONLY 
    PLATFORM_EXT := unix
    WITH_DYNAREC=arm
 else ifneq (,$(findstring imx6,$(platform)))
@@ -83,8 +92,8 @@ else ifneq (,$(findstring imx6,$(platform)))
    WITH_DYNAREC=arm
    HAVE_NEON=1
 	FFMPEGINCFLAGS += -I$(FFMPEGDIR)/linux/armv7/include
-+	FFMPEGLIBDIR :=   $(FFMPEGDIR)/linux/armv7/lib
-+	FFMPEGLDFLAGS += -L$(FFMPEGLIBDIR) -lavformat -lavcodec -lavutil -lswresample -lswscale
+	FFMPEGLIBDIR :=   $(FFMPEGDIR)/linux/armv7/lib
+	FFMPEGLDFLAGS += -L$(FFMPEGLIBDIR) -lavformat -lavcodec -lavutil -lswresample -lswscale
 else ifneq (,$(findstring osx,$(platform)))
    TARGET := $(TARGET_NAME)_libretro.dylib
    LDFLAGS += -dynamiclib
@@ -94,9 +103,9 @@ ifneq ($(shell sw_vers | grep -c 10.9),1)
 endif
    fpic = -fPIC
 
-	FFMPEGINCFLAGS += -I$(FFMPEGDIR)/macosx/x86_64/include
-	FFMPEGLIBDIR := $(FFMPEGDIR)/macosx/x86_64/lib
-	FFMPEGLDFLAGS += -liconv -L$(FFMPEGLIBDIR) -lavformat -lavcodec -lavutil -lswresample -lswscale
+   FFMPEGINCFLAGS += -I$(FFMPEGDIR)/macosx/$(FFMPEG_ARCH)/include
+   FFMPEGLIBDIR := $(FFMPEGDIR)/macosx/$(FFMPEG_ARCH)/lib
+   FFMPEGLDFLAGS += -liconv -L$(FFMPEGLIBDIR) -lavformat -lavcodec -lavutil -lswresample -lswscale
    PLATCFLAGS += -D__MACOSX__
    GL_LIB := -framework OpenGL
    PLATFORM_EXT := unix
@@ -119,7 +128,7 @@ ifneq ($(OSXVER),9)
    PLATCFLAGS += -miphoneos-version-min=5.0
 endif
    PLATCFLAGS += -DIOS -DHAVE_POSIX_MEMALIGN
-	CPUFLAGS += -DARMv5_ONLY -DARM
+   CPUFLAGS += -DARMv5_ONLY -DARM
    PLATFORM_EXT := unix
    WITH_DYNAREC=arm
 else ifneq (,$(findstring android,$(platform)))
@@ -130,13 +139,13 @@ else ifneq (,$(findstring android,$(platform)))
 
    CC = arm-linux-androideabi-gcc
    CXX = arm-linux-androideabi-g++
-	WITH_DYNAREC=arm
+   WITH_DYNAREC=arm
    GLES = 1
-	PLATCFLAGS += -DANDROID
+   PLATCFLAGS += -DANDROID
    CPUCFLAGS  += 
    HAVE_NEON = 1
-	CPUFLAGS += -marm -mcpu=cortex-a8 -mfpu=neon -mfloat-abi=softfp -D__arm__ -DARM_ASM -D__NEON_OPT
-	CFLAGS += -DANDROID
+   CPUFLAGS += -marm -mcpu=cortex-a8 -mfpu=neon -mfloat-abi=softfp -D__arm__ -DARM_ASM -D__NEON_OPT
+   CFLAGS += -DANDROID
    
    PLATFORM_EXT := unix
 else ifeq ($(platform), qnx)
@@ -153,8 +162,8 @@ else ifeq ($(platform), qnx)
    GLES = 1
    PLATCFLAGS += -D__BLACKBERRY_QNX__
    HAVE_NEON = 1
-	CPUFLAGS += -marm -mcpu=cortex-a9 -mfpu=neon -mfloat-abi=softfp -D__arm__ -DARM_ASM -D__NEON_OPT
-	CFLAGS += -D__QNX__
+   CPUFLAGS += -marm -mcpu=cortex-a9 -mfpu=neon -mfloat-abi=softfp -D__arm__ -DARM_ASM -D__NEON_OPT
+   CFLAGS += -D__QNX__
    
    PLATFORM_EXT := unix
 else ifneq (,$(findstring armv,$(platform)))
@@ -164,7 +173,7 @@ else ifneq (,$(findstring armv,$(platform)))
    fpic := -fPIC
    SHARED := -shared -Wl,--version-script=link.T -Wl,--no-undefined
    INCFLAGS += -I.
-	WITH_DYNAREC=arm
+   WITH_DYNAREC=arm
 ifneq (,$(findstring gles,$(platform)))
    GLES := 1
 else
@@ -210,21 +219,21 @@ endif
 include Makefile.common
 
 ifeq ($(PERF_TEST), 1)
-COREFLAGS += -DPERF_TEST
+   COREFLAGS += -DPERF_TEST
 endif
 
 ifeq ($(HAVE_SHARED_CONTEXT), 1)
-COREFLAGS += -DHAVE_SHARED_CONTEXT
+   COREFLAGS += -DHAVE_SHARED_CONTEXT
 endif
 
 ifeq ($(SINGLE_THREAD), 1)
-COREFLAGS += -DSINGLE_THREAD
+   COREFLAGS += -DSINGLE_THREAD
 endif
 
 ifeq ($(GLES), 1)
-GLFLAGS += -DGLES -DHAVE_OPENGLES2 -DUSING_GLES2
+   GLFLAGS += -DGLES -DHAVE_OPENGLES2 -DUSING_GLES2
 else
-GLFLAGS += -DHAVE_OPENGL
+   GLFLAGS += -DHAVE_OPENGL
 endif
 
 COREFLAGS += -D__LIBRETRO__ -DINLINE="inline" -DPPSSPP -DUSE_FFMPEG -DBAKE_IN_GIT

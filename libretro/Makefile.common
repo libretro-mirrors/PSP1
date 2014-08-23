@@ -371,7 +371,11 @@ ifdef WITH_DYNAREC
 			ASMFILES   += $(NATIVEDIR)/math/fast/fast_matrix_neon.S
 		endif
    else
+      ifeq ($(WITH_DYNAREC), x86_64)
 	   CPUFLAGS := -msse -msse2 -D_M_X64
+      else
+	   CPUFLAGS := -msse -msse2 -D_M_IX86 -m32
+      endif
 	   CXXFILES += $(COMMONDIR)/x64Analyzer.cpp \
 						$(COMMONDIR)/x64Emitter.cpp \
 						$(COMMONDIR)/ABI.cpp \

@@ -37,7 +37,7 @@ GameManager::GameManager()
 }
 
 std::string GameManager::GetTempFilename() const {
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 	wchar_t tempPath[MAX_PATH];
 	GetTempPath(MAX_PATH, tempPath);
 	wchar_t buffer[MAX_PATH];
@@ -131,7 +131,7 @@ bool GameManager::InstallGame(std::string zipfile, bool deleteAfter) {
 	}
 
 	int error;
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 	struct zip *z = zip_open(ConvertUTF8ToWString(zipfile).c_str(), 0, &error);
 #elif defined(__SYMBIAN32__)
 	// If zipfile is non-ascii, this may not function correctly. Other options?

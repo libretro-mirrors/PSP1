@@ -15,7 +15,7 @@
 // Official git repository and contact information can be found at
 // https://github.com/hrydgard/ppsspp and http://www.ppsspp.org/.
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 #include "Common/CommonWindows.h"
 #include <ShlObj.h>
 #include <string>
@@ -486,7 +486,7 @@ std::string GetSysDirectory(PSPDirectories directoryType) {
 	}
 }
 
-#if defined(_WIN32)
+#if defined(_WIN32) && !defined(__MINGW32__)
 // Run this at startup time. Please use GetSysDirectory if you need to query where folders are.
 void InitSysDirectories() {
 	if (!g_Config.memCardDirectory.empty() && !g_Config.flash0Directory.empty())

@@ -31,8 +31,13 @@
 #ifdef _WIN32
 #include "Common/CommonWindows.h"
 #include <sys/stat.h>
-#else
+#endif
+
+#ifndef _WIN32_NO_MINGW
 #include <dirent.h>
+#endif
+
+#ifndef _WIN32
 #include <unistd.h>
 #include <sys/stat.h>
 #include <ctype.h>

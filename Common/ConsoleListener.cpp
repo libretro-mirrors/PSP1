@@ -74,7 +74,7 @@ ConsoleListener::~ConsoleListener()
 	Close();
 }
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 // Handle console event
 bool WINAPI ConsoleHandler(DWORD msgType)
 {
@@ -116,7 +116,7 @@ void ConsoleListener::Init(bool AutoOpen, int Width, int Height, const char *Tit
 
 void ConsoleListener::Open()
 {
-#if defined(_WIN32) && !defined(_XBOX)
+#if defined(_WIN32) && !defined(_XBOX) && !defined(__MINGW32__)
 	if (!GetConsoleWindow())
 	{
 		// Open the console window and create the window handle for GetStdHandle()
@@ -150,7 +150,7 @@ void ConsoleListener::Open()
 
 void ConsoleListener::Show(bool bShow)
 {
-#if defined(_WIN32) && !defined(_XBOX)
+#if defined(_WIN32) && !defined(_XBOX) && !defined(__MINGW32__)
 	if (bShow && bHidden)
 	{
 		if (!IsOpen())
@@ -169,7 +169,7 @@ void ConsoleListener::Show(bool bShow)
 
 void ConsoleListener::UpdateHandle()
 {
-#if defined(_WIN32) && !defined(_XBOX)
+#if defined(_WIN32) && !defined(_XBOX) && !defined(__MINGW32__)
 	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 #endif
 }
@@ -177,7 +177,7 @@ void ConsoleListener::UpdateHandle()
 // Close the console window and close the eventual file handle
 void ConsoleListener::Close()
 {
-#if defined(_WIN32) && !defined(_XBOX)
+#if defined(_WIN32) && !defined(_XBOX) && !defined(__MINGW32__)
 	if (hConsole == NULL)
 		return;
 
@@ -215,7 +215,7 @@ void ConsoleListener::Close()
 
 bool ConsoleListener::IsOpen()
 {
-#if defined(_WIN32) && !defined(_XBOX)
+#if defined(_WIN32) && !defined(_XBOX) && !defined(__MINGW32__)
 	return (hConsole != NULL);
 #else
 	return true;
@@ -229,7 +229,7 @@ bool ConsoleListener::IsOpen()
 void ConsoleListener::BufferWidthHeight(int BufferWidth, int BufferHeight, int ScreenWidth, int ScreenHeight, bool BufferFirst)
 {
 	_dbg_assert_msg_(COMMON, IsOpen(), "Don't call this before opening the console.");
-#if defined(_WIN32) && !defined(_XBOX)
+#if defined(_WIN32) && !defined(_XBOX) && !defined(__MINGW32__)
 	BOOL SB, SW;
 	if (BufferFirst)
 	{
@@ -254,7 +254,7 @@ void ConsoleListener::BufferWidthHeight(int BufferWidth, int BufferHeight, int S
 void ConsoleListener::LetterSpace(int Width, int Height)
 {
 	_dbg_assert_msg_(COMMON, IsOpen(), "Don't call this before opening the console.");
-#if defined(_WIN32) && !defined(_XBOX)
+#if defined(_WIN32) && !defined(_XBOX) && !defined(__MINGW32__)
 	// Get console info
 	CONSOLE_SCREEN_BUFFER_INFO ConInfo;
 	GetConsoleScreenBufferInfo(hConsole, &ConInfo);
@@ -280,7 +280,7 @@ void ConsoleListener::LetterSpace(int Width, int Height)
 #endif
 }
 
-#if defined(_WIN32) && !defined(_XBOX)
+#if defined(_WIN32) && !defined(_XBOX) && !defined(__MINGW32__)
 COORD ConsoleListener::GetCoordinates(int BytesRead, int BufferWidth)
 {
 	COORD Ret = {0, 0};
@@ -505,7 +505,7 @@ void ConsoleListener::WriteToConsole(LogTypes::LOG_LEVELS Level, const char *Tex
 void ConsoleListener::PixelSpace(int Left, int Top, int Width, int Height, bool Resize)
 {
 	_dbg_assert_msg_(COMMON, IsOpen(), "Don't call this before opening the console.");
-#if defined(_WIN32) && !defined(_XBOX)
+#if defined(_WIN32) && !defined(_XBOX) && !defined(__MINGW32__)
 	// Check size
 	if (Width < 8 || Height < 12) return;
 
@@ -592,7 +592,7 @@ void ConsoleListener::PixelSpace(int Left, int Top, int Width, int Height, bool 
 
 void ConsoleListener::Log(LogTypes::LOG_LEVELS Level, const char *Text)
 {
-#if defined(_WIN32) && !defined(_XBOX)
+#if defined(_WIN32) && !defined(_XBOX) && !defined(__MINGW32__)
 	if (hThread == NULL && IsOpen())
 		WriteToConsole(Level, Text, strlen(Text));
 	else
@@ -626,7 +626,7 @@ void ConsoleListener::Log(LogTypes::LOG_LEVELS Level, const char *Text)
 void ConsoleListener::ClearScreen(bool Cursor)
 { 
 	_dbg_assert_msg_(COMMON, IsOpen(), "Don't call this before opening the console.");
-#if defined(_WIN32) && !defined(_XBOX)
+#if defined(_WIN32) && !defined(_XBOX) && !defined(__MINGW32__)
 	COORD coordScreen = { 0, 0 }; 
 	DWORD cCharsWritten; 
 	CONSOLE_SCREEN_BUFFER_INFO csbi; 

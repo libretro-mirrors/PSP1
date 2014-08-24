@@ -343,7 +343,7 @@ void SetDefaultKeyMap(DefaultMaps dmap, bool replace) {
 		{
 			bool azerty = false;
 			bool qwertz = false;
-#if defined(_WIN32) && !defined(_XBOX)
+#if defined(_WIN32) && !defined(_XBOX) && !defined(__MINGW32__)
 			HKL localeId = GetKeyboardLayout(0);
 			// TODO: Is this list complete enough?
 			switch ((int)localeId & 0xFFFF) {

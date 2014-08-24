@@ -18,7 +18,7 @@
 #include "FileUtil.h"
 #include "StringUtils.h"
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 #include "CommonWindows.h"
 #ifndef _XBOX
 #include <shlobj.h>		// for SHGetFolderPath
@@ -65,7 +65,7 @@
 #endif
 
 // Hack
-#if defined(__SYMBIAN32__)
+#if defined(__SYMBIAN32__) || defined(__MINGW32__)
 static inline int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result) {
 	struct dirent *readdir_entry;
 
@@ -90,7 +90,7 @@ namespace File
 
 FILE *OpenCFile(const std::string &filename, const char *mode)
 {
-#if defined(_WIN32) && defined(UNICODE)
+#if defined(_WIN32) && defined(UNICODE) && !defined(__MINGW32__)
 	return _wfopen(ConvertUTF8ToWString(filename).c_str(), ConvertUTF8ToWString(mode).c_str());
 #else
 	return fopen(filename.c_str(), mode);
@@ -99,7 +99,7 @@ FILE *OpenCFile(const std::string &filename, const char *mode)
 
 bool OpenCPPFile(std::fstream & stream, const std::string &filename, std::ios::openmode mode)
 {
-#if defined(_WIN32) && defined(UNICODE)
+#if defined(_WIN32) && defined(UNICODE) && !defined(__MINGW32__)
 	stream.open(ConvertUTF8ToWString(filename), mode);
 #else
 	stream.open(filename.c_str(), mode);
@@ -126,7 +126,7 @@ static void StripTailDirSlashes(std::string &fname)
 }
 
 // _WIN32 only since std::strings are used everywhere else.
-#if defined(_WIN32) && defined(UNICODE)
+#if defined(_WIN32) && defined(UNICODE) && !defined(__MINGW32__)
 static void StripTailDirSlashes(std::wstring &fname)
 {
 	if (fname.length() > 1)
@@ -148,12 +148,12 @@ bool Exists(const std::string &filename)
 {
 	// Make sure Windows will no longer handle critical errors, which means no annoying "No disk" dialog
 	// Save the old error mode 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 	int OldMode = SetErrorMode(SEM_FAILCRITICALERRORS);
 #endif
 
 	struct stat64 file_info;
-#if defined(_WIN32) && defined(UNICODE)
+#if defined(_WIN32) && defined(UNICODE) && !defined(__MINGW32__)
 	std::wstring copy = ConvertUTF8ToWString(filename);
 	StripTailDirSlashes(copy);
 
@@ -166,7 +166,7 @@ bool Exists(const std::string &filename)
 #endif
 
 	// Set the old error mode
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 	SetErrorMode(OldMode);
 #endif
 
@@ -183,7 +183,7 @@ bool IsDirectory(const struct stat64 &file_info)
 bool IsDirectory(const std::string &filename)
 {
 	struct stat64 file_info;
-#if defined(_WIN32) && defined(UNICODE)
+#if defined(_WIN32) && defined(UNICODE) && !defined(__MINGW32__)
 	std::wstring copy = ConvertUTF8ToWString(filename);
 	StripTailDirSlashes(copy);
 
@@ -224,7 +224,7 @@ bool Delete(const std::string &filename)
 		return false;
 	}
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 	if (!DeleteFile(ConvertUTF8ToWString(filename).c_str()))
 	{
 		WARN_LOG(COMMON, "Delete: DeleteFile failed on %s: %s", 
@@ -246,7 +246,7 @@ bool Delete(const std::string &filename)
 bool CreateDir(const std::string &path)
 {
 	INFO_LOG(COMMON, "CreateDir: directory %s", path.c_str());
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 	if (::CreateDirectory(ConvertUTF8ToWString(path).c_str(), NULL))
 		return true;
 	DWORD error = GetLastError();
@@ -258,8 +258,10 @@ bool CreateDir(const std::string &path)
 	ERROR_LOG(COMMON, "CreateDir: CreateDirectory failed on %s: %i", path.c_str(), error);
 	return false;
 #else
-#ifdef BLACKBERRY
+#if defined(BLACKBERRY)
 	if (mkdir(path.c_str(), 0775) == 0)
+#elif defined(__MINGW32__)
+	if (mkdir(path.c_str()) == 0)
 #else
 	if (mkdir(path.c_str(), 0755) == 0)
 #endif
@@ -337,7 +339,7 @@ bool DeleteDir(const std::string &filename)
 		return false;
 	}
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 	if (::RemoveDirectory(ConvertUTF8ToWString(filename).c_str()))
 		return true;
 #else
@@ -366,7 +368,7 @@ bool Copy(const std::string &srcFilename, const std::string &destFilename)
 {
 	INFO_LOG(COMMON, "Copy: %s --> %s", 
 			srcFilename.c_str(), destFilename.c_str());
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 	if (CopyFile(ConvertUTF8ToWString(srcFilename).c_str(), ConvertUTF8ToWString(destFilename).c_str(), FALSE))
 		return true;
 
@@ -539,7 +541,7 @@ bool CreateEmptyFile(const std::string &filename)
 bool DeleteDirRecursively(const std::string &directory)
 {
 	INFO_LOG(COMMON, "DeleteDirRecursively: %s", directory.c_str());
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 	// Find the first file in the directory.
 	WIN32_FIND_DATA ffd;
 	HANDLE hFind = FindFirstFile(ConvertUTF8ToWString(directory + "\\*").c_str(), &ffd);
@@ -577,9 +579,10 @@ bool DeleteDirRecursively(const std::string &directory)
 		{
 			if (!DeleteDirRecursively(newPath))
 			{
-				#ifndef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
+#else
 				closedir(dirp);
-				#endif
+#endif
 				
 				return false;
 			}
@@ -588,15 +591,16 @@ bool DeleteDirRecursively(const std::string &directory)
 		{
 			if (!File::Delete(newPath))
 			{
-				#ifndef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
+#else
 				closedir(dirp);
-				#endif
+#endif
 				
 				return false;
 			}
 		}
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 	} while (FindNextFile(hFind, &ffd) != 0);
 	FindClose(hFind);
 #else
@@ -611,7 +615,8 @@ bool DeleteDirRecursively(const std::string &directory)
 // Create directory and copy contents (does not overwrite existing files)
 void CopyDir(const std::string &source_path, const std::string &dest_path)
 {
-#ifndef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
+#else
 	if (source_path == dest_path) return;
 	if (!File::Exists(source_path)) return;
 	if (!File::Exists(dest_path)) File::CreateFullPath(dest_path);
@@ -684,7 +689,7 @@ const std::string &GetExeDirectory()
 	if (ExePath.empty())
 #ifndef _XBOX
 	{
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 		TCHAR program_path[4096] = {0};
 		GetModuleFileName(NULL, program_path, ARRAY_SIZE(program_path) - 1);
 		program_path[ARRAY_SIZE(program_path) - 1] = '\0';
@@ -748,7 +753,7 @@ IOFile::~IOFile()
 bool IOFile::Open(const std::string& filename, const char openmode[])
 {
 	Close();
-#if defined(_WIN32) && defined(UNICODE)
+#if defined(_WIN32) && defined(UNICODE) && !defined(__MINGW32__)
 	_wfopen_s(&m_file, ConvertUTF8ToWString(filename).c_str(), ConvertUTF8ToWString(openmode).c_str());
 #else
 	m_file = fopen(filename.c_str(), openmode);
@@ -817,7 +822,7 @@ bool IOFile::Resize(u64 size)
 {
 #ifndef _XBOX
 	if (!IsOpen() || 0 !=
-#ifdef _WIN32
+#if defined(_WIN32) 
 		// ector: _chsize sucks, not 64-bit safe
 		// F|RES: changed to _chsize_s. i think it is 64-bit safe
 		_chsize_s(_fileno(m_file), size)

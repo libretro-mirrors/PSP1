@@ -264,7 +264,7 @@ void LogChannel::Trigger(LogTypes::LOG_LEVELS level, const char *msg) {
 }
 
 FileLogListener::FileLogListener(const char *filename) {
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 	m_logfile.open(ConvertUTF8ToWString(filename).c_str(), std::ios::app);
 #else
 	m_logfile.open(filename, std::ios::app);

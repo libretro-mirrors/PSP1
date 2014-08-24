@@ -70,12 +70,12 @@ private:
 #define STACKALIGN __attribute__((__force_align_arg_pointer__))
 #endif
 
-#elif defined _WIN32
+#elif defined(_WIN32) && !defined(__MINGW32__)
 
 // Check MSC ver
-	#if !defined _MSC_VER || _MSC_VER <= 1000
-		#error needs at least version 1000 of MSC
-	#endif
+#if !defined _MSC_VER || _MSC_VER <= 1000
+#error needs at least version 1000 of MSC
+#endif
 
 // Memory leak checks
 	#define CHECK_HEAP_INTEGRITY()
@@ -103,7 +103,8 @@ private:
 #endif
 
 // Windows compatibility
-#ifndef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
+#else
 #include <limits.h>
 #ifndef MAX_PATH
 #define MAX_PATH PATH_MAX
@@ -116,7 +117,9 @@ private:
 #endif
 #endif
 
+#ifndef __forceinline
 #define __forceinline inline __attribute__((always_inline))
+#endif
 #define MEMORY_ALIGNED16(x) __attribute__((aligned(16))) x
 #define GC_ALIGNED32(x) __attribute__((aligned(32))) x
 #define GC_ALIGNED64(x) __attribute__((aligned(64))) x

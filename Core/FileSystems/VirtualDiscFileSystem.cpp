@@ -28,7 +28,7 @@
 #define _WIN32_NO_MINGW
 #endif
 
-#ifdef _WIN32_NO_MINGW
+#ifdef _WIN32
 #include "Common/CommonWindows.h"
 #include <sys/stat.h>
 #else

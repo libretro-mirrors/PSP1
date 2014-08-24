@@ -24,7 +24,11 @@
 #include "file/zip_read.h"
 #include "util/text/utf8.h"
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
+#define _WIN32_NO_MINGW
+#endif
+
+#ifdef _WIN32_NO_MINGW
 #include "Common/CommonWindows.h"
 #include <sys/stat.h>
 #else
@@ -337,7 +341,7 @@ u32 VirtualDiscFileSystem::OpenFile(std::string filename, FileAccess access, con
 		bool success = entry.Open(basePath, fileList[entry.fileIndex].fileName, FILEACCESS_READ);
 
 		if (!success) {
-#ifdef _WIN32
+#ifdef _WIN32_NO_MINGW
 			ERROR_LOG(FILESYS, "VirtualDiscFileSystem::OpenFile: FAILED, %i", GetLastError());
 #else
 			ERROR_LOG(FILESYS, "VirtualDiscFileSystem::OpenFile: FAILED");
@@ -363,7 +367,7 @@ u32 VirtualDiscFileSystem::OpenFile(std::string filename, FileAccess access, con
 	bool success = entry.Open(basePath, filename, access);
 
 	if (!success) {
-#ifdef _WIN32
+#ifdef _WIN32_NO_MINGW
 		ERROR_LOG(FILESYS, "VirtualDiscFileSystem::OpenFile: FAILED, %i - access = %i", GetLastError(), (int)access);
 #else
 		ERROR_LOG(FILESYS, "VirtualDiscFileSystem::OpenFile: FAILED, access = %i", (int)access);
@@ -588,7 +592,7 @@ bool VirtualDiscFileSystem::GetHostPath(const std::string &inpath, std::string &
 	return false;
 }
 
-#ifdef _WIN32
+#ifdef _WIN32_NO_MINGW
 #define FILETIME_FROM_UNIX_EPOCH_US 11644473600000000ULL
 
 static void tmFromFiletime(tm &dest, FILETIME &src)
@@ -604,7 +608,7 @@ static void tmFromFiletime(tm &dest, FILETIME &src)
 std::vector<PSPFileInfo> VirtualDiscFileSystem::GetDirListing(std::string path)
 {
 	std::vector<PSPFileInfo> myVector;
-#ifdef _WIN32
+#ifdef _WIN32_NO_MINGW
 	WIN32_FIND_DATA findData;
 	HANDLE hFind;
 
@@ -781,7 +785,7 @@ VirtualDiscFileSystem::Handler::~Handler() {
 	if (library != NULL) {
 		Shutdown();
 
-#ifdef _WIN32
+#ifdef _WIN32_NO_MINGW
 		FreeLibrary((HMODULE)library);
 #else
 		dlclose(library);

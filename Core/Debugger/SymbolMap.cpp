@@ -21,7 +21,12 @@
 #pragma optimize("gty", on)
 #endif
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
+#define _WIN32_NO_MINGW
+#define _WIN32_USING_UNICODE
+#endif
+
+#ifdef _WIN32_NO_MINGW
 #include "Common/CommonWindows.h"
 #include <WindowsX.h>
 #else
@@ -62,7 +67,7 @@ bool SymbolMap::LoadSymbolMap(const char *filename) {
 
 	lock_guard guard(lock_);
 
-#if defined(_WIN32) && defined(UNICODE)
+#ifdef _WIN32_USING_UNICODE
 	gzFile f = gzopen_w(ConvertUTF8ToWString(filename).c_str(), "r");
 #else
 	gzFile f = gzopen(filename, "r");
@@ -186,7 +191,7 @@ void SymbolMap::SaveSymbolMap(const char *filename) const {
 		return;
 	}
 
-#if defined(_WIN32) && defined(UNICODE)
+#ifdef _WIN32_USING_UNICODE
 	gzFile f = gzopen_w(ConvertUTF8ToWString(filename).c_str(), "w9");
 #else
 	gzFile f = gzopen(filename, "w9");
@@ -942,7 +947,7 @@ DataType SymbolMap::GetDataType(u32 startAddress) const {
 	return it->second.type;
 }
 
-#if defined(_WIN32)
+#if defined(_WIN32_NO_MINGW)
 
 struct DefaultSymbol {
 	u32 address;

@@ -58,13 +58,8 @@ TextureCacheDX9::TextureCacheDX9() : clearCacheNextFrame_(false), lowMemoryMode_
 	tmpTexBufRearrange.resize(1024 * 512);   // 2MB
 	clutBufConverted_ = (u32 *)AllocateAlignedMemory(4096 * sizeof(u32), 16);  // 16KB
 	clutBufRaw_ = (u32 *)AllocateAlignedMemory(4096 * sizeof(u32), 16);  // 16KB
-	// glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAnisotropyLevel);
 	maxAnisotropyLevel = 16;
 	SetupTextureDecoder();
-#ifdef _XBOX
-	// TODO: Maybe not?  This decimates more often, but it may be speed harmful if unnecessary.
-	lowMemoryMode_ = true;
-#endif
 }
 
 TextureCacheDX9::~TextureCacheDX9() {
@@ -206,37 +201,42 @@ inline void AttachFramebufferInvalid(T &entry, VirtualFramebufferDX9 *framebuffe
 }
 
 inline void TextureCacheDX9::AttachFramebuffer(TexCacheEntry *entry, u32 address, VirtualFramebufferDX9 *framebuffer, bool exactMatch) {
-		// If they match exactly, it's non-CLUT and from the top left.
+	// If they match exactly, it's non-CLUT and from the top left.
 	if (exactMatch) {
+		// Apply to non-buffered and buffered mode only.
+		if (!(g_Config.iRenderingMode == FB_NON_BUFFERED_MODE || g_Config.iRenderingMode == FB_BUFFERED_MODE))
+			return;
+
 		DEBUG_LOG(G3D, "Render to texture detected at %08x!", address);
 		if (!entry->framebuffer || entry->invalidHint == -1) {
 				if (entry->format != framebuffer->format) {
 				WARN_LOG_REPORT_ONCE(diffFormat1, G3D, "Render to texture with different formats %d != %d", entry->format, framebuffer->format);
 				// If it already has one, let's hope that one is correct.
-				// If "AttachFramebufferValid" , Evangelion Jo and Kurohyou 2 will be 'blue background' in-game
 				AttachFramebufferInvalid(entry, framebuffer);
 			} else {
 				AttachFramebufferValid(entry, framebuffer);
 			}
 		// TODO: Delete the original non-fbo texture too.
-	}
-		} else if (g_Config.iRenderingMode == FB_NON_BUFFERED_MODE || g_Config.iRenderingMode == FB_BUFFERED_MODE) {
-			// 3rd Birthday (and possibly other games) render to a 16 bit clut texture.
-			const bool compatFormat = framebuffer->format == entry->format
-				|| (framebuffer->format == GE_FORMAT_8888 && entry->format == GE_TFMT_CLUT32)
-				|| (framebuffer->format != GE_FORMAT_8888 && entry->format == GE_TFMT_CLUT16);
+		}
+	} else {
+		// Apply to buffered mode only.
+		if (!(g_Config.iRenderingMode == FB_BUFFERED_MODE))
+			return;
 
-			// Is it at least the right stride?
-			if (framebuffer->fb_stride == entry->bufw && compatFormat) {
-				if (framebuffer->format != entry->format) {
+		// 3rd Birthday (and possibly other games) render to a 16 bit clut texture.
+		const bool compatFormat = framebuffer->format == entry->format
+			|| (framebuffer->format == GE_FORMAT_8888 && entry->format == GE_TFMT_CLUT32)
+			|| (framebuffer->format != GE_FORMAT_8888 && entry->format == GE_TFMT_CLUT16);
+
+		// Is it at least the right stride?
+		if (framebuffer->fb_stride == entry->bufw && compatFormat) {
+			if (framebuffer->format != entry->format) {
 				WARN_LOG_REPORT_ONCE(diffFormat2, G3D, "Render to texture with different formats %d != %d at %08x", entry->format, framebuffer->format, address);
-					// TODO: Use an FBO to translate the palette?
-				// If 'AttachFramebufferInvalid' , Kurohyou 2 will be missing battle scene in-game and FF Type-0 will have black box shadow/'blue fog' and 3rd birthday will have 'blue fog'
-				// If 'AttachFramebufferValid' , DBZ VS Tag will have 'burning effect' , 
-					AttachFramebufferValid(entry, framebuffer);
-				} else if ((entry->addr - address) / entry->bufw < framebuffer->height) {
+				// TODO: Use an FBO to translate the palette?
+				AttachFramebufferValid(entry, framebuffer);
+			} else if ((entry->addr - address) / entry->bufw < framebuffer->height) {
 				WARN_LOG_REPORT_ONCE(subarea, G3D, "Render to area containing texture at %08x", address);
-					// TODO: Keep track of the y offset.
+				// TODO: Keep track of the y offset.
 				// If "AttachFramebufferValid" ,  God of War Ghost of Sparta/Chains of Olympus will be missing special effect.
 				AttachFramebufferInvalid(entry, framebuffer);
 			}
@@ -526,21 +526,13 @@ void TextureCacheDX9::UpdateSamplingParams(TexCacheEntry &entry, bool force) {
 	dxstate.texMagFilter.set(MagFilt[magFilt]);
 	dxstate.texAddressU.set(sClamp ? D3DTADDRESS_CLAMP : D3DTADDRESS_WRAP);
 	dxstate.texAddressV.set(tClamp ? D3DTADDRESS_CLAMP : D3DTADDRESS_WRAP);
-	
-#ifdef _XBOX
-	pD3Ddevice->SetRenderState(D3DRS_HALFPIXELOFFSET, TRUE );
-#endif
 }
 
 static inline u32 ABGR2RGBA(u32 src) {
-#ifndef _XBOX
 	return ((src & 0xFF000000)) | 
         ((src & 0x00FF0000) >>  16) | 
         ((src & 0x0000FF00)) | 
         ((src & 0x000000FF) << 16);  
-#else
-	return (src >> 8) | (src << 24); 
-#endif
 }
 
 static void ClutConvertColors(void *dstBuf, const void *srcBuf, u32 dstFmt, int numPixels) {
@@ -638,31 +630,7 @@ static inline u32 QuickTexHash(u32 addr, int bufw, int w, int h, GETextureFormat
 	const u32 *checkp = (const u32 *) Memory::GetPointer(addr);
 	u32 check = 0;
 
-#ifndef _XBOX
 	return DoQuickTexHash(checkp, sizeInRAM);
-#else
-	// TODO: Move this to common tex hash code?  Use hash similar to new texhash?
-	if ((((u32)(intptr_t)checkp | sizeInRAM) & 0x1f) == 0) {
-		__vector4 add, xor;
-		__vector4 cur = __vzero();
-		const __vector4 * ptr = (const __vector4*)checkp;
-		for (u32 i = 0; i < sizeInRAM / 16; i+=2) {
-			add = __lvx(&ptr[i],0);
-			xor = __lvx(&ptr[i+1],0);
-			cur = __vadduwm(cur, add);
-			cur = __vxor(cur, xor);
-		}
-		// Add the four parts into the low i32. // is it possible with vmx ?
-		check = cur.u[0]+cur.u[1]+cur.u[2]+cur.u[3];
-	} else {
-		for (u32 i = 0; i < sizeInRAM / 8; ++i) {
-			check += *checkp++;
-			check ^= *checkp++;
-		}
-	}
-
-	return check;
-#endif
 }
 
 inline bool TextureCacheDX9::TexCacheEntry::Matches(u16 dim2, u8 format2, int maxLevel2) {
@@ -743,7 +711,7 @@ void TextureCacheDX9::SetTextureFramebuffer(TexCacheEntry *entry)
 	if (useBufferedRendering) {
 		// For now, let's not bind FBOs that we know are off (invalidHint will be -1.)
 		// But let's still not use random memory.
-		if (entry->framebuffer->fbo && entry->invalidHint != -1) {
+		if (entry->framebuffer->fbo) {
 			fbo_bind_color_as_texture(entry->framebuffer->fbo, 0);
 			// Keep the framebuffer alive.
 			// TODO: Dangerous if it sets a new one?
@@ -765,7 +733,7 @@ void TextureCacheDX9::SetTextureFramebuffer(TexCacheEntry *entry)
 	}
 }
 
-void TextureCacheDX9::SetTexture() {
+void TextureCacheDX9::SetTexture(bool force) {
 #ifdef DEBUG_TEXTURES
 	if (SetDebugTexture()) {
 		// A different texture was bound, let's rebind next time.
@@ -774,6 +742,9 @@ void TextureCacheDX9::SetTexture() {
 	}
 #endif
 
+	if (force) {
+		lastBoundTexture = INVALID_TEX;
+	}
 	u32 texaddr = gstate.getTextureAddress(0);
 	if (!Memory::IsValidAddress(texaddr)) {
 		// Bind a null texture and return.
@@ -823,9 +794,6 @@ void TextureCacheDX9::SetTexture() {
 		// Validate the texture still matches the cache entry.
 		u16 dim = gstate.getTextureDimension(0);
 		bool match = entry->Matches(dim, format, maxLevel);
-#ifndef _XBOX
-		match &= host->GPUAllowTextureCache(texaddr);
-#endif
 
 		// Check for FBO - slow!
 		if (entry->framebuffer) {
@@ -1343,13 +1311,11 @@ void TextureCacheDX9::CheckAlpha(TexCacheEntry &entry, u32 *pixelData, u32 dstFm
 }
 
 static inline void copyTexture(int xoffset, int yoffset, int w, int h, int pitch, int srcfmt, int fmt, void * pSrc, void * pDst) {
-	// Swap color
 	int y;
 	switch(fmt) {
 		case D3DFMT_R5G6B5:
 		case D3DFMT_A4R4G4B4:
 		case D3DFMT_A1R5G5B5:
-			// Really needed ?
 			for(y = 0; y < h; y++) {
 				const u16 *src = (const u16 *)((u8*)pSrc + (w*2) * y);
 				u16 *dst = (u16*)((u8*)pDst + pitch * y);
@@ -1419,11 +1385,7 @@ void TextureCacheDX9::LoadTextureLevel(TexCacheEntry &entry, int level, bool rep
 			pD3Ddevice->SetTexture(0, entry.texture);
 		} else {
 			// Create texture
-#ifdef _XBOX
-			HRESULT hr = pD3Ddevice->CreateTexture(w, h, 1, 0, (D3DFORMAT)D3DFMT(dstFmt), NULL, &entry.texture, NULL);
-#else
 			HRESULT hr = pD3Ddevice->CreateTexture(w, h, 1, 0, (D3DFORMAT)D3DFMT(dstFmt), D3DPOOL_MANAGED, &entry.texture, NULL);
-#endif
 			if (FAILED(hr)) {
 				INFO_LOG(G3D, "Failed to create D3D texture");
 			} else {

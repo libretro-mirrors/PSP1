@@ -44,7 +44,7 @@ FBO *fbo_create(int width, int height, int num_color_textures, bool z_stencil, F
 	fbo->height = height;
 	fbo->colorDepth = colorDepth;
 
-	HRESULT rtResult = pD3Ddevice->CreateTexture(fbo->width, fbo->height, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &fbo->tex, NULL);
+	HRESULT rtResult = pD3Ddevice->CreateTexture(fbo->width, fbo->height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &fbo->tex, NULL);
 	if (FAILED(rtResult)) {
 		ELOG("Failed to create render target");
 		delete fbo;
@@ -89,8 +89,13 @@ void fbo_bind_as_render_target(FBO *fbo) {
 	pD3Ddevice->SetDepthStencilSurface(fbo->depthstencil);
 }
 
+
+LPDIRECT3DTEXTURE9 fbo_get_color_texture(FBO *fbo) {
+	return fbo->tex;
+}
+
 void fbo_bind_for_read(FBO *fbo) {
-	OutputDebugStringA("fbo_bind_for_read: Fix me\r\n");
+	// pD3Ddevice->SetRenderTarget(0, fbo->surf);
 }
 
 void fbo_bind_color_as_texture(FBO *fbo, int color) {

@@ -180,12 +180,7 @@ private:
 		DWORD mask;
 	public:
 		SavedColorMask() {
-#ifdef _XBOX
-			// Is this the same as OR-ing them? Probably.
-			mask = D3DCOLORWRITEENABLE_ALL;
-#else
 			mask = D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE | D3DCOLORWRITEENABLE_ALPHA;
-#endif
 			DirectxState::state_count++;
 		}
 
@@ -302,6 +297,10 @@ public:
 	CullMode cullMode;
 
 	BoolState<D3DRS_ZENABLE, false> depthTest;
+
+	DxState1<D3DRS_ALPHAFUNC, D3DCMP_ALWAYS> alphaTestFunc;
+	DxState1<D3DRS_ALPHAREF, 0> alphaTestRef;
+	BoolState<D3DRS_ALPHATESTENABLE, false> alphaTest;
 
 	DxState1<D3DRS_ZFUNC, D3DCMP_LESSEQUAL> depthFunc;
 	DxState1<D3DRS_ZWRITEENABLE, TRUE> depthWrite;

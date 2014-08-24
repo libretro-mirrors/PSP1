@@ -749,10 +749,14 @@ void VirtualDiscFileSystem::HandlerLogger(void *arg, HandlerHandle handle, LogTy
 }
 
 VirtualDiscFileSystem::Handler::Handler(const char *filename, VirtualDiscFileSystem *const sys) {
-#ifdef _WIN32
+#if defined(_WIN32_NO_MINGW)
 #define dlopen(name, ignore) (void *)LoadLibrary(ConvertUTF8ToWString(name).c_str())
 #define dlsym(mod, name) GetProcAddress((HMODULE)mod, name)
 #define dlclose(mod) FreeLibrary((HMODULE)mod)
+#elif defined(_WIN32)
+#define dlopen(name, ignore) (void *)LoadLibrary(name)
+#define dlsym(mod, name) GetProcAddress(mod, name)
+#define dlclose(mod) FreeLibrary(mod)
 #endif
 
 	library = dlopen(filename, RTLD_LOCAL | RTLD_NOW);

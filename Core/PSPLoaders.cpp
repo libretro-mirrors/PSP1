@@ -203,7 +203,7 @@ bool Load_PSP_ISO(const char *filename, std::string *error_string)
 
 static std::string NormalizePath(const std::string &path)
 {
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 	char buf[512] = {0};
 	if (GetFullPathNameA(path.c_str(), sizeof(buf) - 1, buf, NULL) == 0)
 		return "";

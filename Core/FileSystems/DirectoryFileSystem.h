@@ -23,7 +23,7 @@
 
 #include "../Core/FileSystems/FileSystem.h"
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 typedef void * HANDLE;
 #endif
 
@@ -59,7 +59,7 @@ bool FixPathCase(std::string& basePath, std::string &path, FixPathCaseBehavior b
 
 struct DirectoryFileHandle
 {
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 	HANDLE hFile;
 #else
 	int hFile;
@@ -68,7 +68,7 @@ struct DirectoryFileHandle
 
 	DirectoryFileHandle()
 	{
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__MINGW32__)
 		hFile = (HANDLE)-1;
 #else
 		hFile = -1;

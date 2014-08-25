@@ -81,6 +81,7 @@
 #include "GPU/ge_constants.h"
 
 #include "GPU/Common/TextureDecoder.h"
+#include "GPU/Common/SplineCommon.h"
 #include "GPU/Common/TransformCommon.h"
 #include "GPU/Directx9/StateMappingDX9.h"
 #include "GPU/Directx9/TextureCacheDX9.h"
@@ -477,10 +478,10 @@ void TransformDrawEngineDX9::SoftwareTransformAndDraw(
 						c1[j] = 0.0f;
 					}
 				} else {
-					c0[0] = gstate.getMaterialAmbientA() / 255.f;
-					c0[1] = gstate.getMaterialAmbientR() / 255.f;
-					c0[2] = gstate.getMaterialAmbientG() / 255.f;
-					c0[3] = gstate.getMaterialAmbientB() / 255.f;
+					c0[0] = gstate.getMaterialAmbientR() / 255.f;
+					c0[1] = gstate.getMaterialAmbientG() / 255.f;
+					c0[2] = gstate.getMaterialAmbientB() / 255.f;
+					c0[3] = gstate.getMaterialAmbientA() / 255.f;
 				}
 
 				if (reader.hasUV()) {
@@ -493,22 +494,28 @@ void TransformDrawEngineDX9::SoftwareTransformAndDraw(
 				// Scale UV?
 			} else {
 				// We do software T&L for now
-				float out[3], norm[3];
-				float pos[3], nrm[3];
+				float out[3];
+				float pos[3];
 				Vec3f normal(0, 0, 1);
+				Vec3f worldnormal(0, 0, 1);
 				reader.ReadPos(pos);
-				if (reader.hasNormal())
-					reader.ReadNrm(nrm);
 
 				if (!vertTypeIsSkinningEnabled(vertType)) {
 					Vec3ByMatrix43(out, pos, gstate.worldMatrix);
 					if (reader.hasNormal()) {
-						Norm3ByMatrix43(norm, nrm, gstate.worldMatrix);
-						normal = Vec3f(norm).Normalized();
+						reader.ReadNrm(normal.AsArray());
+						if (gstate.areNormalsReversed()) {
+							normal = -normal;
+						}
+						Norm3ByMatrix43(worldnormal.AsArray(), normal.AsArray(), gstate.worldMatrix);
+						worldnormal = worldnormal.Normalized();
 					}
 				} else {
 					float weights[8];
 					reader.ReadWeights(weights);
+					if (reader.hasNormal())
+						reader.ReadNrm(normal.AsArray());
+
 					// Skinning
 					Vec3f psum(0,0,0);
 					Vec3f nsum(0,0,0);
@@ -518,9 +525,9 @@ void TransformDrawEngineDX9::SoftwareTransformAndDraw(
 							Vec3f tpos(out);
 							psum += tpos * weights[i];
 							if (reader.hasNormal()) {
-								Norm3ByMatrix43(norm, nrm, gstate.boneMatrix+i*12);
-								Vec3f tnorm(norm);
-								nsum += tnorm * weights[i];
+								Vec3f norm;
+								Norm3ByMatrix43(norm.AsArray(), normal.AsArray(), gstate.boneMatrix+i*12);
+								nsum += norm * weights[i];
 							}
 						}
 					}
@@ -528,8 +535,12 @@ void TransformDrawEngineDX9::SoftwareTransformAndDraw(
 					// Yes, we really must multiply by the world matrix too.
 					Vec3ByMatrix43(out, psum.AsArray(), gstate.worldMatrix);
 					if (reader.hasNormal()) {
-						Norm3ByMatrix43(norm, nsum.AsArray(), gstate.worldMatrix);
-						normal = Vec3f(norm).Normalized();
+						normal = nsum;
+						if (gstate.areNormalsReversed()) {
+							normal = -normal;
+						}
+						Norm3ByMatrix43(worldnormal.AsArray(), normal.AsArray(), gstate.worldMatrix);
+						worldnormal = worldnormal.Normalized();
 					}
 				}
 
@@ -538,16 +549,17 @@ void TransformDrawEngineDX9::SoftwareTransformAndDraw(
 				if (reader.hasColor0()) {
 					reader.ReadColor0(unlitColor);
 				} else {
-					unlitColor[0] = gstate.getMaterialAmbientA() / 255.f;
-					unlitColor[1] = gstate.getMaterialAmbientR() / 255.f;
-					unlitColor[2] = gstate.getMaterialAmbientG() / 255.f;
-					unlitColor[3] = gstate.getMaterialAmbientB() / 255.f;
+					unlitColor[0] = gstate.getMaterialAmbientR() / 255.f;
+					unlitColor[1] = gstate.getMaterialAmbientG() / 255.f;
+					unlitColor[2] = gstate.getMaterialAmbientB() / 255.f;
+					unlitColor[3] = gstate.getMaterialAmbientA() / 255.f;
 				}
-				float litColor0[4];
-				float litColor1[4];
-				lighter.Light(litColor0, litColor1, unlitColor, out, normal);
 
 				if (gstate.isLightingEnabled()) {
+					float litColor0[4];
+					float litColor1[4];
+					lighter.Light(litColor0, litColor1, unlitColor, out, worldnormal);
+
 					// Don't ignore gstate.lmode - we should send two colors in that case
 					for (int j = 0; j < 4; j++) {
 						c0[j] = litColor0[j];
@@ -569,10 +581,10 @@ void TransformDrawEngineDX9::SoftwareTransformAndDraw(
 							c0[j] = unlitColor[j];
 						}
 					} else {
-						c0[0] = gstate.getMaterialAmbientA() / 255.f;
-						c0[1] = gstate.getMaterialAmbientR() / 255.f;
-						c0[2] = gstate.getMaterialAmbientG() / 255.f;
-						c0[3] = gstate.getMaterialAmbientB() / 255.f;
+						c0[0] = gstate.getMaterialAmbientR() / 255.f;
+						c0[1] = gstate.getMaterialAmbientG() / 255.f;
+						c0[2] = gstate.getMaterialAmbientB() / 255.f;
+						c0[3] = gstate.getMaterialAmbientA() / 255.f;
 					}
 					if (lmode) {
 						for (int j = 0; j < 4; j++) {
@@ -609,20 +621,16 @@ void TransformDrawEngineDX9::SoftwareTransformAndDraw(
 							break;
 						
 						case GE_PROJMAP_NORMALIZED_NORMAL: // Use normalized normal as source
-							if (reader.hasNormal()) {
-								source = Vec3f(norm).Normalized();
-							} else {
+							source = normal.Normalized();
+							if (!reader.hasNormal()) {
 								ERROR_LOG_REPORT(G3D, "Normal projection mapping without normal?");
-								source = Vec3f(0.0f, 0.0f, 1.0f);
 							}
 							break;
 						
 						case GE_PROJMAP_NORMAL: // Use non-normalized normal as source!
-							if (reader.hasNormal()) {
-								source = Vec3f(norm);
-							} else {
+							source = normal;
+							if (!reader.hasNormal()) {
 								ERROR_LOG_REPORT(G3D, "Normal projection mapping without normal?");
-								source = Vec3f(0.0f, 0.0f, 1.0f);
 							}
 							break;
 						}
@@ -638,11 +646,11 @@ void TransformDrawEngineDX9::SoftwareTransformAndDraw(
 				case GE_TEXMAP_ENVIRONMENT_MAP:
 					// Shade mapping - use two light sources to generate U and V.
 					{
-						Vec3f lightpos0 = Vec3f(&lighter.lpos[gstate.getUVLS0()]).Normalized();
-						Vec3f lightpos1 = Vec3f(&lighter.lpos[gstate.getUVLS1()]).Normalized();
+						Vec3f lightpos0 = Vec3f(&lighter.lpos[gstate.getUVLS0() * 3]).Normalized();
+						Vec3f lightpos1 = Vec3f(&lighter.lpos[gstate.getUVLS1() * 3]).Normalized();
 
-						uv[0] = (1.0f + Dot(lightpos0, normal))/2.0f;
-						uv[1] = (1.0f - Dot(lightpos1, normal))/2.0f;
+						uv[0] = (1.0f + Dot(lightpos0, worldnormal))/2.0f;
+						uv[1] = (1.0f - Dot(lightpos1, worldnormal))/2.0f;
 						uv[2] = 1.0f;
 					}
 					break;
@@ -1304,6 +1312,133 @@ bool TransformDrawEngineDX9::TestBoundingBox(void* control_points, int vertexCou
 	// the cube is out. Otherwise it's in.
 	// TODO....
 	
+	return true;
+}
+
+// TODO: Probably move this to common code (with normalization?)
+
+static Vec3f ClipToScreen(const Vec4f& coords) {
+	// TODO: Check for invalid parameters (x2 < x1, etc)
+	float vpx1 = getFloat24(gstate.viewportx1);
+	float vpx2 = getFloat24(gstate.viewportx2);
+	float vpy1 = getFloat24(gstate.viewporty1);
+	float vpy2 = getFloat24(gstate.viewporty2);
+	float vpz1 = getFloat24(gstate.viewportz1);
+	float vpz2 = getFloat24(gstate.viewportz2);
+
+	float retx = coords.x * vpx1 / coords.w + vpx2;
+	float rety = coords.y * vpy1 / coords.w + vpy2;
+	float retz = coords.z * vpz1 / coords.w + vpz2;
+
+	// 16 = 0xFFFF / 4095.9375
+	return Vec3f(retx * 16, rety * 16, retz);
+}
+
+static Vec3f ScreenToDrawing(const Vec3f& coords) {
+	Vec3f ret;
+	ret.x = (coords.x - gstate.getOffsetX16()) * (1.0f / 16.0f);
+	ret.y = (coords.y - gstate.getOffsetY16()) * (1.0f / 16.0f);
+	ret.z = coords.z;
+	return ret;
+}
+
+// TODO: This probably is not the best interface.
+bool TransformDrawEngineDX9::GetCurrentSimpleVertices(int count, std::vector<GPUDebugVertex> &vertices, std::vector<u16> &indices) {
+	// This is always for the current vertices.
+	u16 indexLowerBound = 0;
+	u16 indexUpperBound = count - 1;
+
+	bool savedVertexFullAlpha = gstate_c.vertexFullAlpha;
+
+	if ((gstate.vertType & GE_VTYPE_IDX_MASK) != GE_VTYPE_IDX_NONE) {
+		const u8 *inds = Memory::GetPointer(gstate_c.indexAddr);
+		const u16 *inds16 = (const u16 *)inds;
+
+		if (inds) {
+			GetIndexBounds(inds, count, gstate.vertType, &indexLowerBound, &indexUpperBound);
+			indices.resize(count);
+			switch (gstate.vertType & GE_VTYPE_IDX_MASK) {
+			case GE_VTYPE_IDX_16BIT:
+				for (int i = 0; i < count; ++i) {
+					indices[i] = inds16[i];
+				}
+				break;
+			case GE_VTYPE_IDX_8BIT:
+				for (int i = 0; i < count; ++i) {
+					indices[i] = inds[i];
+				}
+				break;
+			default:
+				return false;
+			}
+		} else {
+			indices.clear();
+		}
+	} else {
+		indices.clear();
+	}
+
+	static std::vector<u32> temp_buffer;
+	static std::vector<SimpleVertex> simpleVertices;
+	temp_buffer.resize(std::max((int)indexUpperBound, 8192) * 128 / sizeof(u32));
+	simpleVertices.resize(indexUpperBound + 1);
+	NormalizeVertices((u8 *)(&simpleVertices[0]), (u8 *)(&temp_buffer[0]), Memory::GetPointer(gstate_c.vertexAddr), indexLowerBound, indexUpperBound, gstate.vertType);
+
+	float world[16];
+	float view[16];
+	float worldview[16];
+	float worldviewproj[16];
+	ConvertMatrix4x3To4x4(world, gstate.worldMatrix);
+	ConvertMatrix4x3To4x4(view, gstate.viewMatrix);
+	Matrix4ByMatrix4(worldview, world, view);
+	Matrix4ByMatrix4(worldviewproj, worldview, gstate.projMatrix);
+
+	vertices.resize(indexUpperBound + 1);
+	for (int i = indexLowerBound; i <= indexUpperBound; ++i) {
+		const SimpleVertex &vert = simpleVertices[i];
+
+		if (gstate.isModeThrough()) {
+			if (gstate.vertType & GE_VTYPE_TC_MASK) {
+				vertices[i].u = vert.uv[0];
+				vertices[i].v = vert.uv[1];
+			} else {
+				vertices[i].u = 0.0f;
+				vertices[i].v = 0.0f;
+			}
+			vertices[i].x = vert.pos.x;
+			vertices[i].y = vert.pos.y;
+			vertices[i].z = vert.pos.z;
+			if (gstate.vertType & GE_VTYPE_COL_MASK) {
+				memcpy(vertices[i].c, vert.color, sizeof(vertices[i].c));
+			} else {
+				memset(vertices[i].c, 0, sizeof(vertices[i].c));
+			}
+		} else {
+			float clipPos[4];
+			Vec3ByMatrix44(clipPos, vert.pos.AsArray(), worldviewproj);
+			Vec3f screenPos = ClipToScreen(clipPos);
+			Vec3f drawPos = ScreenToDrawing(screenPos);
+
+			if (gstate.vertType & GE_VTYPE_TC_MASK) {
+				vertices[i].u = vert.uv[0];
+				vertices[i].v = vert.uv[1];
+			} else {
+				vertices[i].u = 0.0f;
+				vertices[i].v = 0.0f;
+			}
+			vertices[i].x = drawPos.x;
+			vertices[i].y = drawPos.y;
+			vertices[i].z = drawPos.z;
+			if (gstate.vertType & GE_VTYPE_COL_MASK) {
+				memcpy(vertices[i].c, vert.color, sizeof(vertices[i].c));
+			} else {
+				memset(vertices[i].c, 0, sizeof(vertices[i].c));
+			}
+		}
+	}
+
+	gstate_c.vertexFullAlpha = savedVertexFullAlpha;
+
 	return true;
 }
 

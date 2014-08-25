@@ -197,7 +197,7 @@ void GenerateVertexShaderDX9(int prim, char *buffer, bool useHWTransform) {
 				GELightType type = gstate.getLightType(i);
 
 				if (type != GE_LIGHTTYPE_DIRECTIONAL)
-					WRITE(p, "float3 u_lightdir%i;\n", i);
+					WRITE(p, "float3 u_lightatt%i;\n", i);
 
 				if (type == GE_LIGHTTYPE_SPOT || type == GE_LIGHTTYPE_UNKNOWN) { 
 					WRITE(p, "float3 u_lightdir%i;\n", i);
@@ -305,7 +305,7 @@ void GenerateVertexShaderDX9(int prim, char *buffer, bool useHWTransform) {
 			// No skinning, just standard T&L.
 			WRITE(p, "  float3 worldpos = mul(float4(In.position.xyz, 1.0), u_world).xyz;\n");
 			if (hasNormal)
-				WRITE(p, "  float3 worldnormal = normalize(	mul(float4(In.normal, 0.0), u_world).xyz);\n");
+				WRITE(p, "  float3 worldnormal = normalize(	mul(float4(In.normal, 0.0), u_world).xyz);\n", flipNormal ? "-" : "");
 			else
 				WRITE(p, "  float3 worldnormal = float3(0.0, 0.0, 1.0);\n");
 		} else {
@@ -380,7 +380,7 @@ void GenerateVertexShaderDX9(int prim, char *buffer, bool useHWTransform) {
 			WRITE(p, "  float3 worldpos = mul(float4(skinnedpos, 1.0), u_world).xyz;\n");
 
 			if (hasNormal) {
-				WRITE(p, "  float3 skinnednormal = mul(float4(In.normal, 0.0), skinMatrix).xyz %s;\n", factor);
+				WRITE(p, "  float3 skinnednormal = mul(float4(%sIn.normal, 0.0), skinMatrix).xyz %s;\n", flipNormal ? "-" : "", factor);
 				WRITE(p, "  float3 worldnormal = normalize(mul(float4(skinnednormal, 0.0), u_world).xyz);\n");
 			} else {
 				WRITE(p, "  float3 worldnormal = mul( mul( float4(0.0, 0.0, 1.0, 0.0), skinMatrix), u_world).xyz;\n");
@@ -538,7 +538,7 @@ void GenerateVertexShaderDX9(int prim, char *buffer, bool useHWTransform) {
 						{
 							static const char *rescaleuv[4] = {"", " * 1.9921875", " * 1.999969482421875", ""}; // 2*127.5f/128.f, 2*32767.5f/32768.f, 1.0f};
 							const char *factor = rescaleuv[(vertType & GE_VTYPE_TC_MASK) >> GE_VTYPE_TC_SHIFT];
-							temp_tc = StringFromFormat("float4(a_texcoord.xy %s, 0.0, 1.0)", factor);
+							temp_tc = StringFromFormat("float4(In.texcoord.xy %s, 0.0, 1.0)", factor);
 						}
 						break;
 					case GE_PROJMAP_NORMALIZED_NORMAL:  // Use normalized transformed normal as source

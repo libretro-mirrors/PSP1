@@ -86,31 +86,7 @@ static void queue_pushPointers(size_t size, s16 **dest1, size_t *sz1, s16 **dest
       *sz2 = mixBufferTail;
    }
    mixBufferCount += (int)size;
-}
 
-static void queue_popPointers(size_t size, const s16 **src1, size_t *sz1, const s16 **src2, size_t *sz2)
-{
-   if ((int)size > mixBufferCount)
-      size = mixBufferCount;
-
-   *src1 = (s16*)&mixBufferQueue[mixBufferHead];
-   if (mixBufferHead + size < MIXBUFFER_QUEUE)
-   {
-      *sz1 = size;
-      mixBufferHead += (int)size;
-      if (mixBufferHead == MIXBUFFER_QUEUE)
-         mixBufferHead = 0;
-      *src2 = 0;
-      *sz2 = 0;
-   }
-   else
-   {
-      *sz1 = MIXBUFFER_QUEUE - mixBufferHead;
-      mixBufferHead = (int)(size - *sz1);
-      *src2 = (s16*)&mixBufferQueue[0];
-      *sz2 = mixBufferHead;
-   }
-   mixBufferCount -= (int)size;
 }
 
 static void queue_DoState(PointerWrap &p)
@@ -451,14 +427,30 @@ void __AudioUpdate()
 // This is called from *outside* the emulator thread.
 int __AudioMix(short *outstereo, int numFrames)
 {
-	const s16 *buf1 = 0, *buf2 = 0;
-	size_t sz1, sz2;
+	const s16 *src1 = (s16*)&mixBufferQueue[mixBufferHead];
+   const s16 *src2 = (s16*)&mixBufferQueue[0];
+   size_t size = numFrames * 2;
+	size_t sz1 = MIXBUFFER_QUEUE - mixBufferHead;
+   size_t sz2 = 0;
 
-   queue_popPointers(numFrames * 2, &buf1, &sz1, &buf2, &sz2);
+   if ((int)size > mixBufferCount)
+      size = mixBufferCount;
 
-   memcpy(outstereo, buf1, sz1 * sizeof(s16));
-   if (buf2)
-      memcpy(outstereo + sz1, buf2, sz2 * sizeof(s16));
+   if (mixBufferHead + size < MIXBUFFER_QUEUE)
+   {
+      sz1 = size;
+      mixBufferHead += (int)size;
+      if (mixBufferHead == MIXBUFFER_QUEUE)
+         mixBufferHead = 0;
+   }
+   else
+   {
+      mixBufferHead = (int)(size - sz1);
+      sz2 = mixBufferHead;
+      memcpy(outstereo + sz1, src2, sz2 * sizeof(s16));
+   }
+   memcpy(outstereo, src1, sz1 * sizeof(s16));
+   mixBufferCount -= (int)size;
 
 	return ((sz1 + sz2) / 2);
 }

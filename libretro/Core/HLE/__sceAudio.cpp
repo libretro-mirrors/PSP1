@@ -51,43 +51,10 @@ static int audioHostIntervalCycles;
 
 #define MIXBUFFER_QUEUE (512 * 16)
 
-static s32 *mixBuffer;
 static s16 mixBufferQueue[MIXBUFFER_QUEUE];
 static int mixBufferHead = 0;
 static int mixBufferTail = 0;
 static int mixBufferCount = 0; // sacrifice 4 bytes for a simpler implementation. may optimize away in the future.
-
-static void queue_clear(void)
-{
-   mixBufferHead = 0;
-   mixBufferTail = 0;
-   mixBufferCount = 0;
-}
-
-// Gets pointers to write to directly.
-static void queue_pushPointers(size_t size, s16 **dest1, size_t *sz1, s16 **dest2, size_t *sz2)
-{
-   *dest1 = (s16*)&mixBufferQueue[mixBufferTail];
-
-   if (mixBufferTail + (int)size < MIXBUFFER_QUEUE)
-   {
-      *sz1 = size;
-      mixBufferTail += (int)size;
-      if (mixBufferTail == MIXBUFFER_QUEUE)
-         mixBufferTail = 0;
-      *dest2 = 0;
-      *sz2 = 0;
-   }
-   else
-   {
-      *sz1 = MIXBUFFER_QUEUE - mixBufferTail;
-      mixBufferTail = (int)(size - *sz1);
-      *dest2 = (s16*)&mixBufferQueue[0];
-      *sz2 = mixBufferTail;
-   }
-   mixBufferCount += (int)size;
-
-}
 
 static void queue_DoState(PointerWrap &p)
 {
@@ -182,10 +149,10 @@ void __AudioInit() {
 	for (u32 i = 0; i < PSP_AUDIO_CHANNEL_MAX + 1; i++)
 		chans[i].clear();
 
-	mixBuffer = new s32[hwBlockSize * 2];
-	memset(mixBuffer, 0, hwBlockSize * 2 * sizeof(s32));
+   mixBufferHead = 0;
+   mixBufferTail = 0;
+   mixBufferCount = 0;
 
-   queue_clear();
 	CoreTiming::RegisterMHzChangeCallback(&__AudioCPUMHzChange);
 }
 
@@ -219,9 +186,6 @@ void __AudioDoState(PointerWrap &p)
 
 void __AudioShutdown()
 {
-	delete [] mixBuffer;
-
-	mixBuffer = 0;
 	for (u32 i = 0; i < PSP_AUDIO_CHANNEL_MAX + 1; i++)
 		chans[i].clear();
 }
@@ -381,7 +345,7 @@ void __AudioUpdate()
 	// Audio throttle doesn't really work on the PSP since the mixing intervals are so closely tied
 	// to the CPU. Much better to throttle the frame rate on frame display and just throw away audio
 	// if the buffer somehow gets full.
-   memset(mixBuffer, 0, hwBlockSize * 2 * sizeof(s32));
+	s32 mixBuffer[hwBlockSize * 2] = {0};
 
 	for (u32 i = 0; i < PSP_AUDIO_CHANNEL_MAX + 1; i++)
    {
@@ -408,18 +372,28 @@ void __AudioUpdate()
    }
 
    {
-      s16 *buf1 = 0, *buf2 = 0;
-      size_t sz1, sz2;
-      queue_pushPointers(hwBlockSize * 2, &buf1, &sz1, &buf2, &sz2);
+      size_t size = hwBlockSize * 2;
+      s16 *dest1 = (s16*)&mixBufferQueue[mixBufferTail];
+      s16 *dest2 = (s16*)&mixBufferQueue[0];
+      size_t sz1 = MIXBUFFER_QUEUE - mixBufferTail;
+
+      if (mixBufferTail + (int)size < MIXBUFFER_QUEUE)
+      {
+         sz1 = size;
+         mixBufferTail += (int)size;
+         if (mixBufferTail == MIXBUFFER_QUEUE)
+            mixBufferTail = 0;
+      }
+      else
+      {
+         size_t sz2 = mixBufferTail = (int)(size - sz1);
+         for (size_t s = 0; s < sz2; s++)
+            dest2[s] = clamp_s16(mixBuffer[s + sz1]);
+      }
+      mixBufferCount += (int)size;
 
       for (size_t s = 0; s < sz1; s++)
-         buf1[s] = clamp_s16(mixBuffer[s]);
-
-      if (buf2)
-      {
-         for (size_t s = 0; s < sz2; s++)
-            buf2[s] = clamp_s16(mixBuffer[s + sz1]);
-      }
+         dest1[s] = clamp_s16(mixBuffer[s]);
    }
 }
 

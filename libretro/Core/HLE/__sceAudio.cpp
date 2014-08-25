@@ -403,12 +403,9 @@ int __AudioMix(short *outstereo, int numFrames)
 {
 	const s16 *src1 = (s16*)&mixBufferQueue[mixBufferHead];
    const s16 *src2 = (s16*)&mixBufferQueue[0];
-   size_t size = numFrames * 2;
+   size_t size = mixBufferCount;
 	size_t sz1 = MIXBUFFER_QUEUE - mixBufferHead;
    size_t sz2 = 0;
-
-   if ((int)size > mixBufferCount)
-      size = mixBufferCount;
 
    if (mixBufferHead + size < MIXBUFFER_QUEUE)
    {

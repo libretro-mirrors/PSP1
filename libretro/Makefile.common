@@ -1,7 +1,6 @@
 INCFLAGS := \
 	-I$(ROOTDIR) \
 	-I$(COMMONDIR) \
-	-I$(LIBRETRODIR)/ext/glew \
 	-I$(EXTDIR)/snappy \
 	-I$(NATIVEDIR)/ext/rg_etc1 \
 	-I$(NATIVEDIR)/ext/stb_vorbis \
@@ -14,7 +13,11 @@ INCFLAGS := \
 	-I$(EXTDIR)/xbrz \
 	-I$(EXTDIR)/xxhash
 
-CFILES   += $(LIBRETRODIR)/ext/glew/glew.c
+ifneq ($(USING_GLES2), 1)
+   CFILES   += $(LIBRETRODIR)/ext/glew/glew.c
+   INCFLAGS += -I$(LIBRETRODIR)/ext/glew
+endif
+
 CXXFILES += $(NATIVEDIR)/ext/rg_etc1/rg_etc1.cpp
 CXXFILES += $(EXTDIR)/snappy/snappy-c.cpp
 CFILES   += $(NATIVEDIR)/ext/stb_vorbis/stb_vorbis.c \
@@ -364,11 +367,16 @@ ifdef WITH_DYNAREC
 						$(COREDIR)/MIPS/ARM/ArmRegCache.cpp \
 						$(COREDIR)/MIPS/ARM/ArmRegCacheFPU.cpp \
 						$(GPUDIR)/GLES/VertexDecoderArm.cpp
+						
 		ifeq ($(HAVE_NEON),1)
 			CXXFILES   += \
 							  $(COREDIR)/MIPS/ARM/ArmCompVFPUNEON.cpp \
 							  $(GPUDIR)/Common/TextureDecoderNEON.cpp
-			ASMFILES   += $(NATIVEDIR)/math/fast/fast_matrix_neon.S
+
+			CFILES += $(NATIVEDIR)/ext/libpng17/arm/arm_init.c
+			ASMFILES   += $(NATIVEDIR)/math/fast/fast_matrix_neon.S \
+							$(NATIVEDIR)/ext/libpng17/arm/filter_neon.S \
+							$(NATIVEDIR)/ext/libpng17/arm/filter_neon_intrinsics.S
 		endif
    else
       ifeq ($(WITH_DYNAREC), x86_64)

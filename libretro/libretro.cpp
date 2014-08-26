@@ -56,6 +56,7 @@ static uint32_t screen_width, screen_height,
 
 // linker stubs
 std::string System_GetProperty(SystemProperty prop) { return ""; }
+int System_GetPropertyInt(SystemProperty prop) { return -1; }
 void NativeUpdate(InputState &input_state) { }
 void NativeRender()
 {
@@ -1018,6 +1019,7 @@ void retro_run(void)
 
       if (!gl_initialized)
       {
+#if !defined(IOS) && !defined(USING_GLES2)
          if (glewInit() != GLEW_OK)
          {
             if (log_cb)
@@ -1025,7 +1027,7 @@ void retro_run(void)
             environ_cb(RETRO_ENVIRONMENT_SHUTDOWN, nullptr);
             return;
          }
-
+#endif
          glstate.Initialize();
          CheckGLExtensions();
          gl_initialized = true;

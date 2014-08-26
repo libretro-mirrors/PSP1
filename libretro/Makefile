@@ -141,12 +141,18 @@ else ifneq (,$(findstring android,$(platform)))
    CXX = arm-linux-androideabi-g++
    WITH_DYNAREC=arm
    GLES = 1
-   PLATCFLAGS += -DANDROID
+	PLATCFLAGS += -DANDROID -DUSING_GLES2
    CPUCFLAGS  += 
    HAVE_NEON = 1
-   CPUFLAGS += -marm -mcpu=cortex-a8 -mfpu=neon -mfloat-abi=softfp -D__arm__ -DARM_ASM -D__NEON_OPT
-   CFLAGS += -DANDROID
-   
+	CPUFLAGS += -marm -mcpu=cortex-a8 -mfpu=neon -mfloat-abi=softfp -D__arm__ -DARM_ASM -D__NEON_OPT
+	CFLAGS += -DANDROID -DUSING_GLES2
+   LDFLAGS += -llog -lGLESv2 -lEGL
+   USING_GLES2 = 1
+
+	FFMPEGINCFLAGS += -I$(FFMPEGDIR)/android/armv7/include
+	FFMPEGLIBDIR :=   $(FFMPEGDIR)/android/armv7/lib
+	FFMPEGLDFLAGS += -L$(FFMPEGLIBDIR) -lavformat -lavcodec -lavutil -lswresample -lswscale
+
    PLATFORM_EXT := unix
 else ifeq ($(platform), qnx)
    fpic = -fPIC
@@ -246,11 +252,14 @@ else
 endif
 
 ### Finalize ###
-OBJECTS    += $(CXXFILES:.cpp=.o) $(CFILES:.c=.o)
+OBJECTS    += $(CXXFILES:.cpp=.o) $(CFILES:.c=.o) $(ASMFILES:.S=.o)
 CXXFLAGS   +=  -std=c++11 $(CPUOPTS) $(COREFLAGS) $(INCFLAGS) $(PLATCFLAGS) $(fpic) $(PLATCFLAGS) $(CPUFLAGS) $(GLFLAGS) $(DYNAFLAGS) 
 CFLAGS     +=  $(CPUOPTS) $(COREFLAGS) $(INCFLAGS) $(PLATCFLAGS) $(fpic) $(PLATCFLAGS) $(CPUFLAGS) $(GLFLAGS) $(DYNAFLAGS)
 
-LDFLAGS    += -lm -lpthread -ldl -lz $(FFMPEGLDFLAGS) $(fpic)
+LDFLAGS    += -lm -ldl -lz $(FFMPEGLDFLAGS) $(fpic)
+ifeq (,$(findstring android,$(platform)))
+LDFLAGS    +=  -lpthread
+endif
 
 all: $(TARGET)
 

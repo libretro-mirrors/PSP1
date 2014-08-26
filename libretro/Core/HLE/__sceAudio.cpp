@@ -345,7 +345,7 @@ void __AudioUpdate()
 	// Audio throttle doesn't really work on the PSP since the mixing intervals are so closely tied
 	// to the CPU. Much better to throttle the frame rate on frame display and just throw away audio
 	// if the buffer somehow gets full.
-	s32 mixBuffer[hwBlockSize * 2] = {0};
+	s32 mixBuffer[hwBlockSize * 2];
 
 	for (u32 i = 0; i < PSP_AUDIO_CHANNEL_MAX + 1; i++)
    {

@@ -72,6 +72,8 @@ static void queue_DoState(PointerWrap &p)
    p.DoMarker("FixedSizeQueueLR");
 }
 
+static s32 *mixBuffer;
+
 // High and low watermarks, basically.  For perfect emulation, the correct values are 0 and 1, respectively.
 // TODO: Tweak. Hm, there aren't actually even used currently...
 static int chanQueueMaxSizeFactor;
@@ -149,6 +151,9 @@ void __AudioInit() {
 	for (u32 i = 0; i < PSP_AUDIO_CHANNEL_MAX + 1; i++)
 		chans[i].clear();
 
+	mixBuffer = new s32[hwBlockSize * 2];
+	memset(mixBuffer, 0, hwBlockSize * 2 * sizeof(s32));
+
    mixBufferHead = 0;
    mixBufferTail = 0;
    mixBufferCount = 0;
@@ -186,6 +191,10 @@ void __AudioDoState(PointerWrap &p)
 
 void __AudioShutdown()
 {
+	delete [] mixBuffer;
+
+	mixBuffer = 0;
+
 	for (u32 i = 0; i < PSP_AUDIO_CHANNEL_MAX + 1; i++)
 		chans[i].clear();
 }
@@ -345,7 +354,7 @@ void __AudioUpdate()
 	// Audio throttle doesn't really work on the PSP since the mixing intervals are so closely tied
 	// to the CPU. Much better to throttle the frame rate on frame display and just throw away audio
 	// if the buffer somehow gets full.
-	s32 mixBuffer[hwBlockSize * 2];
+   memset(mixBuffer, 0, hwBlockSize * 2 * sizeof(s32));
 
 	for (u32 i = 0; i < PSP_AUDIO_CHANNEL_MAX + 1; i++)
    {

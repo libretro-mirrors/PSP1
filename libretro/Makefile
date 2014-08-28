@@ -111,14 +111,18 @@ endif
    PLATFORM_EXT := unix
 else ifneq (,$(findstring ios,$(platform)))
    TARGET := $(TARGET_NAME)_libretro_ios.dylib
-   PLATCFLAGS += -DIOS -marm -mllvm -arm-reserve-r9
+   PLATCFLAGS += -DIOS
    LDFLAGS += -dynamiclib -marm
    fpic = -fPIC
    GLES = 1
    GL_LIB := -framework OpenGLES
+   HAVE_NEON = 1
 
+   FFMPEGINCFLAGS += -I$(FFMPEGDIR)/ios/universal/include
+   FFMPEGLIBDIR :=   $(FFMPEGDIR)/ios/universal/lib
+   FFMPEGLDFLAGS += -L$(FFMPEGLIBDIR) -lavformat -lavcodec -lavutil -lswresample -lswscale
    CC = clang -arch armv7 -isysroot $(IOSSDK)
-   CC_AS = perl ./tools/gas-preprocessor.pl $(CC)
+   CC_AS = $(CC)
    CXX = clang++ -arch armv7 -isysroot $(IOSSDK)
    OSXVER = `sw_vers -productVersion | cut -c 4`
 ifneq ($(OSXVER),9)
@@ -141,13 +145,12 @@ else ifneq (,$(findstring android,$(platform)))
    CXX = arm-linux-androideabi-g++
    WITH_DYNAREC=arm
    GLES = 1
-	PLATCFLAGS += -DANDROID -DUSING_GLES2
+   PLATCFLAGS += -DANDROID 
    CPUCFLAGS  += 
    HAVE_NEON = 1
 	CPUFLAGS += -marm -mcpu=cortex-a8 -mfpu=neon -mfloat-abi=softfp -D__arm__ -DARM_ASM -D__NEON_OPT
-	CFLAGS += -DANDROID -DUSING_GLES2
-   LDFLAGS += -llog -lGLESv2 -lEGL
-   USING_GLES2 = 1
+	CFLAGS += -DANDROID
+	LDFLAGS += -llog -lGLESv2 -lEGL
 
 	FFMPEGINCFLAGS += -I$(FFMPEGDIR)/android/armv7/include
 	FFMPEGLIBDIR :=   $(FFMPEGDIR)/android/armv7/lib
@@ -237,7 +240,7 @@ ifeq ($(SINGLE_THREAD), 1)
 endif
 
 ifeq ($(GLES), 1)
-   GLFLAGS += -DGLES -DHAVE_OPENGLES2 -DUSING_GLES2
+   GLFLAGS += -DGLES -DUSING_GLES2
 else
    GLFLAGS += -DHAVE_OPENGL
 endif

@@ -13,7 +13,7 @@ INCFLAGS := \
 	-I$(EXTDIR)/xbrz \
 	-I$(EXTDIR)/xxhash
 
-ifneq ($(USING_GLES2), 1)
+ifneq ($(GLES), 1)
    CFILES   += $(LIBRETRODIR)/ext/glew/glew.c
    INCFLAGS += -I$(LIBRETRODIR)/ext/glew
 endif

@@ -229,6 +229,11 @@ void retro_init(void)
       retro_base_dir = retro_base_dir.substr(0, last);
       retro_base_dir_found = true;
    }
+
+#ifdef IOS
+   extern bool iosCanUseJit;
+   iosCanUseJit = true;
+#endif
 }
 
 void retro_deinit(void) {

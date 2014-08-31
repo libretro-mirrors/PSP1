@@ -22,6 +22,11 @@
 
 namespace SaveState
 {
+	struct SaveStart
+	{
+		void DoState(PointerWrap &p);
+	};
+
 	typedef void (*Callback)(bool status, void *cbUserData);
 
 	// TODO: Better place for this?

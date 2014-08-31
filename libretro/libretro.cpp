@@ -1,6 +1,7 @@
 #include "libretro.h"
 #include "libretro_host.h"
 
+#include "Common/ChunkFile.h"
 #include "Core/Config.h"
 #include "Core/CoreParameter.h"
 #include "Core/CoreTiming.h"
@@ -1097,21 +1098,32 @@ bool retro_load_game_special(unsigned type, const struct retro_game_info *info, 
 
 size_t retro_serialize_size(void)
 {
-   return 0;
+   // TODO: what is a sane maximum size?
+   return 96 * 1024 * 1024;
 }
 
 bool retro_serialize(void *data, size_t size)
 {
-   (void)data;
    (void)size;
-   return false;
+   SaveState::SaveStart state;
+   size_t sz = CChunkFileReader::MeasurePtr(state);
+
+#if 0
+   if (log_cb)
+      log_cb(RETRO_LOG_INFO, "Savestate size: %u\n", sz);
+#endif
+
+   if (size < sz)
+      return false;
+   else
+      return CChunkFileReader::SavePtr((u8 *) data, state) == CChunkFileReader::ERROR_NONE;
 }
 
 bool retro_unserialize(const void *data, size_t size)
 {
-   (void)data;
    (void)size;
-   return false;
+   SaveState::SaveStart state;
+   return CChunkFileReader::LoadPtr((u8 *) data, state) == CChunkFileReader::ERROR_NONE;
 }
 
 void *retro_get_memory_data(unsigned id)

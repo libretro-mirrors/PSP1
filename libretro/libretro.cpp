@@ -1011,7 +1011,7 @@ void retro_run(void)
    {
       if (input_poll_cb)
          input_poll_cb();
-	   retro_input();
+      retro_input();
    }
 
    if (should_reset)
@@ -1106,6 +1106,10 @@ bool retro_serialize(void *data, size_t size)
 {
    (void)size;
    SaveState::SaveStart state;
+
+   if (!_initialized)
+      return false;
+
    size_t sz = CChunkFileReader::MeasurePtr(state);
 
 #if 0

@@ -17,8 +17,6 @@ endif()
 # Remove soon?
 set(USE_FFMPEG ON)
 
-set(LIBRETRO ON)
-
 if(LIBRETRO)
 	add_definitions(-D__LIBRETRO__)
 	set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--version-script=${CMAKE_SOURCE_DIR}/libretro/link.T")
@@ -801,6 +799,7 @@ else()
 			set(NativeAppSource ${NativeAppSource} android/jni/ArmEmitterTest.cpp)
 		endif()
 		set(nativeExtra ${nativeExtra} ${NativeAppSource})
+	endif()
 endif()
 
 add_library(native STATIC

@@ -4,13 +4,7 @@
 #include <stdio.h>
 #include "base/logging.h"
 #include "fbo.h"
-
-namespace DX9 {
-
-static LPDIRECT3DSURFACE9 deviceRTsurf;
-static LPDIRECT3DSURFACE9 deviceDSsurf;
-
-#define FB_DIV 1
+#include "dx_state.h"
 
 struct FBO {
 	uint32_t id;
@@ -20,8 +14,15 @@ struct FBO {
 
 	int width;
 	int height;
-	FBOColorDepth colorDepth;
+	DX9::FBOColorDepth colorDepth;
 };
+
+namespace DX9 {
+
+static LPDIRECT3DSURFACE9 deviceRTsurf;
+static LPDIRECT3DSURFACE9 deviceDSsurf;
+
+#define FB_DIV 1
 
 void fbo_init() {
 	pD3Ddevice->GetRenderTarget(0, &deviceRTsurf);
@@ -87,6 +88,8 @@ void fbo_resolve(FBO *fbo) {
 void fbo_bind_as_render_target(FBO *fbo) {
 	pD3Ddevice->SetRenderTarget(0, fbo->surf);
 	pD3Ddevice->SetDepthStencilSurface(fbo->depthstencil);
+	dxstate.scissorRect.restore();
+	dxstate.viewport.restore();
 }
 
 

@@ -99,6 +99,7 @@ public:
 	bool bFuncReplacements;
 	bool bUnsafeFuncReplacements;
 	bool bSetRoundingMode;
+	bool bForceFlushToZero;
 
 	// Definitely cannot be changed while game is running.
 	bool bSeparateCPUThread;
@@ -162,6 +163,7 @@ public:
 	bool bAlphaMaskHack;
 	bool bBlockTransferGPU;
 	bool bDisableSlowFramebufEffects;
+	bool bFragmentTestCache;
 	int iSplineBezierQuality; // 0 = low , 1 = Intermediate , 2 = High
 	std::string sPostShaderName;  // Off for off.
 

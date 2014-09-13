@@ -31,6 +31,7 @@
 #include "GPU/ge_constants.h"
 #include "GPU/GeDisasm.h"
 
+#include "GPU/Common/FramebufferCommon.h"
 #include "GPU/Directx9/helper/global.h"
 #include "GPU/Directx9/ShaderManagerDX9.h"
 #include "GPU/Directx9/GPU_DX9.h"
@@ -388,6 +389,8 @@ DIRECTX9_GPU::DIRECTX9_GPU()
 	transformDraw_.SetFramebufferManager(&framebufferManager_);
 	framebufferManager_.SetTextureCache(&textureCache_);
 	framebufferManager_.SetShaderManager(shaderManager_);
+	textureCache_.SetFramebufferManager(&framebufferManager_);
+	textureCache_.SetShaderManager(shaderManager_);
 
 	// Sanity check gstate
 	if ((int *)&gstate.transferstart - (int *)&gstate != 0xEA) {
@@ -490,9 +493,6 @@ void DIRECTX9_GPU::BeginFrameInternal() {
 	}
 	shaderManager_->DirtyShader();
 
-	// Not sure if this is really needed.
-	shaderManager_->DirtyUniform(DIRTY_ALL);
-
 	framebufferManager_.BeginFrame();
 }
 
@@ -509,7 +509,7 @@ bool DIRECTX9_GPU::FramebufferDirty() {
 		// Allow it to process fully before deciding if it's dirty.
 		SyncThread();
 	}
-	VirtualFramebufferDX9 *vfb = framebufferManager_.GetDisplayVFB();
+	VirtualFramebuffer *vfb = framebufferManager_.GetDisplayVFB();
 	if (vfb) {
 		bool dirty = vfb->dirtyAfterDisplay;
 		vfb->dirtyAfterDisplay = false;
@@ -526,7 +526,7 @@ bool DIRECTX9_GPU::FramebufferReallyDirty() {
 		SyncThread();
 	}
 
-	VirtualFramebufferDX9 *vfb = framebufferManager_.GetDisplayVFB();
+	VirtualFramebuffer *vfb = framebufferManager_.GetDisplayVFB();
 	if (vfb) {
 		bool dirty = vfb->reallyDirtyAfterDisplay;
 		vfb->reallyDirtyAfterDisplay = false;
@@ -1410,7 +1410,7 @@ void DIRECTX9_GPU::ExecuteOpInternal(u32 op, u32 diff) {
 void DIRECTX9_GPU::UpdateStats() {
 	gpuStats.numVertexShaders = shaderManager_->NumVertexShaders();
 	gpuStats.numFragmentShaders = shaderManager_->NumFragmentShaders();
-	gpuStats.numShaders = shaderManager_->NumPrograms();
+	gpuStats.numShaders = -1;
 	gpuStats.numTextures = (int)textureCache_.NumLoadedTextures();
 	gpuStats.numFBOs = (int)framebufferManager_.NumVFBs();
 }
@@ -1536,10 +1536,13 @@ void DIRECTX9_GPU::ClearCacheNextFrame() {
 
 void DIRECTX9_GPU::Resized() {
 	framebufferManager_.Resized();
+	transformDraw_.Resized();
 }
+
 void DIRECTX9_GPU::ClearShaderCache() {
 	shaderManager_->ClearCache(true);
 }
+
 std::vector<FramebufferInfo> DIRECTX9_GPU::GetFramebufferList() {
 	return framebufferManager_.GetFramebufferList();
 }
@@ -1582,6 +1585,7 @@ bool DIRECTX9_GPU::GetCurrentTexture(GPUDebugBuffer &buffer, int level) {
 
 	LPDIRECT3DBASETEXTURE9 baseTex;
 	LPDIRECT3DTEXTURE9 tex;
+	LPDIRECT3DSURFACE9 offscreen = nullptr;
 	HRESULT hr;
 
 	bool success;
@@ -1594,24 +1598,41 @@ bool DIRECTX9_GPU::GetCurrentTexture(GPUDebugBuffer &buffer, int level) {
 			tex->GetLevelDesc(level, &desc);
 			RECT rect = {0, 0, desc.Width, desc.Height};
 			hr = tex->LockRect(level, &locked, &rect, D3DLOCK_READONLY);
+
+			// If it fails, this means it's a render-to-texture, so we have to get creative.
+			if (FAILED(hr)) {
+				LPDIRECT3DSURFACE9 renderTarget = nullptr;
+				hr = tex->GetSurfaceLevel(level, &renderTarget);
+				if (renderTarget && SUCCEEDED(hr)) {
+					hr = pD3Ddevice->CreateOffscreenPlainSurface(desc.Width, desc.Height, desc.Format, D3DPOOL_SYSTEMMEM, &offscreen, NULL);
+					if (SUCCEEDED(hr)) {
+						hr = pD3Ddevice->GetRenderTargetData(renderTarget, offscreen);
+						if (SUCCEEDED(hr)) {
+							hr = offscreen->LockRect(&locked, &rect, D3DLOCK_READONLY);
+						}
+					}
+					renderTarget->Release();
+				}
+			}
+
 			if (SUCCEEDED(hr)) {
 				GPUDebugBufferFormat fmt;
 				int pixelSize;
 				switch (desc.Format) {
 				case D3DFMT_A1R5G5B5:
-					fmt = GPU_DBG_FORMAT_5551_BGRA;
+					fmt = gstate_c.bgraTexture ? GPU_DBG_FORMAT_5551 : GPU_DBG_FORMAT_5551_BGRA;
 					pixelSize = 2;
 					break;
 				case D3DFMT_A4R4G4B4:
-					fmt = GPU_DBG_FORMAT_4444_BGRA;
+					fmt = gstate_c.bgraTexture ? GPU_DBG_FORMAT_4444 : GPU_DBG_FORMAT_4444_BGRA;
 					pixelSize = 2;
 					break;
 				case D3DFMT_R5G6B5:
-					fmt = GPU_DBG_FORMAT_565_BGRA;
+					fmt = gstate_c.bgraTexture ? GPU_DBG_FORMAT_565 : GPU_DBG_FORMAT_565_BGRA;
 					pixelSize = 2;
 					break;
 				case D3DFMT_A8R8G8B8:
-					fmt = GPU_DBG_FORMAT_8888_BGRA;
+					fmt = gstate_c.bgraTexture ? GPU_DBG_FORMAT_8888 : GPU_DBG_FORMAT_8888_BGRA;
 					pixelSize = 4;
 					break;
 				default:
@@ -1626,7 +1647,12 @@ bool DIRECTX9_GPU::GetCurrentTexture(GPUDebugBuffer &buffer, int level) {
 				} else {
 					success = false;
 				}
-				tex->UnlockRect(level);
+				if (offscreen) {
+					offscreen->UnlockRect();
+					offscreen->Release();
+				} else {
+					tex->UnlockRect(level);
+				}
 			}
 			tex->Release();
 		}

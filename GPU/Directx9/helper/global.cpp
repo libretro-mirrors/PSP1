@@ -5,47 +5,42 @@
 namespace DX9 {
 
 LPDIRECT3DDEVICE9 pD3Ddevice = NULL;
+LPDIRECT3DDEVICE9EX pD3DdeviceEx = NULL;
 LPDIRECT3D9 pD3D = NULL;
 
 static const char * vscode =
-  " float4x4 matWVP : register(c0);              "
-  "                                              "
-	" struct VS_IN {                               "
-  "		float4 ObjPos   : POSITION;              "                 
-	"		float2 Uv    : TEXCOORD0;                 "  // Vertex color
-  " };                                           "
-  "                                              "
-	" struct VS_OUT {                              "
-  "		float4 ProjPos  : POSITION;              " 
-	"		float2 Uv    : TEXCOORD0;                 "  // Vertex color
-  " };                                           "
-  "                                              "
-	" VS_OUT main( VS_IN In ) {                    "
-  "		VS_OUT Out;                              "
-	"		Out.ProjPos = In.ObjPos;  "  // Transform vertex into
-	"		Out.Uv = In.Uv;			"
-  "		return Out;                              "  // Transfer color
-  " }                                            ";
+  "struct VS_IN {\n"
+  "  float4 ObjPos   : POSITION;\n"
+  "  float2 Uv    : TEXCOORD0;\n"
+  "};"
+  "struct VS_OUT {\n"
+  "  float4 ProjPos  : POSITION;\n"
+  "  float2 Uv    : TEXCOORD0;\n"
+  "};\n"
+  "VS_OUT main( VS_IN In ) {\n"
+  "  VS_OUT Out;\n"
+  "  Out.ProjPos = In.ObjPos;\n"
+  "  Out.Uv = In.Uv;\n"
+  "  return Out;\n"
+  "}\n";
 
 //--------------------------------------------------------------------------------------
 // Pixel shader
 //--------------------------------------------------------------------------------------
 static const char * pscode =
-	" sampler s: register(s0);					   "
-	" struct PS_IN {                                "
-	"     float2 Uv : TEXCOORD0;                   "
-	" };                                           "
-	"                                              "
-	" float4 main( PS_IN In ) : COLOR {            "
-	"   float4 c =  tex2D(s, In.Uv)  ;           "
-	"   c.a = 1.0f;"
-	"   return c;								   "
-	" }                                            ";
+  "sampler s: register(s0);\n"
+  "struct PS_IN {\n"
+  "  float2 Uv : TEXCOORD0;\n"
+  "};\n"
+  "float4 main( PS_IN In ) : COLOR {\n"
+  "  float4 c =  tex2D(s, In.Uv);\n"
+  "  c.a = 1.0f;\n"
+  "  return c;\n"
+  "}\n";
 
 IDirect3DVertexDeclaration9* pFramebufferVertexDecl = NULL;
 
-static const D3DVERTEXELEMENT9  VertexElements[] =
-{
+static const D3DVERTEXELEMENT9 VertexElements[] = {
 	{ 0, 0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
 	{ 0, 12, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
 	D3DDECL_END()
@@ -53,8 +48,7 @@ static const D3DVERTEXELEMENT9  VertexElements[] =
 
 IDirect3DVertexDeclaration9* pSoftVertexDecl = NULL;
 
-static const D3DVERTEXELEMENT9  SoftTransVertexElements[] =
-{
+static const D3DVERTEXELEMENT9 SoftTransVertexElements[] = {
 	{ 0, 0, D3DDECLTYPE_FLOAT4, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
 	{ 0, 16, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
 	{ 0, 28, D3DDECLTYPE_UBYTE4N, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR, 0 },
@@ -65,9 +59,7 @@ static const D3DVERTEXELEMENT9  SoftTransVertexElements[] =
 LPDIRECT3DVERTEXSHADER9      pFramebufferVertexShader = NULL; // Vertex Shader
 LPDIRECT3DPIXELSHADER9       pFramebufferPixelShader = NULL;  // Pixel Shader
 
-bool CompilePixelShader(const char * code, LPDIRECT3DPIXELSHADER9 * pShader, LPD3DXCONSTANTTABLE * pShaderTable) {
-	LPD3DXCONSTANTTABLE shaderTable = *pShaderTable;
-
+bool CompilePixelShader(const char *code, LPDIRECT3DPIXELSHADER9 *pShader, LPD3DXCONSTANTTABLE *pShaderTable, std::string &errorMessage) {
 	ID3DXBuffer* pShaderCode = NULL;
 	ID3DXBuffer* pErrorMsg = NULL;
 
@@ -79,16 +71,22 @@ bool CompilePixelShader(const char * code, LPDIRECT3DPIXELSHADER9 * pShader, LPD
 		NULL,
 		NULL,
 		"main",
-		"ps_3_0",
+		"ps_2_0",
 		0,
 		&pShaderCode,
 		&pErrorMsg,
 		pShaderTable);
 
-	if( FAILED(hr) )
-	{
-		OutputDebugStringA((CHAR*)pErrorMsg->GetBufferPointer());
-		DebugBreak();
+	if (pErrorMsg) {
+		errorMessage = (CHAR *)pErrorMsg->GetBufferPointer();
+		pErrorMsg->Release();
+	} else {
+		errorMessage = "";
+	}
+
+	if (FAILED(hr)) {
+		if (pShaderCode)
+			pShaderCode->Release();
 		return false;
 	}
 
@@ -101,9 +99,7 @@ bool CompilePixelShader(const char * code, LPDIRECT3DPIXELSHADER9 * pShader, LPD
 	return true;
 }
 
-bool CompileVertexShader(const char * code, LPDIRECT3DVERTEXSHADER9 * pShader, LPD3DXCONSTANTTABLE * pShaderTable) {
-	LPD3DXCONSTANTTABLE shaderTable = *pShaderTable;
-
+bool CompileVertexShader(const char *code, LPDIRECT3DVERTEXSHADER9 *pShader, LPD3DXCONSTANTTABLE *pShaderTable, std::string &errorMessage) {
 	ID3DXBuffer* pShaderCode = NULL;
 	ID3DXBuffer* pErrorMsg = NULL;
 
@@ -115,16 +111,22 @@ bool CompileVertexShader(const char * code, LPDIRECT3DVERTEXSHADER9 * pShader, L
 		NULL,
 		NULL,
 		"main",
-		"vs_3_0",
+		"vs_2_0",
 		0,
 		&pShaderCode,
 		&pErrorMsg,
 		pShaderTable);
 
-	if( FAILED(hr) )
-	{
-		OutputDebugStringA((CHAR*)pErrorMsg->GetBufferPointer());
-		DebugBreak();
+	if (pErrorMsg) {
+		errorMessage = (CHAR *)pErrorMsg->GetBufferPointer();
+		pErrorMsg->Release();
+	} else {
+		errorMessage = "";
+	}
+
+	if (FAILED(hr)) {
+		if (pShaderCode)
+			pShaderCode->Release();
 		return false;
 	}
 
@@ -154,9 +156,12 @@ void CompileShaders() {
 		&pErrorMsg,
 		NULL);
 
-	if( FAILED(hr) )
-	{
+	if (pErrorMsg) {
 		OutputDebugStringA((CHAR*)pErrorMsg->GetBufferPointer());
+		pErrorMsg->Release();
+	}
+
+	if (FAILED(hr)) {
 		DebugBreak();
 	}
 
@@ -165,6 +170,10 @@ void CompileShaders() {
 		&pFramebufferVertexShader );
 
 	pShaderCode->Release();
+	if (pErrorMsg) {
+		OutputDebugStringA((CHAR*)pErrorMsg->GetBufferPointer());
+		pErrorMsg->Release();
+	}
 
 	// Compile pixel shader.
 	hr = dyn_D3DXCompileShader(pscode,
@@ -178,9 +187,12 @@ void CompileShaders() {
 		&pErrorMsg,
 		NULL);
 
-	if( FAILED(hr) )
-	{
+	if (pErrorMsg) {
 		OutputDebugStringA((CHAR*)pErrorMsg->GetBufferPointer());
+		pErrorMsg->Release();
+	}
+
+	if (FAILED(hr)) {
 		DebugBreak();
 	}
 
@@ -196,6 +208,20 @@ void CompileShaders() {
 	pD3Ddevice->CreateVertexDeclaration( SoftTransVertexElements, &pSoftVertexDecl );
 }
 
+void DestroyShaders() {
+	if (pFramebufferVertexShader) {
+		pFramebufferVertexShader->Release();
+	}
+	if (pFramebufferPixelShader) {
+		pFramebufferPixelShader->Release();
+	}
+	if (pFramebufferVertexDecl) {
+		pFramebufferVertexDecl->Release();
+	}
+	if (pSoftVertexDecl) {
+		pSoftVertexDecl->Release();
+	}
+}
 
 bool useVsync = false;
 
@@ -230,7 +256,6 @@ void DirectxInit(HWND window) {
 		// TODO
 	}
 
-	
 #ifdef _XBOX
 	pD3Ddevice->SetRingBufferParameters( &d3dr );
 #endif

@@ -751,3 +751,13 @@ void TransformDrawEngine::ApplyDrawState(int prim) {
 		glstate.depthRange.set(depthRangeMin, depthRangeMax);
 	}
 }
+
+void TransformDrawEngine::ApplyDrawStateLate() {
+	// At this point, we know if the vertices are full alpha or not.
+	// TODO: Set the nearest/linear here (since we correctly know if alpha/color tests are needed)?
+	if (!gstate.isModeClear()) {
+		if (gstate.isAlphaTestEnabled() || gstate.isColorTestEnabled()) {
+			fragmentTestCache_->BindTestTexture(GL_TEXTURE2);
+		}
+	}
+}

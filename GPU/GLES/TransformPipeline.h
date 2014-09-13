@@ -21,7 +21,7 @@
 
 #include "GPU/Common/GPUDebugInterface.h"
 #include "GPU/Common/IndexGenerator.h"
-#include "GPU/GLES/VertexDecoder.h"
+#include "GPU/Common/VertexDecoderCommon.h"
 #include "gfx/gl_common.h"
 #include "gfx/gl_lost_manager.h"
 
@@ -29,6 +29,7 @@ class LinkedShader;
 class ShaderManager;
 class TextureCache;
 class FramebufferManager;
+class FragmentTestCache;
 struct TransformedVertex;
 
 struct DecVtxFormat;
@@ -116,6 +117,9 @@ public:
 	void SetFramebufferManager(FramebufferManager *fbManager) {
 		framebufferManager_ = fbManager;
 	}
+	void SetFragmentTestCache(FragmentTestCache *testCache) {
+		fragmentTestCache_ = testCache;
+	}
 	void InitDeviceObjects();
 	void DestroyDeviceObjects();
 	void GLLost();
@@ -175,6 +179,7 @@ private:
 	void DoFlush();
 	void SoftwareTransformAndDraw(int prim, u8 *decoded, LinkedShader *program, int vertexCount, u32 vertexType, void *inds, int indexType, const DecVtxFormat &decVtxFormat, int maxIndex);
 	void ApplyDrawState(int prim);
+	void ApplyDrawStateLate();
 	void ApplyBlendState();
 	void ApplyStencilReplaceOnly();
 	bool ApplyShaderBlending();
@@ -236,6 +241,7 @@ private:
 	ShaderManager *shaderManager_;
 	TextureCache *textureCache_;
 	FramebufferManager *framebufferManager_;
+	FragmentTestCache *fragmentTestCache_;
 
 	enum { MAX_DEFERRED_DRAW_CALLS = 128 };
 	DeferredDrawCall drawCalls[MAX_DEFERRED_DRAW_CALLS];
@@ -249,4 +255,5 @@ private:
 	UVScale *uvScale;
 
 	bool fboTexBound_;
+	VertexDecoderOptions decOptions_;
 };

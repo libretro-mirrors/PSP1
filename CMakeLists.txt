@@ -1024,8 +1024,7 @@ if(ARM)
 		Core/MIPS/ARM/ArmRegCache.h
 		Core/MIPS/ARM/ArmRegCacheFPU.cpp
 		Core/MIPS/ARM/ArmRegCacheFPU.h
-		GPU/GLES/VertexDecoderArm.cpp
-		GPU/GLES/VertexDecoder.h
+		GPU/Common/VertexDecoderArm.cpp
 		ext/disarm.cpp)
 elseif(X86)
 	set(CoreExtra ${CoreExtra}
@@ -1045,8 +1044,7 @@ elseif(X86)
 		Core/MIPS/x86/RegCache.h
 		Core/MIPS/x86/RegCacheFPU.cpp
 		Core/MIPS/x86/RegCacheFPU.h
-		GPU/GLES/VertexDecoderX86.cpp
-		GPU/GLES/VertexDecoder.h
+		GPU/Common/VertexDecoderX86.cpp
 		ext/disarm.cpp)
 endif()
 
@@ -1328,6 +1326,8 @@ if(ARMV7)
 	set(GPU_NEON GPU/Common/TextureDecoderNEON.cpp)
 endif()
 add_library(GPU OBJECT
+	GPU/Common/FramebufferCommon.cpp
+	GPU/Common/FramebufferCommon.h
 	GPU/Common/GPUDebugInterface.h
 	GPU/Common/VertexDecoderCommon.cpp
 	GPU/Common/VertexDecoderCommon.h
@@ -1351,6 +1351,8 @@ add_library(GPU OBJECT
 	GPU/GLES/GLES_GPU.h
 	GPU/GLES/FragmentShaderGenerator.cpp
 	GPU/GLES/FragmentShaderGenerator.h
+	GPU/GLES/FragmentTestCache.cpp
+	GPU/GLES/FragmentTestCache.h
 	GPU/GLES/Framebuffer.cpp
 	GPU/GLES/Framebuffer.h
 	GPU/GLES/ShaderManager.cpp
@@ -1366,8 +1368,6 @@ add_library(GPU OBJECT
 	GPU/GLES/TransformPipeline.cpp
 	GPU/GLES/TransformPipeline.h
 	GPU/GLES/SoftwareTransform.cpp
-	GPU/GLES/VertexDecoder.cpp
-	GPU/GLES/VertexDecoder.h
 	GPU/GLES/VertexShaderGenerator.cpp
 	GPU/GLES/VertexShaderGenerator.h
 	GPU/GPUInterface.h

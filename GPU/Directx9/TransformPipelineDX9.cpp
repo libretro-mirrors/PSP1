@@ -83,10 +83,10 @@
 #include "GPU/Common/TextureDecoder.h"
 #include "GPU/Common/SplineCommon.h"
 #include "GPU/Common/TransformCommon.h"
+#include "GPU/Common/VertexDecoderCommon.h"
 #include "GPU/Directx9/StateMappingDX9.h"
 #include "GPU/Directx9/TextureCacheDX9.h"
 #include "GPU/Directx9/TransformPipelineDX9.h"
-#include "GPU/Directx9/VertexDecoderDX9.h"
 #include "GPU/Directx9/ShaderManagerDX9.h"
 #include "GPU/Directx9/GPU_DX9.h"
 
@@ -144,6 +144,12 @@ TransformDrawEngineDX9::TransformDrawEngineDX9()
 	numDrawCalls(0),
 	vertexCountInDrawCalls(0),
 	uvScale(0) {
+
+	memset(&decOptions_, 0, sizeof(decOptions_));
+	decOptions_.expandAllUVtoFloat = true;
+	decOptions_.expandAllWeightsToFloat = true;
+	decOptions_.expand8BitNormalsToFloat = true;
+
 	decimationCounter_ = VERTEXCACHE_DECIMATION_INTERVAL;
 	// Allocate nicely aligned memory. Maybe graphics drivers will
 	// appreciate it.
@@ -152,8 +158,8 @@ TransformDrawEngineDX9::TransformDrawEngineDX9()
 	decIndex = (u16 *)AllocateMemoryPages(DECODED_INDEX_BUFFER_SIZE);
 	transformed = (TransformedVertex *)AllocateMemoryPages(TRANSFORMED_VERTEX_BUFFER_SIZE);
 	transformedExpanded = (TransformedVertex *)AllocateMemoryPages(3 * TRANSFORMED_VERTEX_BUFFER_SIZE);
-	quadIndices_ = new u16[6 * QUAD_INDICES_MAX];
 
+	quadIndices_ = new u16[6 * QUAD_INDICES_MAX];
 	for (int i = 0; i < QUAD_INDICES_MAX; i++) {
 		quadIndices_[i * 6 + 0] = i * 4;
 		quadIndices_[i * 6 + 1] = i * 4 + 2;
@@ -167,6 +173,9 @@ TransformDrawEngineDX9::TransformDrawEngineDX9()
 		uvScale = new UVScale[MAX_DEFERRED_DRAW_CALLS];
 	}
 	indexGen.Setup(decIndex);
+
+	decJitCache_ = new VertexDecoderJitCache();
+
 	InitDeviceObjects();
 }
 
@@ -177,12 +186,21 @@ TransformDrawEngineDX9::~TransformDrawEngineDX9() {
 	FreeMemoryPages(transformed, TRANSFORMED_VERTEX_BUFFER_SIZE);
 	FreeMemoryPages(transformedExpanded, 3 * TRANSFORMED_VERTEX_BUFFER_SIZE);
 
+	for (auto decl = vertexDeclMap_.begin(); decl != vertexDeclMap_.end(); ++decl) {
+		if (decl->second) {
+			decl->second->Release();
+		}
+	}
+
 	delete [] quadIndices_;
 	
 	for (auto iter = decoderMap_.begin(); iter != decoderMap_.end(); iter++) {
 		delete iter->second;
 	}
 	delete [] uvScale;
+
+	delete decJitCache_;
+
 }
 
 void TransformDrawEngineDX9::InitDeviceObjects() {
@@ -229,10 +247,6 @@ static void VertexAttribSetup(D3DVERTEXELEMENT9 * VertexElement, u8 fmt, u8 offs
 	VertexElement->UsageIndex = usage_index;
 }
 
-static IDirect3DVertexDeclaration9* pHardwareVertexDecl = NULL;
-static std::map<u32, IDirect3DVertexDeclaration9 *> vertexDeclMap;
-static D3DVERTEXELEMENT9 VertexElements[8];
-
 // TODO: Use VBO and get rid of the vertexData pointers - with that, we will supply only offsets
 static void LogDecFmtForDraw(const DecVtxFormat &decFmt) {
 	// Vertices Elements orders
@@ -269,28 +283,28 @@ static void LogDecFmtForDraw(const DecVtxFormat &decFmt) {
 	//pD3Ddevice->SetRenderState(D3DRS_FILLMODE, D3DFILL_WIREFRAME);
 }
 
-static void SetupDecFmtForDraw(LinkedShaderDX9 *program, const DecVtxFormat &decFmt, u32 pspFmt) {
-	auto vertexDeclCached = vertexDeclMap.find(pspFmt);
+IDirect3DVertexDeclaration9 *TransformDrawEngineDX9::SetupDecFmtForDraw(VSShader *vshader, const DecVtxFormat &decFmt, u32 pspFmt) {
+	auto vertexDeclCached = vertexDeclMap_.find(pspFmt);
 
-	if (vertexDeclCached==vertexDeclMap.end()) {
-		D3DVERTEXELEMENT9 * VertexElement = &VertexElements[0];
-		int offset = 0;
+	if (vertexDeclCached == vertexDeclMap_.end()) {
+		D3DVERTEXELEMENT9 VertexElements[8];
+		D3DVERTEXELEMENT9 *VertexElement = &VertexElements[0];
 
 		// Vertices Elements orders
 		// WEIGHT
 		if (decFmt.w0fmt != 0) {
-			VertexAttribSetup(VertexElement, decFmt.w0fmt, decFmt.w0off, D3DDECLUSAGE_BLENDWEIGHT, 0);
+			VertexAttribSetup(VertexElement, decFmt.w0fmt, decFmt.w0off, D3DDECLUSAGE_TEXCOORD, 1);
 			VertexElement++;
 		}
 
 		if (decFmt.w1fmt != 0) {
-			VertexAttribSetup(VertexElement, decFmt.w1fmt, decFmt.w1off, D3DDECLUSAGE_BLENDWEIGHT, 1);
+			VertexAttribSetup(VertexElement, decFmt.w1fmt, decFmt.w1off, D3DDECLUSAGE_TEXCOORD, 2);
 			VertexElement++;
 		}
 
 		// TC
 		if (decFmt.uvfmt != 0) {
-			VertexAttribSetup(VertexElement, decFmt.uvfmt, decFmt.uvoff, D3DDECLUSAGE_TEXCOORD);
+			VertexAttribSetup(VertexElement, decFmt.uvfmt, decFmt.uvoff, D3DDECLUSAGE_TEXCOORD, 0);
 			VertexElement++;
 		}
 
@@ -320,7 +334,8 @@ static void SetupDecFmtForDraw(LinkedShaderDX9 *program, const DecVtxFormat &dec
 		D3DVERTEXELEMENT9 end = D3DDECL_END();
 		memcpy(VertexElement, &end, sizeof(D3DVERTEXELEMENT9));
 	
-		// Create declaration	
+		// Create declaration
+		IDirect3DVertexDeclaration9 *pHardwareVertexDecl = nullptr;
 		HRESULT hr = pD3Ddevice->CreateVertexDeclaration( VertexElements, &pHardwareVertexDecl );
 		if (FAILED(hr)) {
 			// Log
@@ -329,10 +344,11 @@ static void SetupDecFmtForDraw(LinkedShaderDX9 *program, const DecVtxFormat &dec
 		}
 
 		// Add it to map
-		vertexDeclMap[pspFmt] = pHardwareVertexDecl;
+		vertexDeclMap_[pspFmt] = pHardwareVertexDecl;
+		return pHardwareVertexDecl;
 	} else {
 		// Set it from map
-		pHardwareVertexDecl = vertexDeclCached->second;
+		return vertexDeclCached->second;
 	}
 }
 
@@ -433,7 +449,7 @@ bool TransformDrawEngineDX9::IsReallyAClear(int numVerts) const {
 // Actually again, single quads could be drawn more efficiently using GL_TRIANGLE_STRIP, no need to duplicate verts as for
 // GL_TRIANGLES. Still need to sw transform to compute the extra two corners though.
 void TransformDrawEngineDX9::SoftwareTransformAndDraw(
-	int prim, u8 *decoded, LinkedShaderDX9 *program, int vertexCount, u32 vertType, void *inds, int indexType, const DecVtxFormat &decVtxFormat, int maxIndex) {
+	int prim, u8 *decoded, int vertexCount, u32 vertType, void *inds, int indexType, const DecVtxFormat &decVtxFormat, int maxIndex) {
 		
 		bool throughmode = (vertType & GE_VTYPE_THROUGH_MASK) != 0;
 		bool lmode = gstate.isUsingSecondaryColor() && gstate.isLightingEnabled();
@@ -771,12 +787,12 @@ void TransformDrawEngineDX9::SoftwareTransformAndDraw(
 		}
 }
 
-VertexDecoderDX9 *TransformDrawEngineDX9::GetVertexDecoder(u32 vtype) {
+VertexDecoder *TransformDrawEngineDX9::GetVertexDecoder(u32 vtype) {
 	auto iter = decoderMap_.find(vtype);
 	if (iter != decoderMap_.end())
 		return iter->second;
-	VertexDecoderDX9 *dec = new VertexDecoderDX9(); 
-	dec->SetVertexType(vtype);
+	VertexDecoder*dec = new VertexDecoder(); 
+	dec->SetVertexType(vtype, decOptions_, decJitCache_);
 	decoderMap_[vtype] = dec;
 	return dec;
 }
@@ -1053,9 +1069,9 @@ void TransformDrawEngineDX9::DoFlush() {
 	GEPrimitiveType prim = prevPrim_;
 	ApplyDrawState(prim);
 
-	LinkedShaderDX9 *program = shaderManager_->ApplyShader(prim, lastVType_);
+	VSShader *vshader = shaderManager_->ApplyShader(prim, lastVType_);
 
-		if (program->useHWTransform_) {
+	if (vshader->UseHWTransform()) {
 			LPDIRECT3DVERTEXBUFFER9 vb_ = NULL;
 			LPDIRECT3DINDEXBUFFER9 ib_ = NULL;
 
@@ -1064,7 +1080,12 @@ void TransformDrawEngineDX9::DoFlush() {
 			bool useElements = true;
 
 			// Cannot cache vertex data with morph enabled.
-			if (g_Config.bVertexCache && !(lastVType_ & GE_VTYPE_MORPHCOUNT_MASK)) {
+			bool useCache = g_Config.bVertexCache && !(lastVType_ & GE_VTYPE_MORPHCOUNT_MASK);
+			// Also avoid caching when software skinning.
+			if (g_Config.bSoftwareSkinning && (lastVType_ & GE_VTYPE_WEIGHT_MASK))
+				useCache = false;
+
+			if (useCache) {
 				u32 id = ComputeFastDCID();
 				auto iter = vai_.find(id);
 				VertexArrayInfoDX9 *vai;
@@ -1088,6 +1109,8 @@ void TransformDrawEngineDX9::DoFlush() {
 						vai->numVerts = indexGen.VertexCount();
 						vai->prim = indexGen.Prim();
 						vai->maxIndex = indexGen.MaxIndex();
+						vai->flags = gstate_c.vertexFullAlpha ? VAI_FLAG_VERTEXFULLALPHA : 0;
+
 						goto rotateVBO;
 					}
 
@@ -1163,6 +1186,7 @@ void TransformDrawEngineDX9::DoFlush() {
 							gpuStats.numCachedDrawCalls++;
 							useElements = vai->ebo ? true : false;
 							gpuStats.numCachedVertsDrawn += vai->numVerts;
+							gstate_c.vertexFullAlpha = vai->flags & VAI_FLAG_VERTEXFULLALPHA;
 						}
 						vb_ = vai->vbo;
 						ib_ = vai->ebo;
@@ -1188,6 +1212,8 @@ void TransformDrawEngineDX9::DoFlush() {
 						
 						maxIndex = vai->maxIndex;
 						prim = static_cast<GEPrimitiveType>(vai->prim);
+
+						gstate_c.vertexFullAlpha = vai->flags & VAI_FLAG_VERTEXFULLALPHA;
 						break;
 					}
 
@@ -1217,8 +1243,14 @@ rotateVBO:
 			}
 
 			DEBUG_LOG(G3D, "Flush prim %i! %i verts in one go", prim, vertexCount);
+			bool hasColor = (lastVType_ & GE_VTYPE_COL_MASK) != GE_VTYPE_COL_NONE;
+			if (gstate.isModeThrough()) {
+				gstate_c.vertexFullAlpha = gstate_c.vertexFullAlpha && (hasColor || gstate.getMaterialAmbientA() == 255);
+			} else {
+				gstate_c.vertexFullAlpha = gstate_c.vertexFullAlpha && ((hasColor && (gstate.materialupdate & 1)) || gstate.getMaterialAmbientA() == 255) && (!gstate.isLightingEnabled() || gstate.getAmbientA() == 255);
+			}
 
-			SetupDecFmtForDraw(program, dec_->GetDecVtxFmt(), dec_->VertexType());
+			IDirect3DVertexDeclaration9 *pHardwareVertexDecl = SetupDecFmtForDraw(vshader, dec_->GetDecVtxFmt(), dec_->VertexType());
 
 			if (pHardwareVertexDecl) {
 				pD3Ddevice->SetVertexDeclaration(pHardwareVertexDecl);
@@ -1242,6 +1274,13 @@ rotateVBO:
 			}
 		} else {
 			DecodeVerts();
+			bool hasColor = (lastVType_ & GE_VTYPE_COL_MASK) != GE_VTYPE_COL_NONE;
+			if (gstate.isModeThrough()) {
+				gstate_c.vertexFullAlpha = gstate_c.vertexFullAlpha && (hasColor || gstate.getMaterialAmbientA() == 255);
+			} else {
+				gstate_c.vertexFullAlpha = gstate_c.vertexFullAlpha && ((hasColor && (gstate.materialupdate & 1)) || gstate.getMaterialAmbientA() == 255) && (!gstate.isLightingEnabled() || gstate.getAmbientA() == 255);
+			}
+
 			gpuStats.numUncachedVertsDrawn += indexGen.VertexCount();
 			prim = indexGen.Prim();
 			// Undo the strip optimization, not supported by the SW code yet.
@@ -1250,7 +1289,7 @@ rotateVBO:
 			DEBUG_LOG(G3D, "Flush prim %i SW! %i verts in one go", prim, indexGen.VertexCount());
 
 			SoftwareTransformAndDraw(
-				prim, decoded, program, indexGen.VertexCount(), 
+				prim, decoded, indexGen.VertexCount(), 
 				dec_->VertexType(), (void *)decIndex, GE_VTYPE_IDX_16BIT, dec_->GetDecVtxFmt(),
 				indexGen.MaxIndex());
 		}
@@ -1260,8 +1299,21 @@ rotateVBO:
 		numDrawCalls = 0;
 		vertexCountInDrawCalls = 0;
 		prevPrim_ = GE_PRIM_INVALID;
+		gstate_c.vertexFullAlpha = true;
 
 		host->GPUNotifyDraw();
+}
+
+void TransformDrawEngineDX9::Resized() {
+	decJitCache_->Clear();
+	lastVType_ = -1;
+	dec_ = NULL;
+	for (auto iter = decoderMap_.begin(); iter != decoderMap_.end(); iter++) {
+		delete iter->second;
+	}
+	decoderMap_.clear();
+
+	// ...
 }
 
 bool TransformDrawEngineDX9::TestBoundingBox(void* control_points, int vertexCount, u32 vertType) {
@@ -1336,6 +1388,10 @@ static Vec3f ScreenToDrawing(const Vec3f& coords) {
 	ret.y = (coords.y - gstate.getOffsetY16()) * (1.0f / 16.0f);
 	ret.z = coords.z;
 	return ret;
+}
+
+bool TransformDrawEngineDX9::IsCodePtrVertexDecoder(const u8 *ptr) const {
+	return decJitCache_->IsInSpace(ptr);
 }
 
 // TODO: This probably is not the best interface.

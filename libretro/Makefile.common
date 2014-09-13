@@ -103,6 +103,8 @@ CFILES   += $(NATIVEDIR)/ext/libzip/zip_get_archive_comment.c \
 				$(NATIVEDIR)/ext/libpng17/pngtrans.c \
 				$(NATIVEDIR)/ext/libzip/zip_source_free.c
 CXXFILES += $(GPUCOMMONDIR)/VertexDecoderCommon.cpp \
+				$(GPUCOMMONDIR)/DrawEngineCommon.cpp \
+				$(GPUCOMMONDIR)/SplineCommon.cpp \
 				$(GPUCOMMONDIR)/FramebufferCommon.cpp
 CFILES   += $(NATIVEDIR)/ext/libzip/zip_source_function.c \
 				$(NATIVEDIR)/ext/libzip/zip_source_zip.c \

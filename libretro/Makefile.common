@@ -102,7 +102,8 @@ CFILES   += $(NATIVEDIR)/ext/libzip/zip_get_archive_comment.c \
 				$(NATIVEDIR)/ext/libzip/zip_source_filep.c \
 				$(NATIVEDIR)/ext/libpng17/pngtrans.c \
 				$(NATIVEDIR)/ext/libzip/zip_source_free.c
-CXXFILES += $(GPUCOMMONDIR)/VertexDecoderCommon.cpp
+CXXFILES += $(GPUCOMMONDIR)/VertexDecoderCommon.cpp \
+				$(GPUCOMMONDIR)/FramebufferCommon.cpp
 CFILES   += $(NATIVEDIR)/ext/libzip/zip_source_function.c \
 				$(NATIVEDIR)/ext/libzip/zip_source_zip.c \
 				$(NATIVEDIR)/ext/libzip/zip_stat.c \
@@ -126,6 +127,7 @@ CXXFILES += $(GPUCOMMONDIR)/TextureDecoder.cpp \
 				$(GPUDIR)/GLES/DepalettizeShader.cpp \
 				$(GPUDIR)/GLES/GLES_GPU.cpp \
 				$(GPUDIR)/GLES/FragmentShaderGenerator.cpp \
+				$(GPUDIR)/GLES/FragmentTestCache.cpp \
 				$(GPUDIR)/GLES/TransformPipeline.cpp \
 				$(GPUDIR)/GLES/Framebuffer.cpp \
 				$(NATIVEDIR)/base/backtrace.cpp \
@@ -150,7 +152,6 @@ CXXFILES += $(NATIVEDIR)/file/chunk_file.cpp \
 				$(GPUDIR)/GLES/SoftwareTransform.cpp \
 				$(NATIVEDIR)/file/dialog.cpp \
 				$(NATIVEDIR)/file/easy_file.cpp \
-				$(GPUDIR)/GLES/VertexDecoder.cpp \
 				$(NATIVEDIR)/file/fd_util.cpp \
 				$(NATIVEDIR)/file/file_util.cpp \
 				$(NATIVEDIR)/file/ini_file.cpp \
@@ -400,7 +401,7 @@ ifdef WITH_DYNAREC
 						$(COREDIR)/MIPS/x86/JitSafeMem.cpp \
 						$(COREDIR)/MIPS/x86/RegCache.cpp \
 						$(COREDIR)/MIPS/x86/RegCacheFPU.cpp \
-						$(GPUDIR)/GLES/VertexDecoderX86.cpp
+						$(GPUDIR)/Common/VertexDecoderX86.cpp
 		CFILES   += $(NATIVEDIR)/math/fast/fast_matrix_sse.c
    endif
 endif

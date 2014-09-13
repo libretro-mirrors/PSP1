@@ -146,10 +146,11 @@ CXXFILES += $(GPUCOMMONDIR)/TextureDecoder.cpp \
 				$(NATIVEDIR)/data/compression.cpp \
 				$(GPUDIR)/GLES/StencilBuffer.cpp \
 				$(NATIVEDIR)/ext/vjson/block_allocator.cpp \
+				$(GPUDIR)/Common/TextureCacheCommon.cpp \
 				$(GPUDIR)/GLES/TextureCache.cpp \
 				$(GPUDIR)/GLES/TextureScaler.cpp
 CXXFILES += $(NATIVEDIR)/file/chunk_file.cpp \
-				$(GPUDIR)/GLES/SoftwareTransform.cpp \
+				$(GPUDIR)/Common/SoftwareTransformCommon.cpp \
 				$(NATIVEDIR)/file/dialog.cpp \
 				$(NATIVEDIR)/file/easy_file.cpp \
 				$(NATIVEDIR)/file/fd_util.cpp \

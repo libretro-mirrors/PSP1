@@ -22,6 +22,7 @@
 #include "GPU/Common/GPUDebugInterface.h"
 #include "GPU/Common/IndexGenerator.h"
 #include "GPU/Common/VertexDecoderCommon.h"
+#include "GPU/Common/DrawEngineCommon.h"
 #include "gfx/gl_common.h"
 #include "gfx/gl_lost_manager.h"
 
@@ -77,6 +78,7 @@ public:
 	};
 
 	u32 hash;
+	u32 minihash;
 
 	Status status;
 
@@ -98,7 +100,7 @@ public:
 };
 
 // Handles transform, lighting and drawing.
-class TransformDrawEngine : public GfxResourceHolder {
+class TransformDrawEngine : public DrawEngineCommon, public GfxResourceHolder {
 public:
 	TransformDrawEngine();
 	virtual ~TransformDrawEngine();
@@ -191,7 +193,9 @@ private:
 	// Preprocessing for spline/bezier
 	u32 NormalizeVertices(u8 *outPtr, u8 *bufPtr, const u8 *inPtr, int lowerBound, int upperBound, u32 vertType);
 
+	u32 ComputeMiniHash();
 	u32 ComputeHash();  // Reads deferred vertex data.
+	void MarkUnreliable(VertexArrayInfo *vai);
 
 	VertexDecoder *GetVertexDecoder(u32 vtype);
 

@@ -9,9 +9,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Core", "..\Core\Core.vcxpro
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Common", "..\Common\Common.vcxproj", "{3FCDBAE2-5103-4350-9A8E-848CE9C73195}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GPU", "..\GPU\GPU.vcxproj", "{457F45D2-556F-47BC-A31D-AFF0D15BEAED}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GPU", "GPU.vcxproj", "{457F45D2-556F-47BC-A31D-AFF0D15BEAED}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "native", "..\native\native.vcxproj", "{C4DF647E-80EA-4111-A0A8-218B1B711E18}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "native", "native.vcxproj", "{C4DF647E-80EA-4111-A0A8-218B1B711E18}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zlib", "..\ext\zlib\zlib.vcxproj", "{F761046E-6C38-4428-A5F1-38391A37BB34}"
 EndProject
@@ -77,32 +77,32 @@ Global
 		{3FCDBAE2-5103-4350-9A8E-848CE9C73195}.Release|x64.Build.0 = Release|x64
 		{457F45D2-556F-47BC-A31D-AFF0D15BEAED}.Debug (libretro)|Win32.ActiveCfg = Debug|Win32
 		{457F45D2-556F-47BC-A31D-AFF0D15BEAED}.Debug (libretro)|Win32.Build.0 = Debug|Win32
-		{457F45D2-556F-47BC-A31D-AFF0D15BEAED}.Debug (libretro)|x64.ActiveCfg = Debug (libretro)|x64
-		{457F45D2-556F-47BC-A31D-AFF0D15BEAED}.Debug (libretro)|x64.Build.0 = Debug (libretro)|x64
+		{457F45D2-556F-47BC-A31D-AFF0D15BEAED}.Debug (libretro)|x64.ActiveCfg = Debug|x64
+		{457F45D2-556F-47BC-A31D-AFF0D15BEAED}.Debug (libretro)|x64.Build.0 = Debug|x64
 		{457F45D2-556F-47BC-A31D-AFF0D15BEAED}.Debug|Win32.ActiveCfg = Debug|Win32
 		{457F45D2-556F-47BC-A31D-AFF0D15BEAED}.Debug|Win32.Build.0 = Debug|Win32
 		{457F45D2-556F-47BC-A31D-AFF0D15BEAED}.Debug|x64.ActiveCfg = Debug|x64
 		{457F45D2-556F-47BC-A31D-AFF0D15BEAED}.Debug|x64.Build.0 = Debug|x64
-		{457F45D2-556F-47BC-A31D-AFF0D15BEAED}.Release (libretro)|Win32.ActiveCfg = Release (libretro)|Win32
-		{457F45D2-556F-47BC-A31D-AFF0D15BEAED}.Release (libretro)|Win32.Build.0 = Release (libretro)|Win32
-		{457F45D2-556F-47BC-A31D-AFF0D15BEAED}.Release (libretro)|x64.ActiveCfg = Release (libretro)|x64
-		{457F45D2-556F-47BC-A31D-AFF0D15BEAED}.Release (libretro)|x64.Build.0 = Release (libretro)|x64
+		{457F45D2-556F-47BC-A31D-AFF0D15BEAED}.Release (libretro)|Win32.ActiveCfg = Release|Win32
+		{457F45D2-556F-47BC-A31D-AFF0D15BEAED}.Release (libretro)|Win32.Build.0 = Release|Win32
+		{457F45D2-556F-47BC-A31D-AFF0D15BEAED}.Release (libretro)|x64.ActiveCfg = Release|x64
+		{457F45D2-556F-47BC-A31D-AFF0D15BEAED}.Release (libretro)|x64.Build.0 = Release|x64
 		{457F45D2-556F-47BC-A31D-AFF0D15BEAED}.Release|Win32.ActiveCfg = Release|Win32
 		{457F45D2-556F-47BC-A31D-AFF0D15BEAED}.Release|Win32.Build.0 = Release|Win32
 		{457F45D2-556F-47BC-A31D-AFF0D15BEAED}.Release|x64.ActiveCfg = Release|x64
 		{457F45D2-556F-47BC-A31D-AFF0D15BEAED}.Release|x64.Build.0 = Release|x64
 		{C4DF647E-80EA-4111-A0A8-218B1B711E18}.Debug (libretro)|Win32.ActiveCfg = Debug|Win32
 		{C4DF647E-80EA-4111-A0A8-218B1B711E18}.Debug (libretro)|Win32.Build.0 = Debug|Win32
-		{C4DF647E-80EA-4111-A0A8-218B1B711E18}.Debug (libretro)|x64.ActiveCfg = Debug (libretro)|x64
-		{C4DF647E-80EA-4111-A0A8-218B1B711E18}.Debug (libretro)|x64.Build.0 = Debug (libretro)|x64
+		{C4DF647E-80EA-4111-A0A8-218B1B711E18}.Debug (libretro)|x64.ActiveCfg = Debug|x64
+		{C4DF647E-80EA-4111-A0A8-218B1B711E18}.Debug (libretro)|x64.Build.0 = Debug|x64
 		{C4DF647E-80EA-4111-A0A8-218B1B711E18}.Debug|Win32.ActiveCfg = Debug|Win32
 		{C4DF647E-80EA-4111-A0A8-218B1B711E18}.Debug|Win32.Build.0 = Debug|Win32
 		{C4DF647E-80EA-4111-A0A8-218B1B711E18}.Debug|x64.ActiveCfg = Debug|x64
 		{C4DF647E-80EA-4111-A0A8-218B1B711E18}.Debug|x64.Build.0 = Debug|x64
-		{C4DF647E-80EA-4111-A0A8-218B1B711E18}.Release (libretro)|Win32.ActiveCfg = Release (libretro)|Win32
-		{C4DF647E-80EA-4111-A0A8-218B1B711E18}.Release (libretro)|Win32.Build.0 = Release (libretro)|Win32
-		{C4DF647E-80EA-4111-A0A8-218B1B711E18}.Release (libretro)|x64.ActiveCfg = Release (libretro)|x64
-		{C4DF647E-80EA-4111-A0A8-218B1B711E18}.Release (libretro)|x64.Build.0 = Release (libretro)|x64
+		{C4DF647E-80EA-4111-A0A8-218B1B711E18}.Release (libretro)|Win32.ActiveCfg = Release|Win32
+		{C4DF647E-80EA-4111-A0A8-218B1B711E18}.Release (libretro)|Win32.Build.0 = Release|Win32
+		{C4DF647E-80EA-4111-A0A8-218B1B711E18}.Release (libretro)|x64.ActiveCfg = Release|x64
+		{C4DF647E-80EA-4111-A0A8-218B1B711E18}.Release (libretro)|x64.Build.0 = Release|x64
 		{C4DF647E-80EA-4111-A0A8-218B1B711E18}.Release|Win32.ActiveCfg = Release|Win32
 		{C4DF647E-80EA-4111-A0A8-218B1B711E18}.Release|Win32.Build.0 = Release|Win32
 		{C4DF647E-80EA-4111-A0A8-218B1B711E18}.Release|x64.ActiveCfg = Release|x64

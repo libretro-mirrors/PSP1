@@ -1,0 +1,648 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{533F1D30-D04D-47CC-AD71-20F658907E36}</ProjectGuid>
+    <RootNamespace>Core</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v120_xp</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v120_xp</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v120_xp</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v120_xp</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..\ffmpeg\WindowsInclude;..\ffmpeg\Windows\x86\include;../common;..;../native;../native/ext/glew;../ext/zlib</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>USING_WIN_UI;_CRT_SECURE_NO_WARNINGS;USE_FFMPEG;WIN32;_DEBUG;_LIB;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MinimalRebuild>false</MinimalRebuild>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <PreBuildEvent>
+      <Command>../Windows/git-version-gen.cmd</Command>
+      <Message>Updating git-version.cpp</Message>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..\ffmpeg\WindowsInclude;..\ffmpeg\Windows\x86_64\include;../common;..;../native;../native/ext/glew;../ext/zlib</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>USING_WIN_UI;_CRT_SECURE_NO_WARNINGS;USE_FFMPEG;WIN32;_DEBUG;_LIB;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <OmitFramePointers>false</OmitFramePointers>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MinimalRebuild>false</MinimalRebuild>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <PreBuildEvent>
+      <Command>../Windows/git-version-gen.cmd</Command>
+      <Message>Updating git-version.cpp</Message>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>..\ffmpeg\WindowsInclude;..\ffmpeg\Windows\x86\include;../common;..;../native;../native/ext/glew;../ext/zlib</AdditionalIncludeDirectories>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <PreprocessorDefinitions>USING_WIN_UI;_CRT_SECURE_NO_WARNINGS;USE_FFMPEG;WIN32;_LIB;NDEBUG;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <CustomBuildStep />
+    <PreBuildEvent>
+      <Command>../Windows/git-version-gen.cmd</Command>
+      <Message>Updating git-version.cpp</Message>
+    </PreBuildEvent>
+    <Lib>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>..\ffmpeg\WindowsInclude;..\ffmpeg\Windows\x86_64\include;../common;..;../native;../native/ext/glew;../ext/zlib</AdditionalIncludeDirectories>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <OmitFramePointers>false</OmitFramePointers>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <PreprocessorDefinitions>__LIBRETRO__;_CRT_SECURE_NO_WARNINGS;USE_FFMPEG;WIN32;_LIB;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <PreBuildEvent>
+      <Command>../Windows/git-version-gen.cmd</Command>
+      <Message>Updating git-version.cpp</Message>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\ext\disarm.cpp" />
+    <ClCompile Include="..\ext\snappy\snappy-c.cpp" />
+    <ClCompile Include="..\ext\snappy\snappy.cpp" />
+    <ClCompile Include="..\git-version.cpp" />
+    <ClCompile Include="..\Core\Config.cpp" />
+    <ClCompile Include="..\Core\Core.cpp" />
+    <ClCompile Include="..\Core\CoreTiming.cpp" />
+    <ClCompile Include="..\Core\Cwcheat.cpp" />
+    <ClCompile Include="..\Core\Debugger\Breakpoints.cpp" />
+    <ClCompile Include="..\Core\Debugger\DisassemblyManager.cpp" />
+    <ClCompile Include="..\Core\Debugger\SymbolMap.cpp" />
+    <ClCompile Include="..\Core\Dialog\PSPGamedataInstallDialog.cpp" />
+    <ClCompile Include="..\Core\Dialog\PSPDialog.cpp" />
+    <ClCompile Include="..\Core\Dialog\PSPMsgDialog.cpp" />
+    <ClCompile Include="..\Core\Dialog\PSPNetconfDialog.cpp" />
+    <ClCompile Include="..\Core\Dialog\PSPOskDialog.cpp" />
+    <ClCompile Include="..\Core\Dialog\PSPPlaceholderDialog.cpp" />
+    <ClCompile Include="..\Core\Dialog\PSPSaveDialog.cpp" />
+    <ClCompile Include="..\Core\Dialog\PSPScreenshotDialog.cpp" />
+    <ClCompile Include="..\Core\Dialog\SavedataParam.cpp" />
+    <ClCompile Include="..\Core\ELF\ElfReader.cpp" />
+    <ClCompile Include="..\Core\ELF\ParamSFO.cpp" />
+    <ClCompile Include="..\Core\ELF\PBPReader.cpp" />
+    <ClCompile Include="..\Core\ELF\PrxDecrypter.cpp" />
+    <ClCompile Include="..\Core\FileSystems\BlockDevices.cpp" />
+    <ClCompile Include="..\Core\FileSystems\DirectoryFileSystem.cpp" />
+    <ClCompile Include="..\Core\FileSystems\ISOFileSystem.cpp" />
+    <ClCompile Include="..\Core\FileSystems\FileSystem.cpp" />
+    <ClCompile Include="..\Core\FileSystems\MetaFileSystem.cpp" />
+    <ClCompile Include="..\Core\FileSystems\tlzrc.cpp" />
+    <ClCompile Include="..\Core\FileSystems\VirtualDiscFileSystem.cpp" />
+    <ClCompile Include="..\Core\Font\PGF.cpp" />
+    <ClCompile Include="..\Core\HDRemaster.cpp" />
+    <ClCompile Include="..\Core\HLE\HLE.cpp" />
+    <ClCompile Include="..\Core\HLE\HLEHelperThread.cpp" />
+    <ClCompile Include="..\Core\HLE\HLETables.cpp" />
+    <ClCompile Include="..\Core\HLE\proAdhoc.cpp" />
+    <ClCompile Include="..\Core\HLE\ReplaceTables.cpp" />
+    <ClCompile Include="..\Core\HLE\sceAtrac.cpp" />
+    <ClCompile Include="..\Core\HLE\sceAudio.cpp" />
+    <ClCompile Include="..\Core\HLE\sceAudiocodec.cpp" />
+    <ClCompile Include="..\Core\HLE\sceCcc.cpp" />
+    <ClCompile Include="..\Core\HLE\sceChnnlsv.cpp" />
+    <ClCompile Include="..\Core\HLE\sceCtrl.cpp" />
+    <ClCompile Include="..\Core\HLE\sceDeflt.cpp" />
+    <ClCompile Include="..\Core\HLE\sceDisplay.cpp" />
+    <ClCompile Include="..\Core\HLE\sceDmac.cpp" />
+    <ClCompile Include="..\Core\HLE\sceFont.cpp" />
+    <ClCompile Include="..\Core\HLE\sceGe.cpp" />
+    <ClCompile Include="..\Core\HLE\sceHeap.cpp" />
+    <ClCompile Include="..\Core\HLE\sceHprm.cpp" />
+    <ClCompile Include="..\Core\HLE\sceHttp.cpp" />
+    <ClCompile Include="..\Core\HLE\sceImpose.cpp" />
+    <ClCompile Include="..\Core\HLE\sceIo.cpp" />
+    <ClCompile Include="..\Core\HLE\sceJpeg.cpp" />
+    <ClCompile Include="..\Core\HLE\sceKernel.cpp" />
+    <ClCompile Include="..\Core\HLE\sceKernelAlarm.cpp" />
+    <ClCompile Include="..\Core\HLE\sceKernelEventFlag.cpp" />
+    <ClCompile Include="..\Core\HLE\sceKernelInterrupt.cpp" />
+    <ClCompile Include="..\Core\HLE\sceKernelMbx.cpp" />
+    <ClCompile Include="..\Core\HLE\sceKernelMemory.cpp" />
+    <ClCompile Include="..\Core\HLE\sceKernelModule.cpp" />
+    <ClCompile Include="..\Core\HLE\sceKernelMsgPipe.cpp" />
+    <ClCompile Include="..\Core\HLE\sceKernelMutex.cpp" />
+    <ClCompile Include="..\Core\HLE\sceKernelSemaphore.cpp" />
+    <ClCompile Include="..\Core\HLE\sceKernelThread.cpp" />
+    <ClCompile Include="..\Core\HLE\sceKernelTime.cpp" />
+    <ClCompile Include="..\Core\HLE\sceKernelVTimer.cpp" />
+    <ClCompile Include="..\Core\HLE\sceMpeg.cpp" />
+    <ClCompile Include="..\Core\HLE\sceNet.cpp" />
+    <ClCompile Include="..\Core\HLE\sceNetAdhoc.cpp" />
+    <ClCompile Include="..\Core\HLE\sceNp.cpp" />
+    <ClCompile Include="..\Core\HLE\sceOpenPSID.cpp" />
+    <ClCompile Include="..\Core\HLE\sceParseHttp.cpp" />
+    <ClCompile Include="..\Core\HLE\sceParseUri.cpp" />
+    <ClCompile Include="..\Core\HLE\scePauth.cpp" />
+    <ClCompile Include="..\Core\HLE\scePower.cpp" />
+    <ClCompile Include="..\Core\HLE\scePsmf.cpp" />
+    <ClCompile Include="..\Core\HLE\scePspNpDrm_user.cpp" />
+    <ClCompile Include="..\Core\HLE\sceP3da.cpp" />
+    <ClCompile Include="..\Core\HLE\sceMd5.cpp" />
+    <ClCompile Include="..\Core\HLE\sceMp4.cpp" />
+    <ClCompile Include="..\Core\HLE\sceMp3.cpp" />
+    <ClCompile Include="..\Core\HLE\sceMt19937.cpp" />
+    <ClCompile Include="..\Core\HLE\sceGameUpdate.cpp" />
+    <ClCompile Include="..\Core\HLE\sceRtc.cpp" />
+    <ClCompile Include="..\Core\HLE\sceSas.cpp" />
+    <ClCompile Include="..\Core\HLE\sceSsl.cpp" />
+    <ClCompile Include="..\Core\HLE\sceUmd.cpp" />
+    <ClCompile Include="..\Core\HLE\sceUsb.cpp" />
+    <ClCompile Include="..\Core\HLE\sceUsbGps.cpp" />
+    <ClCompile Include="..\Core\HLE\sceUtility.cpp" />
+    <ClCompile Include="..\Core\HLE\sceVaudio.cpp" />
+    <ClCompile Include="..\Core\HLE\__sceAudio.cpp" />
+    <ClCompile Include="..\Core\Host.cpp" />
+    <ClCompile Include="..\Core\HW\MediaEngine.cpp" />
+    <ClCompile Include="..\Core\HW\MemoryStick.cpp" />
+    <ClCompile Include="..\Core\HW\MpegDemux.cpp" />
+    <ClCompile Include="..\Core\HW\SasAudio.cpp" />
+    <ClCompile Include="..\Core\HW\AsyncIOManager.cpp" />
+    <ClCompile Include="..\Core\HW\SimpleAudioDec.cpp" />
+    <ClCompile Include="..\Core\Loaders.cpp" />
+    <ClCompile Include="..\Core\MemMap.cpp" />
+    <ClCompile Include="..\Core\MemmapFunctions.cpp" />
+    <ClCompile Include="..\Core\MIPS\ARM\ArmAsm.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\Core\MIPS\ARM\ArmCompALU.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\Core\MIPS\ARM\ArmCompBranch.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\Core\MIPS\ARM\ArmCompFPU.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\Core\MIPS\ARM\ArmCompLoadStore.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\Core\MIPS\ARM\ArmCompReplace.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\Core\MIPS\ARM\ArmCompVFPU.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\Core\MIPS\ARM\ArmRegCacheFPU.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\Core\MIPS\ARM\ArmJit.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\Core\MIPS\ARM\ArmRegCache.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\Core\MIPS\JitCommon\JitBlockCache.cpp" />
+    <ClCompile Include="..\Core\MIPS\JitCommon\JitCommon.cpp" />
+    <ClCompile Include="..\Core\MIPS\MIPS.cpp" />
+    <ClCompile Include="..\Core\MIPS\MIPSAnalyst.cpp" />
+    <ClCompile Include="..\Core\MIPS\MIPSAsm.cpp" />
+    <ClCompile Include="..\Core\MIPS\MIPSAsmTables.cpp" />
+    <ClCompile Include="..\Core\MIPS\MIPSCodeUtils.cpp" />
+    <ClCompile Include="..\Core\MIPS\MIPSDebugInterface.cpp" />
+    <ClCompile Include="..\Core\MIPS\MIPSDis.cpp" />
+    <ClCompile Include="..\Core\MIPS\MIPSDisVFPU.cpp" />
+    <ClCompile Include="..\Core\MIPS\MIPSInt.cpp" />
+    <ClCompile Include="..\Core\MIPS\MIPSIntVFPU.cpp" />
+    <ClCompile Include="..\Core\MIPS\MIPSTables.cpp" />
+    <ClCompile Include="..\Core\MIPS\MIPSVFPUUtils.cpp" />
+    <ClCompile Include="..\Core\MIPS\PPC\PpcAsm.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\Core\MIPS\PPC\PpcCompAlu.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\Core\MIPS\PPC\PpcCompBranch.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\Core\MIPS\PPC\PpcCompFpu.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\Core\MIPS\PPC\PpcCompLoadStore.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\Core\MIPS\PPC\PpcCompReplace.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\Core\MIPS\PPC\PpcCompVFPU.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\Core\MIPS\PPC\PpcJit.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\Core\MIPS\PPC\PpcRegCache.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\Core\MIPS\x86\Asm.cpp" />
+    <ClCompile Include="..\Core\MIPS\x86\CompALU.cpp" />
+    <ClCompile Include="..\Core\MIPS\x86\CompBranch.cpp" />
+    <ClCompile Include="..\Core\MIPS\x86\CompFPU.cpp" />
+    <ClCompile Include="..\Core\MIPS\x86\CompLoadStore.cpp" />
+    <ClCompile Include="..\Core\MIPS\x86\CompReplace.cpp" />
+    <ClCompile Include="..\Core\MIPS\x86\CompVFPU.cpp" />
+    <ClCompile Include="..\Core\MIPS\x86\JitSafeMem.cpp" />
+    <ClCompile Include="..\Core\MIPS\x86\RegCacheFPU.cpp" />
+    <ClCompile Include="..\Core\MIPS\x86\Jit.cpp" />
+    <ClCompile Include="..\Core\MIPS\x86\RegCache.cpp" />
+    <ClCompile Include="..\Core\PSPLoaders.cpp" />
+    <ClCompile Include="..\Core\PSPMixer.cpp" />
+    <ClCompile Include="..\Core\Reporting.cpp" />
+    <ClCompile Include="..\Core\SaveState.cpp" />
+    <ClCompile Include="..\Core\MIPS\MIPSStackWalk.cpp" />
+    <ClCompile Include="..\Core\System.cpp" />
+    <ClCompile Include="..\Core\Util\BlockAllocator.cpp" />
+    <ClCompile Include="..\Core\Util\GameManager.cpp" />
+    <ClCompile Include="..\Core\Util\PPGeDraw.cpp" />
+    <ClCompile Include="..\Core\Util\ppge_atlas.cpp" />
+    <ClCompile Include="..\ext\xxhash.c">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">MaxSpeed</Optimization>
+      <IntrinsicFunctions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</IntrinsicFunctions>
+      <FavorSizeOrSpeed Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Speed</FavorSizeOrSpeed>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">MaxSpeed</Optimization>
+      <IntrinsicFunctions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</IntrinsicFunctions>
+      <FavorSizeOrSpeed Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Speed</FavorSizeOrSpeed>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AnySuitable</InlineFunctionExpansion>
+      <DebugInformationFormat Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ProgramDatabase</DebugInformationFormat>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Default</BasicRuntimeChecks>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Default</BasicRuntimeChecks>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AnySuitable</InlineFunctionExpansion>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AnySuitable</InlineFunctionExpansion>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AnySuitable</InlineFunctionExpansion>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\ext\disarm.h" />
+    <ClInclude Include="..\ext\snappy\snappy-internal.h" />
+    <ClInclude Include="..\ext\snappy\snappy-sinksource.h" />
+    <ClInclude Include="..\ext\snappy\snappy-stubs-internal.h" />
+    <ClInclude Include="..\ext\snappy\snappy-stubs-public.h" />
+    <ClInclude Include="..\ext\snappy\snappy.h" />
+    <ClInclude Include="..\Core\Config.h" />
+    <ClInclude Include="..\Core\Core.h" />
+    <ClInclude Include="..\Core\CoreParameter.h" />
+    <ClInclude Include="..\Core\CoreTiming.h" />
+    <ClInclude Include="..\Core\Cwcheat.h" />
+    <ClInclude Include="..\Core\Debugger\Breakpoints.h" />
+    <ClInclude Include="..\Core\Debugger\DebugInterface.h" />
+    <ClInclude Include="..\Core\Debugger\DisassemblyManager.h" />
+    <ClInclude Include="..\Core\Debugger\SymbolMap.h" />
+    <ClInclude Include="..\Core\Dialog\PSPGamedataInstallDialog.h" />
+    <ClInclude Include="..\Core\Dialog\PSPDialog.h" />
+    <ClInclude Include="..\Core\Dialog\PSPMsgDialog.h" />
+    <ClInclude Include="..\Core\Dialog\PSPNetconfDialog.h" />
+    <ClInclude Include="..\Core\Dialog\PSPOskDialog.h" />
+    <ClInclude Include="..\Core\Dialog\PSPPlaceholderDialog.h" />
+    <ClInclude Include="..\Core\Dialog\PSPSaveDialog.h" />
+    <ClInclude Include="..\Core\Dialog\PSPScreenshotDialog.h" />
+    <ClInclude Include="..\Core\Dialog\SavedataParam.h" />
+    <ClInclude Include="..\Core\ELF\ElfReader.h" />
+    <ClInclude Include="..\Core\ELF\ElfTypes.h" />
+    <ClInclude Include="..\Core\ELF\ParamSFO.h" />
+    <ClInclude Include="..\Core\ELF\PBPReader.h" />
+    <ClInclude Include="..\Core\ELF\PrxDecrypter.h" />
+    <ClInclude Include="..\Core\FileSystems\BlockDevices.h" />
+    <ClInclude Include="..\Core\FileSystems\DirectoryFileSystem.h" />
+    <ClInclude Include="..\Core\FileSystems\FileSystem.h" />
+    <ClInclude Include="..\Core\FileSystems\ISOFileSystem.h" />
+    <ClInclude Include="..\Core\FileSystems\MetaFileSystem.h" />
+    <ClInclude Include="..\Core\FileSystems\VirtualDiscFileSystem.h" />
+    <ClInclude Include="..\Core\Font\PGF.h" />
+    <ClInclude Include="..\Core\HDRemaster.h" />
+    <ClInclude Include="..\Core\HLE\FunctionWrappers.h" />
+    <ClInclude Include="..\Core\HLE\HLE.h" />
+    <ClInclude Include="..\Core\HLE\HLEHelperThread.h" />
+    <ClInclude Include="..\Core\HLE\HLETables.h" />
+    <ClInclude Include="..\Core\HLE\KernelWaitHelpers.h" />
+    <ClInclude Include="..\Core\HLE\proAdhoc.h" />
+    <ClInclude Include="..\Core\HLE\ReplaceTables.h" />
+    <ClInclude Include="..\Core\HLE\sceAtrac.h" />
+    <ClInclude Include="..\Core\HLE\sceAudio.h" />
+    <ClInclude Include="..\Core\HLE\sceAudiocodec.h" />
+    <ClInclude Include="..\Core\HLE\sceCcc.h" />
+    <ClInclude Include="..\Core\HLE\sceCtrl.h" />
+    <ClInclude Include="..\Core\HLE\sceChnnlsv.h" />
+    <ClInclude Include="..\Core\HLE\sceDeflt.h" />
+    <ClInclude Include="..\Core\HLE\sceDisplay.h" />
+    <ClInclude Include="..\Core\HLE\sceDmac.h" />
+    <ClInclude Include="..\Core\HLE\sceFont.h" />
+    <ClInclude Include="..\Core\HLE\sceGe.h" />
+    <ClInclude Include="..\Core\HLE\sceHeap.h" />
+    <ClInclude Include="..\Core\HLE\sceHprm.h" />
+    <ClInclude Include="..\Core\HLE\sceHttp.h" />
+    <ClInclude Include="..\Core\HLE\sceImpose.h" />
+    <ClInclude Include="..\Core\HLE\sceIo.h" />
+    <ClInclude Include="..\Core\HLE\sceJpeg.h" />
+    <ClInclude Include="..\Core\HLE\sceKernel.h" />
+    <ClInclude Include="..\Core\HLE\sceKernelAlarm.h" />
+    <ClInclude Include="..\Core\HLE\sceKernelEventFlag.h" />
+    <ClInclude Include="..\Core\HLE\sceKernelInterrupt.h" />
+    <ClInclude Include="..\Core\HLE\sceKernelMemory.h" />
+    <ClInclude Include="..\Core\HLE\sceKernelModule.h" />
+    <ClInclude Include="..\Core\HLE\sceKernelMbx.h" />
+    <ClInclude Include="..\Core\HLE\sceKernelMsgPipe.h" />
+    <ClInclude Include="..\Core\HLE\sceKernelMutex.h" />
+    <ClInclude Include="..\Core\HLE\sceKernelSemaphore.h" />
+    <ClInclude Include="..\Core\HLE\sceKernelThread.h" />
+    <ClInclude Include="..\Core\HLE\sceKernelTime.h" />
+    <ClInclude Include="..\Core\HLE\sceMpeg.h" />
+    <ClInclude Include="..\Core\HLE\sceNet.h" />
+    <ClInclude Include="..\Core\HLE\sceNetAdhoc.h" />
+    <ClInclude Include="..\Core\HLE\sceNp.h" />
+    <ClInclude Include="..\Core\HLE\sceOpenPSID.h" />
+    <ClInclude Include="..\Core\HLE\sceParseHttp.h" />
+    <ClInclude Include="..\Core\HLE\sceParseUri.h" />
+    <ClInclude Include="..\Core\HLE\scePauth.h" />
+    <ClInclude Include="..\Core\HLE\scePower.h" />
+    <ClInclude Include="..\Core\HLE\scePsmf.h" />
+    <ClInclude Include="..\Core\HLE\scePspNpDrm_user.h" />
+    <ClInclude Include="..\Core\HLE\sceP3da.h" />
+    <ClInclude Include="..\Core\HLE\sceMt19937.h" />
+    <ClInclude Include="..\Core\HLE\sceMd5.h" />
+    <ClInclude Include="..\Core\HLE\sceMp4.h" />
+    <ClInclude Include="..\Core\HLE\sceMp3.h" />
+    <ClInclude Include="..\Core\HLE\sceGameUpdate.h" />
+    <ClInclude Include="..\Core\HLE\sceRtc.h" />
+    <ClInclude Include="..\Core\HLE\sceSas.h" />
+    <ClInclude Include="..\Core\HLE\sceSsl.h" />
+    <ClInclude Include="..\Core\HLE\sceUmd.h" />
+    <ClInclude Include="..\Core\HLE\sceUsb.h" />
+    <ClInclude Include="..\Core\HLE\sceUsbGps.h" />
+    <ClInclude Include="..\Core\HLE\sceUtility.h" />
+    <ClInclude Include="..\Core\HLE\sceKernelVTimer.h" />
+    <ClInclude Include="..\Core\HLE\sceVaudio.h" />
+    <ClInclude Include="..\Core\HLE\__sceAudio.h" />
+    <ClInclude Include="..\Core\Host.h" />
+    <ClInclude Include="..\Core\HW\BufferQueue.h" />
+    <ClInclude Include="..\Core\HW\MediaEngine.h" />
+    <ClInclude Include="..\Core\HW\MpegDemux.h" />
+    <ClInclude Include="..\Core\HW\SasAudio.h" />
+    <ClInclude Include="..\Core\HW\MemoryStick.h" />
+    <ClInclude Include="..\Core\HW\AsyncIOManager.h" />
+    <ClInclude Include="..\Core\HW\SimpleAudioDec.h" />
+    <ClInclude Include="..\Core\Loaders.h" />
+    <ClInclude Include="..\Core\MemMap.h" />
+    <ClInclude Include="..\Core\MIPS\ARM\ArmAsm.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\Core\MIPS\ARM\ArmCompVFPUNEON.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\Core\MIPS\ARM\ArmJit.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\Core\MIPS\ARM\ArmRegCache.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\Core\MIPS\ARM\ArmRegCacheFPU.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\Core\MIPS\JitCommon\JitBlockCache.h" />
+    <ClInclude Include="..\Core\MIPS\JitCommon\JitCommon.h" />
+    <ClInclude Include="..\Core\MIPS\JitCommon\JitState.h" />
+    <ClInclude Include="..\Core\MIPS\MIPS.h" />
+    <ClInclude Include="..\Core\MIPS\MIPSAnalyst.h" />
+    <ClInclude Include="..\Core\MIPS\MIPSAsm.h" />
+    <ClInclude Include="..\Core\MIPS\MIPSAsmTables.h" />
+    <ClInclude Include="..\Core\MIPS\MIPSCodeUtils.h" />
+    <ClInclude Include="..\Core\MIPS\MIPSDebugInterface.h" />
+    <ClInclude Include="..\Core\MIPS\MIPSDis.h" />
+    <ClInclude Include="..\Core\MIPS\MIPSDisVFPU.h" />
+    <ClInclude Include="..\Core\MIPS\MIPSInt.h" />
+    <ClInclude Include="..\Core\MIPS\MIPSIntVFPU.h" />
+    <ClInclude Include="..\Core\MIPS\MIPSTables.h" />
+    <ClInclude Include="..\Core\MIPS\MIPSVFPUUtils.h" />
+    <ClInclude Include="..\Core\MIPS\PPC\PpcJit.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\Core\MIPS\PPC\PpcRegCache.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\Core\MIPS\x86\Asm.h" />
+    <ClInclude Include="..\Core\MIPS\x86\JitSafeMem.h" />
+    <ClInclude Include="..\Core\MIPS\x86\RegCacheFPU.h" />
+    <ClInclude Include="..\Core\MIPS\x86\Jit.h" />
+    <ClInclude Include="..\Core\MIPS\x86\RegCache.h" />
+    <ClInclude Include="..\Core\Opcode.h" />
+    <ClInclude Include="..\Core\PSPLoaders.h" />
+    <ClInclude Include="..\Core\PSPMixer.h" />
+    <ClInclude Include="..\Core\Reporting.h" />
+    <ClInclude Include="..\Core\SaveState.h" />
+    <ClInclude Include="..\Core\MIPS\MIPSStackWalk.h" />
+    <ClInclude Include="..\Core\System.h" />
+    <ClInclude Include="..\Core\ThreadEventQueue.h" />
+    <ClInclude Include="..\Core\Util\BlockAllocator.h" />
+    <ClInclude Include="..\Core\Util\GameManager.h" />
+    <ClInclude Include="..\Core\Util\PPGeDraw.h" />
+    <ClInclude Include="..\Core\Util\ppge_atlas.h" />
+    <ClInclude Include="..\ext\xxhash.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\android\jni\Android.mk" />
+    <None Include="..\LICENSE.TXT" />
+    <None Include="CMakeLists.txt" />
+    <None Include="GameLogNotes.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Common\Common.vcxproj">
+      <Project>{3fcdbae2-5103-4350-9a8e-848ce9c73195}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\GPU\GPU.vcxproj">
+      <Project>{457f45d2-556f-47bc-a31d-aff0d15beaed}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\native\native.vcxproj">
+      <Project>{C4DF647E-80EA-4111-A0A8-218B1B711E18}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\ext\zlib\zlib.vcxproj">
+      <Project>{f761046e-6c38-4428-a5f1-38391a37bb34}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

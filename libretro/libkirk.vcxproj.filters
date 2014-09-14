@@ -15,36 +15,36 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AES.c">
+    <ClCompile Include="..\ext\libkirk\AES.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="bn.c">
+    <ClCompile Include="..\ext\libkirk\amctrl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ec.c">
+    <ClCompile Include="..\ext\libkirk\bn.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="kirk_engine.c">
+    <ClCompile Include="..\ext\libkirk\ec.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SHA1.c">
+    <ClCompile Include="..\ext\libkirk\kirk_engine.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="amctrl.c">
+    <ClCompile Include="..\ext\libkirk\SHA1.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AES.h">
+    <ClInclude Include="..\ext\libkirk\AES.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="kirk_engine.h">
+    <ClInclude Include="..\ext\libkirk\amctrl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SHA1.h">
+    <ClInclude Include="..\ext\libkirk\kirk_engine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="amctrl.h">
+    <ClInclude Include="..\ext\libkirk\SHA1.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

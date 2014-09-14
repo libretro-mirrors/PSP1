@@ -235,6 +235,7 @@
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <PreprocessorDefinitions>_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <OmitFramePointers>false</OmitFramePointers>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -243,18 +244,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="AES.c" />
-    <ClCompile Include="amctrl.c" />
-    <ClCompile Include="bn.c" />
-    <ClCompile Include="ec.c" />
-    <ClCompile Include="kirk_engine.c" />
-    <ClCompile Include="SHA1.c" />
+    <ClCompile Include="..\ext\libkirk\AES.c" />
+    <ClCompile Include="..\ext\libkirk\amctrl.c" />
+    <ClCompile Include="..\ext\libkirk\bn.c" />
+    <ClCompile Include="..\ext\libkirk\ec.c" />
+    <ClCompile Include="..\ext\libkirk\kirk_engine.c" />
+    <ClCompile Include="..\ext\libkirk\SHA1.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AES.h" />
-    <ClInclude Include="amctrl.h" />
-    <ClInclude Include="kirk_engine.h" />
-    <ClInclude Include="SHA1.h" />
+    <ClInclude Include="..\ext\libkirk\AES.h" />
+    <ClInclude Include="..\ext\libkirk\amctrl.h" />
+    <ClInclude Include="..\ext\libkirk\kirk_engine.h" />
+    <ClInclude Include="..\ext\libkirk\SHA1.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

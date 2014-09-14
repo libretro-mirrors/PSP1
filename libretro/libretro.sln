@@ -13,9 +13,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GPU", "GPU.vcxproj", "{457F
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "native", "native.vcxproj", "{C4DF647E-80EA-4111-A0A8-218B1B711E18}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zlib", "..\ext\zlib\zlib.vcxproj", "{F761046E-6C38-4428-A5F1-38391A37BB34}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zlib", "zlib.vcxproj", "{F761046E-6C38-4428-A5F1-38391A37BB34}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libkirk", "..\ext\libkirk\libkirk.vcxproj", "{3BAAE095-E0AB-4B0E-B5DF-CE39C8AE31DE}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libkirk", "libkirk.vcxproj", "{3BAAE095-E0AB-4B0E-B5DF-CE39C8AE31DE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,12 +27,12 @@ Global
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{BB42DE67-FDBA-407A-A388-CA510A0F5530}.Debug|Win32.ActiveCfg = Debug (libretro)|Win32
 		{BB42DE67-FDBA-407A-A388-CA510A0F5530}.Debug|Win32.Build.0 = Debug (libretro)|Win32
-		{BB42DE67-FDBA-407A-A388-CA510A0F5530}.Debug|x64.ActiveCfg = Debug (libretro)|x64
-		{BB42DE67-FDBA-407A-A388-CA510A0F5530}.Debug|x64.Build.0 = Debug (libretro)|x64
-		{BB42DE67-FDBA-407A-A388-CA510A0F5530}.Release|Win32.ActiveCfg = Release (libretro)|x64
-		{BB42DE67-FDBA-407A-A388-CA510A0F5530}.Release|Win32.Build.0 = Release (libretro)|x64
-		{BB42DE67-FDBA-407A-A388-CA510A0F5530}.Release|x64.ActiveCfg = Release (libretro)|x64
-		{BB42DE67-FDBA-407A-A388-CA510A0F5530}.Release|x64.Build.0 = Release (libretro)|x64
+		{BB42DE67-FDBA-407A-A388-CA510A0F5530}.Debug|x64.ActiveCfg = Debug|x64
+		{BB42DE67-FDBA-407A-A388-CA510A0F5530}.Debug|x64.Build.0 = Debug|x64
+		{BB42DE67-FDBA-407A-A388-CA510A0F5530}.Release|Win32.ActiveCfg = Release|Win32
+		{BB42DE67-FDBA-407A-A388-CA510A0F5530}.Release|Win32.Build.0 = Release|Win32
+		{BB42DE67-FDBA-407A-A388-CA510A0F5530}.Release|x64.ActiveCfg = Release|x64
+		{BB42DE67-FDBA-407A-A388-CA510A0F5530}.Release|x64.Build.0 = Release|x64
 		{533F1D30-D04D-47CC-AD71-20F658907E36}.Debug|Win32.ActiveCfg = Debug (libretro)|Win32
 		{533F1D30-D04D-47CC-AD71-20F658907E36}.Debug|Win32.Build.0 = Debug (libretro)|Win32
 		{533F1D30-D04D-47CC-AD71-20F658907E36}.Debug|x64.ActiveCfg = Debug (libretro)|x64
@@ -69,18 +69,18 @@ Global
 		{F761046E-6C38-4428-A5F1-38391A37BB34}.Debug|Win32.Build.0 = Debug|Win32
 		{F761046E-6C38-4428-A5F1-38391A37BB34}.Debug|x64.ActiveCfg = Debug (libretro)|x64
 		{F761046E-6C38-4428-A5F1-38391A37BB34}.Debug|x64.Build.0 = Debug (libretro)|x64
-		{F761046E-6C38-4428-A5F1-38391A37BB34}.Release|Win32.ActiveCfg = Release (libretro)|x64
-		{F761046E-6C38-4428-A5F1-38391A37BB34}.Release|Win32.Build.0 = Release (libretro)|x64
-		{F761046E-6C38-4428-A5F1-38391A37BB34}.Release|x64.ActiveCfg = Release (libretro)|x64
-		{F761046E-6C38-4428-A5F1-38391A37BB34}.Release|x64.Build.0 = Release (libretro)|x64
+		{F761046E-6C38-4428-A5F1-38391A37BB34}.Release|Win32.ActiveCfg = Release|Win32
+		{F761046E-6C38-4428-A5F1-38391A37BB34}.Release|Win32.Build.0 = Release|Win32
+		{F761046E-6C38-4428-A5F1-38391A37BB34}.Release|x64.ActiveCfg = Release|x64
+		{F761046E-6C38-4428-A5F1-38391A37BB34}.Release|x64.Build.0 = Release|x64
 		{3BAAE095-E0AB-4B0E-B5DF-CE39C8AE31DE}.Debug|Win32.ActiveCfg = Debug (libretro)|Win32
 		{3BAAE095-E0AB-4B0E-B5DF-CE39C8AE31DE}.Debug|Win32.Build.0 = Debug (libretro)|Win32
 		{3BAAE095-E0AB-4B0E-B5DF-CE39C8AE31DE}.Debug|x64.ActiveCfg = Debug (libretro)|x64
 		{3BAAE095-E0AB-4B0E-B5DF-CE39C8AE31DE}.Debug|x64.Build.0 = Debug (libretro)|x64
 		{3BAAE095-E0AB-4B0E-B5DF-CE39C8AE31DE}.Release|Win32.ActiveCfg = Release (libretro)|x64
 		{3BAAE095-E0AB-4B0E-B5DF-CE39C8AE31DE}.Release|Win32.Build.0 = Release (libretro)|x64
-		{3BAAE095-E0AB-4B0E-B5DF-CE39C8AE31DE}.Release|x64.ActiveCfg = Release (libretro)|x64
-		{3BAAE095-E0AB-4B0E-B5DF-CE39C8AE31DE}.Release|x64.Build.0 = Release (libretro)|x64
+		{3BAAE095-E0AB-4B0E-B5DF-CE39C8AE31DE}.Release|x64.ActiveCfg = Release|x64
+		{3BAAE095-E0AB-4B0E-B5DF-CE39C8AE31DE}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

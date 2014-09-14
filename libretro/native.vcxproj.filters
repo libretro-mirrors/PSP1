@@ -1,0 +1,381 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <None Include="file\CMakeLists.txt">
+      <Filter>file</Filter>
+    </None>
+    <None Include="README.md" />
+    <None Include="base\CMakeLists.txt">
+      <Filter>base</Filter>
+    </None>
+    <None Include="Android.mk" />
+    <None Include="ext\stb_image\CMakeLists.txt">
+      <Filter>ext</Filter>
+    </None>
+    <None Include="tools\CMakeLists.txt">
+      <Filter>tools</Filter>
+    </None>
+    <None Include="ui\CMakeLists.txt">
+      <Filter>ui</Filter>
+    </None>
+    <None Include="..\ios\main.mm" />
+    <None Include="ext\libzip\Android.mk">
+      <Filter>ext\libzip</Filter>
+    </None>
+    <None Include="math\fast\fast_matrix_neon.S">
+      <Filter>math\fast</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\native\android\app-android.h" />
+    <ClInclude Include="..\native\android\native-audio-so.h" />
+    <ClInclude Include="..\native\..\native\android\native_audio.h" />
+    <ClInclude Include="..\native\audio\mixer.h" />
+    <ClInclude Include="..\native\audio\wav_read.h" />
+    <ClInclude Include="..\native\base\backtrace.h" />
+    <ClInclude Include="..\native\base\basictypes.h" />
+    <ClInclude Include="..\native\base\buffer.h" />
+    <ClInclude Include="..\native\base\color.h" />
+    <ClInclude Include="..\native\base\colorutil.h" />
+    <ClInclude Include="..\native\base\compat.h" />
+    <ClInclude Include="..\native\base\display.h" />
+    <ClInclude Include="..\native\base\error_context.h" />
+    <ClInclude Include="..\native\base\fastlist.h" />
+    <ClInclude Include="..\native\base\functional.h" />
+    <ClInclude Include="..\native\base\linked_ptr.h" />
+    <ClInclude Include="..\native\base\logging.h" />
+    <ClInclude Include="..\native\base\mutex.h" />
+    <ClInclude Include="..\native\base\NativeApp.h" />
+    <ClInclude Include="..\native\base\scoped_ptr.h" />
+    <ClInclude Include="..\native\base\stats.h" />
+    <ClInclude Include="..\native\base\stringutil.h" />
+    <ClInclude Include="..\native\base\timeutil.h" />
+    <ClInclude Include="..\native\data\compression.h" />
+    <ClInclude Include="..\native\data\listable.h" />
+    <ClInclude Include="..\native\ext\cityhash\city.h" />
+    <ClInclude Include="..\native\ext\cityhash\citycrc.h" />
+    <ClInclude Include="..\native\ext\jpge\jpgd.h" />
+    <ClInclude Include="..\native\ext\jpge\jpge.h" />
+    <ClInclude Include="..\native\ext\libpng17\png.h" />
+    <ClInclude Include="..\native\ext\libpng17\pngdebug.h" />
+    <ClInclude Include="..\native\ext\libpng17\pngconf.h" />
+    <ClInclude Include="..\native\ext\libpng17\pnginfo.h" />
+    <ClInclude Include="..\native\ext\libpng17\pnglibconf.h" />
+    <ClInclude Include="..\native\ext\libpng17\pngpriv.h" />
+    <ClInclude Include="..\native\ext\libpng17\pngstruct.h" />
+    <ClInclude Include="..\native\ext\libzip\config.h" />
+    <ClInclude Include="..\native\ext\libzip\zip.h" />
+    <ClInclude Include="..\native\ext\libzip\zipint.h" />
+    <ClInclude Include="..\native\ext\rg_etc1\rg_etc1.h" />
+    <ClInclude Include="..\native\ext\sha1\sha1.h" />
+    <ClInclude Include="..\native\ext\stb_vorbis\stb_vorbis.h" />
+    <ClInclude Include="..\native\ext\vjson\block_allocator.h" />
+    <ClInclude Include="..\native\ext\vjson\json.h" />
+    <ClInclude Include="..\native\file\chunk_file.h" />
+    <ClInclude Include="..\native\file\dialog.h" />
+    <ClInclude Include="..\native\file\easy_file.h" />
+    <ClInclude Include="..\native\file\fd_util.h" />
+    <ClInclude Include="..\native\file\file_util.h" />
+    <ClInclude Include="..\native\file\path.h" />
+    <ClInclude Include="..\native\file\ini_file.h" />
+    <ClInclude Include="..\native\file\vfs.h" />
+    <ClInclude Include="..\native\file\zip_read.h" />
+    <ClInclude Include="..\native\gfx\gl_debug_log.h" />
+    <ClInclude Include="..\native\gfx\gl_lost_manager.h" />
+    <ClInclude Include="..\native\gfx\texture_gen.h" />
+    <ClInclude Include="..\native\gfx\texture.h" />
+    <ClInclude Include="..\native\gfx\texture_atlas.h" />
+    <ClInclude Include="..\native\gfx_es2\draw_buffer.h" />
+    <ClInclude Include="..\native\gfx_es2\draw_text.h" />
+    <ClInclude Include="..\native\gfx_es2\fbo.h" />
+    <ClInclude Include="..\native\gfx_es2\gl3stub.h" />
+    <ClInclude Include="..\native\gfx_es2\glsl_program.h" />
+    <ClInclude Include="..\native\gfx_es2\gl_state.h" />
+    <ClInclude Include="..\native\gfx_es2\gpu_features.h" />
+    <ClInclude Include="..\native\gfx_es2\vertex_format.h" />
+    <ClInclude Include="..\native\i18n\i18n.h" />
+    <ClInclude Include="..\native\image\png_load.h" />
+    <ClInclude Include="..\native\image\zim_load.h" />
+    <ClInclude Include="..\native\image\zim_save.h" />
+    <ClInclude Include="..\native\input\gesture_detector.h" />
+    <ClInclude Include="..\native\input\input_state.h" />
+    <ClInclude Include="..\native\input\keycodes.h" />
+    <ClInclude Include="..\native\json\json_writer.h" />
+    <ClInclude Include="..\native\math\curves.h" />
+    <ClInclude Include="..\native\math\expression_parser.h" />
+    <ClInclude Include="..\native\math\geom2d.h" />
+    <ClInclude Include="..\native\math\lin\aabb.h" />
+    <ClInclude Include="..\native\math\lin\matrix4x4.h" />
+    <ClInclude Include="..\native\math\lin\plane.h" />
+    <ClInclude Include="..\native\math\lin\quat.h" />
+    <ClInclude Include="..\native\math\lin\vec3.h" />
+    <ClInclude Include="..\native\math\math_util.h" />
+    <ClInclude Include="..\native\math\fast\fast_math.h" />
+    <ClInclude Include="..\native\math\fast\fast_matrix.h" />
+    <ClInclude Include="..\native\midi\midi_input.h" />
+    <ClInclude Include="..\native\net\http_client.h" />
+    <ClInclude Include="..\native\net\resolve.h" />
+    <ClInclude Include="..\native\net\url.h" />
+    <ClInclude Include="..\native\profiler\profiler.h" />
+    <ClInclude Include="..\native\thin3d\thin3d.h" />
+    <ClInclude Include="..\native\thread\prioritizedworkqueue.h" />
+    <ClInclude Include="..\native\thread\thread.h" />
+    <ClInclude Include="..\native\thread\threadpool.h" />
+    <ClInclude Include="..\native\thread\threadutil.h" />
+    <ClInclude Include="..\native\ui\screen.h" />
+    <ClInclude Include="..\native\ui\ui.h" />
+    <ClInclude Include="..\native\ui\ui_context.h" />
+    <ClInclude Include="..\native\ui\ui_screen.h" />
+    <ClInclude Include="..\native\ui\view.h" />
+    <ClInclude Include="..\native\ui\viewgroup.h" />
+    <ClInclude Include="..\native\ui\virtual_input.h" />
+    <ClInclude Include="..\native\util\bits\bits.h" />
+    <ClInclude Include="..\native\util\random\perlin.h" />
+    <ClInclude Include="..\native\util\random\rng.h" />
+    <ClInclude Include="..\native\util\text\parsers.h" />
+    <ClInclude Include="..\native\util\text\shiftjis.h" />
+    <ClInclude Include="..\native\util\text\utf16.h" />
+    <ClInclude Include="..\native\util\text\utf8.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\native\android\app-android.cpp" />
+    <ClCompile Include="..\native\android\native-audio-so.cpp" />
+    <ClCompile Include="..\native\android\native_audio.cpp" />
+    <ClCompile Include="..\native\audio\mixer.cpp" />
+    <ClCompile Include="..\native\audio\wav_read.cpp" />
+    <ClCompile Include="..\native\base\backtrace.cpp" />
+    <ClCompile Include="..\native\base\BlackberryMain.cpp" />
+    <ClCompile Include="..\native\base\buffer.cpp" />
+    <ClCompile Include="..\native\base\colorutil.cpp" />
+    <ClCompile Include="..\native\base\compat.cpp" />
+    <ClCompile Include="..\native\base\display.cpp" />
+    <ClCompile Include="..\native\base\error_context.cpp" />
+    <ClCompile Include="..\native\base\PCMain.cpp" />
+    <ClCompile Include="..\native\base\QtMain.cpp" />
+    <ClCompile Include="..\native\base\stringutil.cpp" />
+    <ClCompile Include="..\native\base\timeutil.cpp" />
+    <ClCompile Include="..\native\data\compression.cpp" />
+    <ClCompile Include="..\native\ext\cityhash\city.cpp" />
+    <ClCompile Include="..\native\ext\jpge\jpgd.cpp" />
+    <ClCompile Include="..\native\ext\jpge\jpge.cpp" />
+    <ClCompile Include="..\native\ext\libpng17\png.c" />
+    <ClCompile Include="..\native\ext\libpng17\pngerror.c" />
+    <ClCompile Include="..\native\ext\libpng17\pngget.c" />
+    <ClCompile Include="..\native\ext\libpng17\pngmem.c" />
+    <ClCompile Include="..\native\ext\libpng17\pngpread.c" />
+    <ClCompile Include="..\native\ext\libpng17\pngread.c" />
+    <ClCompile Include="..\native\ext\libpng17\pngrio.c" />
+    <ClCompile Include="..\native\ext\libpng17\pngrtran.c" />
+    <ClCompile Include="..\native\ext\libpng17\pngrutil.c" />
+    <ClCompile Include="..\native\ext\libpng17\pngset.c" />
+    <ClCompile Include="..\native\ext\libpng17\pngtest.c" />
+    <ClCompile Include="..\native\ext\libpng17\pngtrans.c" />
+    <ClCompile Include="..\native\ext\libpng17\pngwio.c" />
+    <ClCompile Include="..\native\ext\libpng17\pngwrite.c" />
+    <ClCompile Include="..\native\ext\libpng17\pngwtran.c" />
+    <ClCompile Include="..\native\ext\libpng17\pngwutil.c" />
+    <ClCompile Include="..\native\ext\libzip\mkstemp.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_add.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_add_dir.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_close.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_delete.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_dirent.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_entry_free.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_entry_new.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_error.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_error_clear.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_error_get.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_error_get_sys_type.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_error_strerror.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_error_to_str.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_err_str.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_fclose.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_filerange_crc.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_file_error_clear.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_file_error_get.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_file_get_offset.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_file_strerror.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_fopen.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_fopen_index.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_fread.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_free.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_get_archive_comment.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_get_archive_flag.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_get_file_comment.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_get_name.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_get_num_files.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_memdup.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_name_locate.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_new.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_open.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_rename.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_replace.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_set_archive_comment.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_set_archive_flag.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_set_file_comment.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_set_name.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_source_buffer.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_source_file.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_source_filep.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_source_free.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_source_function.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_source_zip.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_stat.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_stat_index.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_stat_init.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_strerror.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_unchange.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_unchange_all.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_unchange_archive.c" />
+    <ClCompile Include="..\native\ext\libzip\zip_unchange_data.c" />
+    <ClCompile Include="..\native\ext\rg_etc1\rg_etc1.cpp" />
+    <ClCompile Include="..\native\ext\sha1\sha1.cpp" />
+    <ClCompile Include="..\native\ext\stb_vorbis\stb_vorbis.c" />
+    <ClCompile Include="..\native\ext\vjson\block_allocator.cpp" />
+    <ClCompile Include="..\native\ext\vjson\json.cpp" />
+    <ClCompile Include="..\native\file\chunk_file.cpp" />
+    <ClCompile Include="..\native\file\dialog.cpp" />
+    <ClCompile Include="..\native\file\easy_file.cpp" />
+    <ClCompile Include="..\native\file\fd_util.cpp" />
+    <ClCompile Include="..\native\file\file_util.cpp" />
+    <ClCompile Include="..\native\file\path.cpp" />
+    <ClCompile Include="..\native\file\ini_file.cpp" />
+    <ClCompile Include="..\native\file\zip_read.cpp" />
+    <ClCompile Include="..\native\gfx\gl_debug_log.cpp" />
+    <ClCompile Include="..\native\gfx\gl_lost_manager.cpp" />
+    <ClCompile Include="..\native\gfx\texture.cpp" />
+    <ClCompile Include="..\native\gfx\texture_atlas.cpp" />
+    <ClCompile Include="..\native\gfx\texture_gen.cpp" />
+    <ClCompile Include="..\native\gfx_es2\draw_buffer.cpp" />
+    <ClCompile Include="..\native\gfx_es2\draw_text.cpp" />
+    <ClCompile Include="..\native\gfx_es2\fbo.cpp" />
+    <ClCompile Include="..\native\gfx_es2\gl3stub.c" />
+    <ClCompile Include="..\native\gfx_es2\glsl_program.cpp" />
+    <ClCompile Include="..\native\gfx_es2\gl_state.cpp" />
+    <ClCompile Include="..\native\gfx_es2\gpu_features.cpp" />
+    <ClCompile Include="..\native\gfx_es2\vertex_format.cpp" />
+    <ClCompile Include="..\native\i18n\i18n.cpp" />
+    <ClCompile Include="..\native\image\png_load.cpp" />
+    <ClCompile Include="..\native\image\zim_load.cpp" />
+    <ClCompile Include="..\native\image\zim_save.cpp" />
+    <ClCompile Include="..\native\input\gesture_detector.cpp" />
+    <ClCompile Include="..\native\input\input_state.cpp" />
+    <ClCompile Include="..\native\json\json_writer.cpp" />
+    <ClCompile Include="..\native\math\curves.cpp" />
+    <ClCompile Include="..\native\math\expression_parser.cpp" />
+    <ClCompile Include="..\native\math\lin\aabb.cpp" />
+    <ClCompile Include="..\native\math\lin\matrix4x4.cpp" />
+    <ClCompile Include="..\native\math\lin\plane.cpp" />
+    <ClCompile Include="..\native\math\lin\quat.cpp" />
+    <ClCompile Include="..\native\math\lin\vec3.cpp" />
+    <ClCompile Include="..\native\math\math_util.cpp" />
+    <ClCompile Include="..\native\math\fast\fast_math.c" />
+    <ClCompile Include="..\native\math\fast\fast_matrix.c" />
+    <ClCompile Include="..\native\math\fast\fast_matrix_sse.c" />
+    <ClCompile Include="..\native\midi\midi_input.cpp" />
+    <ClCompile Include="..\native\net\http_client.cpp" />
+    <ClCompile Include="..\native\net\resolve.cpp" />
+    <ClCompile Include="..\native\net\url.cpp" />
+    <ClCompile Include="..\native\profiler\profiler.cpp" />
+    <ClCompile Include="..\native\thin3d\thin3d.cpp" />
+    <ClCompile Include="..\native\thin3d\thin3d_gl.cpp" />
+    <ClCompile Include="..\native\thread\prioritizedworkqueue.cpp" />
+    <ClCompile Include="..\native\thread\threadpool.cpp" />
+    <ClCompile Include="..\native\thread\threadutil.cpp" />
+    <ClCompile Include="..\native\ui\screen.cpp" />
+    <ClCompile Include="..\native\ui\ui.cpp" />
+    <ClCompile Include="..\native\ui\ui_context.cpp" />
+    <ClCompile Include="..\native\ui\ui_screen.cpp" />
+    <ClCompile Include="..\native\ui\view.cpp" />
+    <ClCompile Include="..\native\ui\viewgroup.cpp" />
+    <ClCompile Include="..\native\ui\virtual_input.cpp" />
+    <ClCompile Include="..\native\util\bits\bits.cpp" />
+    <ClCompile Include="..\native\util\hash\hash.cpp" />
+    <ClCompile Include="..\native\util\random\perlin.cpp" />
+    <ClCompile Include="..\native\util\text\parsers.cpp" />
+    <ClCompile Include="..\native\util\text\utf8.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="gfx">
+      <UniqueIdentifier>{9da89505-72a1-40e6-86e5-705372db1608}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="image">
+      <UniqueIdentifier>{828bddaf-63e5-4311-985b-bf377f86ff00}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="math">
+      <UniqueIdentifier>{f3f83007-7c3b-473f-a2f7-423c5087fbfa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ext">
+      <UniqueIdentifier>{5c54b5e2-1bb2-4783-9df6-de4ff7105570}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="audio">
+      <UniqueIdentifier>{4ea45f6c-de87-44a9-95b2-e1ec7e3601d0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="profiler">
+      <UniqueIdentifier>{c57b41dd-cc33-46ac-b479-19676455ae54}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="input">
+      <UniqueIdentifier>{4ba4474c-b80f-40da-95e8-2de57eb1b327}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="file">
+      <UniqueIdentifier>{49afd06e-eb44-41ac-b038-e109e444a834}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="collision">
+      <UniqueIdentifier>{a52d761c-4c72-4261-be17-50d071bd5cc8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="base">
+      <UniqueIdentifier>{95e41110-57a2-497f-a938-b4c8e9dd6a27}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="json">
+      <UniqueIdentifier>{cda27e9f-5763-4bf2-b6bc-85a377f7020e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ui">
+      <UniqueIdentifier>{d738c2d1-749d-4b60-b98f-f3da0bbbf40c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="midi">
+      <UniqueIdentifier>{4710a9a2-d1fa-4920-ba1b-a7527902be53}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="util">
+      <UniqueIdentifier>{e36ca540-863c-496b-b0f4-b1ece3e72feb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="data">
+      <UniqueIdentifier>{d5fa3d62-88bf-4dc4-9814-28f3c0444e62}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="io">
+      <UniqueIdentifier>{1e85f968-7106-483c-ae7d-77d0ef58d787}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="net">
+      <UniqueIdentifier>{6a548b3d-3a4c-4114-aa2f-0b42bf7bf2ce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="android">
+      <UniqueIdentifier>{b7bc9a09-29c1-447b-9255-fe0709d10689}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tools">
+      <UniqueIdentifier>{4515306f-4664-46bf-a89b-abfec5520a15}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="thread">
+      <UniqueIdentifier>{caa41117-1d90-47cc-9fba-f7e670e315a3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="i18n">
+      <UniqueIdentifier>{02e8ef95-82c7-4420-b029-a189a5e0fcbd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ext\libzip">
+      <UniqueIdentifier>{aa8b9b49-2ff8-4961-b6cc-9c33ea674130}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ext\libpng17">
+      <UniqueIdentifier>{6c47ee5b-0375-40f0-ab2a-402d001cc9c7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ext\jpge">
+      <UniqueIdentifier>{3721adbc-1a4a-4017-bc1d-893c7e86bc22}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ext\vjson">
+      <UniqueIdentifier>{c6910d82-73d3-4d97-ac9c-bcc03265b1bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="math\fast">
+      <UniqueIdentifier>{5ce64c0e-98e4-4411-86cc-aacaf2f60b21}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="thin3d">
+      <UniqueIdentifier>{06c6305a-a646-485b-85b9-645a24dd6553}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,400 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="ELF">
+      <UniqueIdentifier>{f34f69bc-5d7c-44d1-90b6-aa20c435b546}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MIPS">
+      <UniqueIdentifier>{b9b5cc6d-ef27-4209-88e2-b19d4967e4f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MIPS\x86">
+      <UniqueIdentifier>{e2af791e-cd4f-4289-bd6d-6fb070c7c4a6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MIPS\ARM">
+      <UniqueIdentifier>{8a5bebeb-575f-483d-8bd2-4b7eac163a7d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MIPS\JitCommon">
+      <UniqueIdentifier>{37896407-c373-44a3-b6ec-b57bceb2c4a3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FileSystems">
+      <UniqueIdentifier>{7c421b66-413f-448b-abcb-84b0e9dacde1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HLE">
+      <UniqueIdentifier>{a9512720-5888-495e-8866-6e074a534165}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HLE\Kernel">
+      <UniqueIdentifier>{7d2e1fcb-d376-4928-8b4e-1ae25fac1c2a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HLE\Libraries">
+      <UniqueIdentifier>{1926828c-7fec-495c-bea5-5a5f21f1dd06}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Util">
+      <UniqueIdentifier>{e1b92469-14c3-492f-be08-9dcd67a5c427}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Debugger">
+      <UniqueIdentifier>{5902bf41-1790-4772-9c17-8b804e0c4c8d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core">
+      <UniqueIdentifier>{75f0ee2b-1397-4cf3-9960-94ccd7d4d803}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HW">
+      <UniqueIdentifier>{9696662f-7398-489a-a358-5ebbf4ad4d97}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dialog">
+      <UniqueIdentifier>{41034c99-9b76-477f-8a77-bffaaffd5e82}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Ext">
+      <UniqueIdentifier>{1966d4a4-9a34-4a6c-946a-ebaf33633276}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Ext\Snappy">
+      <UniqueIdentifier>{0b77054f-7fc7-4c33-ada3-762aecde69e5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Font">
+      <UniqueIdentifier>{1c79e88d-1c48-450b-8af6-f22ce7d40c66}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MIPS\PPC">
+      <UniqueIdentifier>{ac0e396a-6e16-4796-a0a0-b8ebf46ea74c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\ext\snappy\snappy-c.cpp">
+      <Filter>Ext\Snappy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ext\snappy\snappy.cpp">
+      <Filter>Ext\Snappy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ext\disarm.cpp">
+      <Filter>Ext</Filter>
+    </ClCompile>
+    <ClCompile Include="..\git-version.cpp" />
+    <ClCompile Include="..\ext\xxhash.c">
+      <Filter>Ext</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Core\Config.cpp" />
+    <ClCompile Include="..\Core\Core.cpp" />
+    <ClCompile Include="..\Core\CoreTiming.cpp" />
+    <ClCompile Include="..\Core\Cwcheat.cpp" />
+    <ClCompile Include="..\Core\Debugger\Breakpoints.cpp" />
+    <ClCompile Include="..\Core\Debugger\DisassemblyManager.cpp" />
+    <ClCompile Include="..\Core\Debugger\SymbolMap.cpp" />
+    <ClCompile Include="..\Core\Dialog\PSPGamedataInstallDialog.cpp" />
+    <ClCompile Include="..\Core\Dialog\PSPDialog.cpp" />
+    <ClCompile Include="..\Core\Dialog\PSPMsgDialog.cpp" />
+    <ClCompile Include="..\Core\Dialog\PSPNetconfDialog.cpp" />
+    <ClCompile Include="..\Core\Dialog\PSPOskDialog.cpp" />
+    <ClCompile Include="..\Core\Dialog\PSPPlaceholderDialog.cpp" />
+    <ClCompile Include="..\Core\Dialog\PSPSaveDialog.cpp" />
+    <ClCompile Include="..\Core\Dialog\PSPScreenshotDialog.cpp" />
+    <ClCompile Include="..\Core\Dialog\SavedataParam.cpp" />
+    <ClCompile Include="..\Core\ELF\ElfReader.cpp" />
+    <ClCompile Include="..\Core\ELF\ParamSFO.cpp" />
+    <ClCompile Include="..\Core\ELF\PBPReader.cpp" />
+    <ClCompile Include="..\Core\ELF\PrxDecrypter.cpp" />
+    <ClCompile Include="..\Core\FileSystems\BlockDevices.cpp" />
+    <ClCompile Include="..\Core\FileSystems\DirectoryFileSystem.cpp" />
+    <ClCompile Include="..\Core\FileSystems\ISOFileSystem.cpp" />
+    <ClCompile Include="..\Core\FileSystems\FileSystem.cpp" />
+    <ClCompile Include="..\Core\FileSystems\MetaFileSystem.cpp" />
+    <ClCompile Include="..\Core\FileSystems\tlzrc.cpp" />
+    <ClCompile Include="..\Core\FileSystems\VirtualDiscFileSystem.cpp" />
+    <ClCompile Include="..\Core\Font\PGF.cpp" />
+    <ClCompile Include="..\Core\HDRemaster.cpp" />
+    <ClCompile Include="..\Core\HLE\HLE.cpp" />
+    <ClCompile Include="..\Core\HLE\HLEHelperThread.cpp" />
+    <ClCompile Include="..\Core\HLE\HLETables.cpp" />
+    <ClCompile Include="..\Core\HLE\proAdhoc.cpp" />
+    <ClCompile Include="..\Core\HLE\ReplaceTables.cpp" />
+    <ClCompile Include="..\Core\HLE\sceAtrac.cpp" />
+    <ClCompile Include="..\Core\HLE\sceAudio.cpp" />
+    <ClCompile Include="..\Core\HLE\sceAudiocodec.cpp" />
+    <ClCompile Include="..\Core\HLE\sceCcc.cpp" />
+    <ClCompile Include="..\Core\HLE\sceChnnlsv.cpp" />
+    <ClCompile Include="..\Core\HLE\sceCtrl.cpp" />
+    <ClCompile Include="..\Core\HLE\sceDeflt.cpp" />
+    <ClCompile Include="..\Core\HLE\sceDisplay.cpp" />
+    <ClCompile Include="..\Core\HLE\sceDmac.cpp" />
+    <ClCompile Include="..\Core\HLE\sceFont.cpp" />
+    <ClCompile Include="..\Core\HLE\sceGe.cpp" />
+    <ClCompile Include="..\Core\HLE\sceHeap.cpp" />
+    <ClCompile Include="..\Core\HLE\sceHprm.cpp" />
+    <ClCompile Include="..\Core\HLE\sceHttp.cpp" />
+    <ClCompile Include="..\Core\HLE\sceImpose.cpp" />
+    <ClCompile Include="..\Core\HLE\sceIo.cpp" />
+    <ClCompile Include="..\Core\HLE\sceJpeg.cpp" />
+    <ClCompile Include="..\Core\HLE\sceKernel.cpp" />
+    <ClCompile Include="..\Core\HLE\sceKernelAlarm.cpp" />
+    <ClCompile Include="..\Core\HLE\sceKernelEventFlag.cpp" />
+    <ClCompile Include="..\Core\HLE\sceKernelInterrupt.cpp" />
+    <ClCompile Include="..\Core\HLE\sceKernelMbx.cpp" />
+    <ClCompile Include="..\Core\HLE\sceKernelMemory.cpp" />
+    <ClCompile Include="..\Core\HLE\sceKernelModule.cpp" />
+    <ClCompile Include="..\Core\HLE\sceKernelMsgPipe.cpp" />
+    <ClCompile Include="..\Core\HLE\sceKernelMutex.cpp" />
+    <ClCompile Include="..\Core\HLE\sceKernelSemaphore.cpp" />
+    <ClCompile Include="..\Core\HLE\sceKernelThread.cpp" />
+    <ClCompile Include="..\Core\HLE\sceKernelTime.cpp" />
+    <ClCompile Include="..\Core\HLE\sceKernelVTimer.cpp" />
+    <ClCompile Include="..\Core\HLE\sceMpeg.cpp" />
+    <ClCompile Include="..\Core\HLE\sceNet.cpp" />
+    <ClCompile Include="..\Core\HLE\sceNetAdhoc.cpp" />
+    <ClCompile Include="..\Core\HLE\sceNp.cpp" />
+    <ClCompile Include="..\Core\HLE\sceOpenPSID.cpp" />
+    <ClCompile Include="..\Core\HLE\sceParseHttp.cpp" />
+    <ClCompile Include="..\Core\HLE\sceParseUri.cpp" />
+    <ClCompile Include="..\Core\HLE\scePauth.cpp" />
+    <ClCompile Include="..\Core\HLE\scePower.cpp" />
+    <ClCompile Include="..\Core\HLE\scePsmf.cpp" />
+    <ClCompile Include="..\Core\HLE\scePspNpDrm_user.cpp" />
+    <ClCompile Include="..\Core\HLE\sceP3da.cpp" />
+    <ClCompile Include="..\Core\HLE\sceMd5.cpp" />
+    <ClCompile Include="..\Core\HLE\sceMp4.cpp" />
+    <ClCompile Include="..\Core\HLE\sceMp3.cpp" />
+    <ClCompile Include="..\Core\HLE\sceMt19937.cpp" />
+    <ClCompile Include="..\Core\HLE\sceGameUpdate.cpp" />
+    <ClCompile Include="..\Core\HLE\sceRtc.cpp" />
+    <ClCompile Include="..\Core\HLE\sceSas.cpp" />
+    <ClCompile Include="..\Core\HLE\sceSsl.cpp" />
+    <ClCompile Include="..\Core\HLE\sceUmd.cpp" />
+    <ClCompile Include="..\Core\HLE\sceUsb.cpp" />
+    <ClCompile Include="..\Core\HLE\sceUsbGps.cpp" />
+    <ClCompile Include="..\Core\HLE\sceUtility.cpp" />
+    <ClCompile Include="..\Core\HLE\sceVaudio.cpp" />
+    <ClCompile Include="..\Core\HLE\__sceAudio.cpp" />
+    <ClCompile Include="..\Core\Host.cpp" />
+    <ClCompile Include="..\Core\HW\MediaEngine.cpp" />
+    <ClCompile Include="..\Core\HW\MemoryStick.cpp" />
+    <ClCompile Include="..\Core\HW\MpegDemux.cpp" />
+    <ClCompile Include="..\Core\HW\SasAudio.cpp" />
+    <ClCompile Include="..\Core\HW\AsyncIOManager.cpp" />
+    <ClCompile Include="..\Core\HW\SimpleAudioDec.cpp" />
+    <ClCompile Include="..\Core\Loaders.cpp" />
+    <ClCompile Include="..\Core\MemMap.cpp" />
+    <ClCompile Include="..\Core\MemmapFunctions.cpp" />
+    <ClCompile Include="..\Core\MIPS\ARM\ArmAsm.cpp" />
+    <ClCompile Include="..\Core\MIPS\ARM\ArmCompALU.cpp" />
+    <ClCompile Include="..\Core\MIPS\ARM\ArmCompBranch.cpp" />
+    <ClCompile Include="..\Core\MIPS\ARM\ArmCompFPU.cpp" />
+    <ClCompile Include="..\Core\MIPS\ARM\ArmCompLoadStore.cpp" />
+    <ClCompile Include="..\Core\MIPS\ARM\ArmCompReplace.cpp" />
+    <ClCompile Include="..\Core\MIPS\ARM\ArmCompVFPU.cpp" />
+    <ClCompile Include="..\Core\MIPS\ARM\ArmRegCacheFPU.cpp" />
+    <ClCompile Include="..\Core\MIPS\ARM\ArmJit.cpp" />
+    <ClCompile Include="..\Core\MIPS\ARM\ArmRegCache.cpp" />
+    <ClCompile Include="..\Core\MIPS\JitCommon\JitBlockCache.cpp" />
+    <ClCompile Include="..\Core\MIPS\JitCommon\JitCommon.cpp" />
+    <ClCompile Include="..\Core\MIPS\MIPS.cpp" />
+    <ClCompile Include="..\Core\MIPS\MIPSAnalyst.cpp" />
+    <ClCompile Include="..\Core\MIPS\MIPSAsm.cpp" />
+    <ClCompile Include="..\Core\MIPS\MIPSAsmTables.cpp" />
+    <ClCompile Include="..\Core\MIPS\MIPSCodeUtils.cpp" />
+    <ClCompile Include="..\Core\MIPS\MIPSDebugInterface.cpp" />
+    <ClCompile Include="..\Core\MIPS\MIPSDis.cpp" />
+    <ClCompile Include="..\Core\MIPS\MIPSDisVFPU.cpp" />
+    <ClCompile Include="..\Core\MIPS\MIPSInt.cpp" />
+    <ClCompile Include="..\Core\MIPS\MIPSIntVFPU.cpp" />
+    <ClCompile Include="..\Core\MIPS\MIPSTables.cpp" />
+    <ClCompile Include="..\Core\MIPS\MIPSVFPUUtils.cpp" />
+    <ClCompile Include="..\Core\MIPS\PPC\PpcAsm.cpp" />
+    <ClCompile Include="..\Core\MIPS\PPC\PpcCompAlu.cpp" />
+    <ClCompile Include="..\Core\MIPS\PPC\PpcCompBranch.cpp" />
+    <ClCompile Include="..\Core\MIPS\PPC\PpcCompFpu.cpp" />
+    <ClCompile Include="..\Core\MIPS\PPC\PpcCompLoadStore.cpp" />
+    <ClCompile Include="..\Core\MIPS\PPC\PpcCompReplace.cpp" />
+    <ClCompile Include="..\Core\MIPS\PPC\PpcCompVFPU.cpp" />
+    <ClCompile Include="..\Core\MIPS\PPC\PpcJit.cpp" />
+    <ClCompile Include="..\Core\MIPS\PPC\PpcRegCache.cpp" />
+    <ClCompile Include="..\Core\MIPS\x86\Asm.cpp" />
+    <ClCompile Include="..\Core\MIPS\x86\CompALU.cpp" />
+    <ClCompile Include="..\Core\MIPS\x86\CompBranch.cpp" />
+    <ClCompile Include="..\Core\MIPS\x86\CompFPU.cpp" />
+    <ClCompile Include="..\Core\MIPS\x86\CompLoadStore.cpp" />
+    <ClCompile Include="..\Core\MIPS\x86\CompReplace.cpp" />
+    <ClCompile Include="..\Core\MIPS\x86\CompVFPU.cpp" />
+    <ClCompile Include="..\Core\MIPS\x86\JitSafeMem.cpp" />
+    <ClCompile Include="..\Core\MIPS\x86\RegCacheFPU.cpp" />
+    <ClCompile Include="..\Core\MIPS\x86\Jit.cpp" />
+    <ClCompile Include="..\Core\MIPS\x86\RegCache.cpp" />
+    <ClCompile Include="..\Core\PSPLoaders.cpp" />
+    <ClCompile Include="..\Core\PSPMixer.cpp" />
+    <ClCompile Include="..\Core\Reporting.cpp" />
+    <ClCompile Include="..\Core\SaveState.cpp" />
+    <ClCompile Include="..\Core\MIPS\MIPSStackWalk.cpp" />
+    <ClCompile Include="..\Core\System.cpp" />
+    <ClCompile Include="..\Core\Util\BlockAllocator.cpp" />
+    <ClCompile Include="..\Core\Util\GameManager.cpp" />
+    <ClCompile Include="..\Core\Util\PPGeDraw.cpp" />
+    <ClCompile Include="..\Core\Util\ppge_atlas.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\ext\snappy\snappy.h">
+      <Filter>Ext\Snappy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ext\snappy\snappy-stubs-public.h">
+      <Filter>Ext\Snappy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ext\snappy\snappy-sinksource.h">
+      <Filter>Ext\Snappy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ext\snappy\snappy-stubs-internal.h">
+      <Filter>Ext\Snappy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ext\snappy\snappy-internal.h">
+      <Filter>Ext\Snappy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ext\disarm.h">
+      <Filter>Ext</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ext\xxhash.h">
+      <Filter>Ext</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\Config.h" />
+    <ClInclude Include="..\Core\Core.h" />
+    <ClInclude Include="..\Core\CoreParameter.h" />
+    <ClInclude Include="..\Core\CoreTiming.h" />
+    <ClInclude Include="..\Core\Cwcheat.h" />
+    <ClInclude Include="..\Core\Debugger\Breakpoints.h" />
+    <ClInclude Include="..\Core\Debugger\DebugInterface.h" />
+    <ClInclude Include="..\Core\Debugger\DisassemblyManager.h" />
+    <ClInclude Include="..\Core\Debugger\SymbolMap.h" />
+    <ClInclude Include="..\Core\Dialog\PSPGamedataInstallDialog.h" />
+    <ClInclude Include="..\Core\Dialog\PSPDialog.h" />
+    <ClInclude Include="..\Core\Dialog\PSPMsgDialog.h" />
+    <ClInclude Include="..\Core\Dialog\PSPNetconfDialog.h" />
+    <ClInclude Include="..\Core\Dialog\PSPOskDialog.h" />
+    <ClInclude Include="..\Core\Dialog\PSPPlaceholderDialog.h" />
+    <ClInclude Include="..\Core\Dialog\PSPSaveDialog.h" />
+    <ClInclude Include="..\Core\Dialog\PSPScreenshotDialog.h" />
+    <ClInclude Include="..\Core\Dialog\SavedataParam.h" />
+    <ClInclude Include="..\Core\ELF\ElfReader.h" />
+    <ClInclude Include="..\Core\ELF\ElfTypes.h" />
+    <ClInclude Include="..\Core\ELF\ParamSFO.h" />
+    <ClInclude Include="..\Core\ELF\PBPReader.h" />
+    <ClInclude Include="..\Core\ELF\PrxDecrypter.h" />
+    <ClInclude Include="..\Core\FileSystems\BlockDevices.h" />
+    <ClInclude Include="..\Core\FileSystems\DirectoryFileSystem.h" />
+    <ClInclude Include="..\Core\FileSystems\FileSystem.h" />
+    <ClInclude Include="..\Core\FileSystems\ISOFileSystem.h" />
+    <ClInclude Include="..\Core\FileSystems\MetaFileSystem.h" />
+    <ClInclude Include="..\Core\FileSystems\VirtualDiscFileSystem.h" />
+    <ClInclude Include="..\Core\Font\PGF.h" />
+    <ClInclude Include="..\Core\HDRemaster.h" />
+    <ClInclude Include="..\Core\HLE\FunctionWrappers.h" />
+    <ClInclude Include="..\Core\HLE\HLE.h" />
+    <ClInclude Include="..\Core\HLE\HLEHelperThread.h" />
+    <ClInclude Include="..\Core\HLE\HLETables.h" />
+    <ClInclude Include="..\Core\HLE\KernelWaitHelpers.h" />
+    <ClInclude Include="..\Core\HLE\proAdhoc.h" />
+    <ClInclude Include="..\Core\HLE\ReplaceTables.h" />
+    <ClInclude Include="..\Core\HLE\sceAtrac.h" />
+    <ClInclude Include="..\Core\HLE\sceAudio.h" />
+    <ClInclude Include="..\Core\HLE\sceAudiocodec.h" />
+    <ClInclude Include="..\Core\HLE\sceCcc.h" />
+    <ClInclude Include="..\Core\HLE\sceCtrl.h" />
+    <ClInclude Include="..\Core\HLE\sceChnnlsv.h" />
+    <ClInclude Include="..\Core\HLE\sceDeflt.h" />
+    <ClInclude Include="..\Core\HLE\sceDisplay.h" />
+    <ClInclude Include="..\Core\HLE\sceDmac.h" />
+    <ClInclude Include="..\Core\HLE\sceFont.h" />
+    <ClInclude Include="..\Core\HLE\sceGe.h" />
+    <ClInclude Include="..\Core\HLE\sceHeap.h" />
+    <ClInclude Include="..\Core\HLE\sceHprm.h" />
+    <ClInclude Include="..\Core\HLE\sceHttp.h" />
+    <ClInclude Include="..\Core\HLE\sceImpose.h" />
+    <ClInclude Include="..\Core\HLE\sceIo.h" />
+    <ClInclude Include="..\Core\HLE\sceJpeg.h" />
+    <ClInclude Include="..\Core\HLE\sceKernel.h" />
+    <ClInclude Include="..\Core\HLE\sceKernelAlarm.h" />
+    <ClInclude Include="..\Core\HLE\sceKernelEventFlag.h" />
+    <ClInclude Include="..\Core\HLE\sceKernelInterrupt.h" />
+    <ClInclude Include="..\Core\HLE\sceKernelMemory.h" />
+    <ClInclude Include="..\Core\HLE\sceKernelModule.h" />
+    <ClInclude Include="..\Core\HLE\sceKernelMbx.h" />
+    <ClInclude Include="..\Core\HLE\sceKernelMsgPipe.h" />
+    <ClInclude Include="..\Core\HLE\sceKernelMutex.h" />
+    <ClInclude Include="..\Core\HLE\sceKernelSemaphore.h" />
+    <ClInclude Include="..\Core\HLE\sceKernelThread.h" />
+    <ClInclude Include="..\Core\HLE\sceKernelTime.h" />
+    <ClInclude Include="..\Core\HLE\sceMpeg.h" />
+    <ClInclude Include="..\Core\HLE\sceNet.h" />
+    <ClInclude Include="..\Core\HLE\sceNetAdhoc.h" />
+    <ClInclude Include="..\Core\HLE\sceNp.h" />
+    <ClInclude Include="..\Core\HLE\sceOpenPSID.h" />
+    <ClInclude Include="..\Core\HLE\sceParseHttp.h" />
+    <ClInclude Include="..\Core\HLE\sceParseUri.h" />
+    <ClInclude Include="..\Core\HLE\scePauth.h" />
+    <ClInclude Include="..\Core\HLE\scePower.h" />
+    <ClInclude Include="..\Core\HLE\scePsmf.h" />
+    <ClInclude Include="..\Core\HLE\scePspNpDrm_user.h" />
+    <ClInclude Include="..\Core\HLE\sceP3da.h" />
+    <ClInclude Include="..\Core\HLE\sceMt19937.h" />
+    <ClInclude Include="..\Core\HLE\sceMd5.h" />
+    <ClInclude Include="..\Core\HLE\sceMp4.h" />
+    <ClInclude Include="..\Core\HLE\sceMp3.h" />
+    <ClInclude Include="..\Core\HLE\sceGameUpdate.h" />
+    <ClInclude Include="..\Core\HLE\sceRtc.h" />
+    <ClInclude Include="..\Core\HLE\sceSas.h" />
+    <ClInclude Include="..\Core\HLE\sceSsl.h" />
+    <ClInclude Include="..\Core\HLE\sceUmd.h" />
+    <ClInclude Include="..\Core\HLE\sceUsb.h" />
+    <ClInclude Include="..\Core\HLE\sceUsbGps.h" />
+    <ClInclude Include="..\Core\HLE\sceUtility.h" />
+    <ClInclude Include="..\Core\HLE\sceKernelVTimer.h" />
+    <ClInclude Include="..\Core\HLE\sceVaudio.h" />
+    <ClInclude Include="..\Core\HLE\__sceAudio.h" />
+    <ClInclude Include="..\Core\Host.h" />
+    <ClInclude Include="..\Core\HW\BufferQueue.h" />
+    <ClInclude Include="..\Core\HW\MediaEngine.h" />
+    <ClInclude Include="..\Core\HW\MpegDemux.h" />
+    <ClInclude Include="..\Core\HW\SasAudio.h" />
+    <ClInclude Include="..\Core\HW\MemoryStick.h" />
+    <ClInclude Include="..\Core\HW\AsyncIOManager.h" />
+    <ClInclude Include="..\Core\HW\SimpleAudioDec.h" />
+    <ClInclude Include="..\Core\Loaders.h" />
+    <ClInclude Include="..\Core\MemMap.h" />
+    <ClInclude Include="..\Core\MIPS\ARM\ArmAsm.h" />
+    <ClInclude Include="..\Core\MIPS\ARM\ArmCompVFPUNEON.cpp" />
+    <ClInclude Include="..\Core\MIPS\ARM\ArmJit.h" />
+    <ClInclude Include="..\Core\MIPS\ARM\ArmRegCache.h" />
+    <ClInclude Include="..\Core\MIPS\ARM\ArmRegCacheFPU.h" />
+    <ClInclude Include="..\Core\MIPS\JitCommon\JitBlockCache.h" />
+    <ClInclude Include="..\Core\MIPS\JitCommon\JitCommon.h" />
+    <ClInclude Include="..\Core\MIPS\JitCommon\JitState.h" />
+    <ClInclude Include="..\Core\MIPS\MIPS.h" />
+    <ClInclude Include="..\Core\MIPS\MIPSAnalyst.h" />
+    <ClInclude Include="..\Core\MIPS\MIPSAsm.h" />
+    <ClInclude Include="..\Core\MIPS\MIPSAsmTables.h" />
+    <ClInclude Include="..\Core\MIPS\MIPSCodeUtils.h" />
+    <ClInclude Include="..\Core\MIPS\MIPSDebugInterface.h" />
+    <ClInclude Include="..\Core\MIPS\MIPSDis.h" />
+    <ClInclude Include="..\Core\MIPS\MIPSDisVFPU.h" />
+    <ClInclude Include="..\Core\MIPS\MIPSInt.h" />
+    <ClInclude Include="..\Core\MIPS\MIPSIntVFPU.h" />
+    <ClInclude Include="..\Core\MIPS\MIPSTables.h" />
+    <ClInclude Include="..\Core\MIPS\MIPSVFPUUtils.h" />
+    <ClInclude Include="..\Core\MIPS\PPC\PpcJit.h" />
+    <ClInclude Include="..\Core\MIPS\PPC\PpcRegCache.h" />
+    <ClInclude Include="..\Core\MIPS\x86\Asm.h" />
+    <ClInclude Include="..\Core\MIPS\x86\JitSafeMem.h" />
+    <ClInclude Include="..\Core\MIPS\x86\RegCacheFPU.h" />
+    <ClInclude Include="..\Core\MIPS\x86\Jit.h" />
+    <ClInclude Include="..\Core\MIPS\x86\RegCache.h" />
+    <ClInclude Include="..\Core\Opcode.h" />
+    <ClInclude Include="..\Core\PSPLoaders.h" />
+    <ClInclude Include="..\Core\PSPMixer.h" />
+    <ClInclude Include="..\Core\Reporting.h" />
+    <ClInclude Include="..\Core\SaveState.h" />
+    <ClInclude Include="..\Core\MIPS\MIPSStackWalk.h" />
+    <ClInclude Include="..\Core\System.h" />
+    <ClInclude Include="..\Core\ThreadEventQueue.h" />
+    <ClInclude Include="..\Core\Util\BlockAllocator.h" />
+    <ClInclude Include="..\Core\Util\GameManager.h" />
+    <ClInclude Include="..\Core\Util\PPGeDraw.h" />
+    <ClInclude Include="..\Core\Util\ppge_atlas.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="CMakeLists.txt" />
+    <None Include="..\LICENSE.TXT" />
+    <None Include="..\android\jni\Android.mk" />
+    <None Include="GameLogNotes.txt" />
+  </ItemGroup>
+</Project>

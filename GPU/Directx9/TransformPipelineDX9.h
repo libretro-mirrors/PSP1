@@ -63,7 +63,6 @@ public:
 		status = VAI_NEW;
 		vbo = 0;
 		ebo = 0;
-		numDCs = 0;
 		prim = GE_PRIM_INVALID;
 		numDraws = 0;
 		numFrames = 0;
@@ -82,6 +81,7 @@ public:
 	};
 
 	u32 hash;
+	u32 minihash;
 
 	Status status;
 
@@ -94,7 +94,6 @@ public:
 	s8 prim;
 
 	// ID information
-	u8 numDCs;
 	int numDraws;
 	int numFrames;
 	int lastFrame;  // So that we can forget.
@@ -107,13 +106,10 @@ class TransformDrawEngineDX9 : public DrawEngineCommon {
 public:
 	TransformDrawEngineDX9();
 	virtual ~TransformDrawEngineDX9();
-	
+
 	void SubmitPrim(void *verts, void *inds, GEPrimitiveType prim, int vertexCount, u32 vertType, int *bytesRead);
 	void SubmitSpline(void* control_points, void* indices, int count_u, int count_v, int type_u, int type_v, GEPatchPrimType prim_type, u32 vertType);
 	void SubmitBezier(void* control_points, void* indices, int count_u, int count_v, GEPatchPrimType prim_type, u32 vertType);
-	bool TestBoundingBox(void* control_points, int vertexCount, u32 vertType);
-
-	bool GetCurrentSimpleVertices(int count, std::vector<GPUDebugVertex> &vertices, std::vector<u16> &indices);
 
 	void SetShaderManager(ShaderManagerDX9 *shaderManager) {
 		shaderManager_ = shaderManager;
@@ -136,9 +132,35 @@ public:
 	void SetupVertexDecoder(u32 vertType);
 	void SetupVertexDecoderInternal(u32 vertType);
 
-	bool IsCodePtrVertexDecoder(const u8 *ptr) const;
 	// This requires a SetupVertexDecoder call first.
-	int EstimatePerVertexCost();
+	int EstimatePerVertexCost() {
+		// TODO: This is transform cost, also account for rasterization cost somehow... although it probably
+		// runs in parallel with transform.
+
+		// Also, this is all pure guesswork. If we can find a way to do measurements, that would be great.
+
+		// GTA wants a low value to run smooth, GoW wants a high value (otherwise it thinks things
+		// went too fast and starts doing all the work over again).
+
+		int cost = 20;
+		if (gstate.isLightingEnabled()) {
+			cost += 10;
+
+			for (int i = 0; i < 4; i++) {
+				if (gstate.isLightChanEnabled(i))
+					cost += 10;
+			}
+		}
+
+		if (gstate.getUVGenMode() != GE_TEXMAP_TEXTURE_COORDS) {
+			cost += 20;
+		}
+		if (dec_ && dec_->morphcount > 1) {
+			cost += 5 * dec_->morphcount;
+		}
+
+		return cost;
+	}
 
 	// So that this can be inlined
 	void Flush() {
@@ -146,6 +168,12 @@ public:
 			return;
 		DoFlush();
 	}
+
+	bool IsCodePtrVertexDecoder(const u8 *ptr) const;
+
+protected:
+	// Preprocessing for spline/bezier
+	virtual u32 NormalizeVertices(u8 *outPtr, u8 *bufPtr, const u8 *inPtr, int lowerBound, int upperBound, u32 vertType) override;
 
 private:
 	void DecodeVerts();
@@ -155,16 +183,11 @@ private:
 	void ApplyDrawState(int prim);
 	void ApplyDrawStateLate();
 
-	bool IsReallyAClear(int numVerts) const;
 	IDirect3DVertexDeclaration9 *SetupDecFmtForDraw(VSShader *vshader, const DecVtxFormat &decFmt, u32 pspFmt);
 
-	// Preprocessing for spline/bezier
-	u32 NormalizeVertices(u8 *outPtr, u8 *bufPtr, const u8 *inPtr, VertexDecoder *dec, int lowerBound, int upperBound, u32 vertType);
-	u32 NormalizeVertices(u8 *outPtr, u8 *bufPtr, const u8 *inPtr, int lowerBound, int upperBound, u32 vertType);
-	
-	// drawcall ID
-	u32 ComputeFastDCID();
+	u32 ComputeMiniHash();
 	u32 ComputeHash();  // Reads deferred vertex data.
+	void MarkUnreliable(VertexArrayInfoDX9 *vai);
 
 	VertexDecoder *GetVertexDecoder(u32 vtype);
 
@@ -192,10 +215,6 @@ private:
 	VertexDecoderJitCache *decJitCache_;
 	u32 lastVType_;
 	
-	// Vertex collector buffers
-	u8 *decoded;
-	u16 *decIndex;
-
 	TransformedVertex *transformed;
 	TransformedVertex *transformedExpanded;
 
@@ -225,4 +244,4 @@ private:
 	VertexDecoderOptions decOptions_;
 };
 
-};
+}  // namespace

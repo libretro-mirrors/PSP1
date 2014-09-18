@@ -405,14 +405,12 @@ static ConfigSetting graphicsSettings[] = {
 	ReportedConfigSetting("FrameSkip", &g_Config.iFrameSkip, 0),
 	ReportedConfigSetting("AutoFrameSkip", &g_Config.bAutoFrameSkip, false),
 	ReportedConfigSetting("FrameRate", &g_Config.iFpsLimit, 0),
-#ifdef _WIN32
-	ConfigSetting("FrameSkipUnthrottle", &g_Config.bFrameSkipUnthrottle, false),
-#ifndef __LIBRETRO__
-	ConfigSetting("TemporaryGPUBackend", &g_Config.iTempGPUBackend, -1, false),
-	ConfigSetting("RestartRequired", &g_Config.bRestartRequired, false, false),
-#endif
+#if defined(_WIN32) && !defined(__LIBRETRO__)
+   ConfigSetting("FrameSkipUnthrottle", &g_Config.bFrameSkipUnthrottle, false),
+   ConfigSetting("TemporaryGPUBackend", &g_Config.iTempGPUBackend, -1, false),
+   ConfigSetting("RestartRequired", &g_Config.bRestartRequired, false, false),
 #else
-	ConfigSetting("FrameSkipUnthrottle", &g_Config.bFrameSkipUnthrottle, true),
+   ConfigSetting("FrameSkipUnthrottle", &g_Config.bFrameSkipUnthrottle, true),
 #endif
 	ReportedConfigSetting("ForceMaxEmulatedFPS", &g_Config.iForceMaxEmulatedFPS, 60),
 #ifdef USING_GLES2

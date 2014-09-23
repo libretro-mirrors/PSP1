@@ -20,7 +20,7 @@ endif
 WITH_DYNAREC = $(ARCH)
 FFMPEG_ARCH = $(ARCH)
 
-ifeq ($(ARCH), i386)
+ifeq ($(ARCH), $(filter $(ARCH), i386 i686))
    WITH_DYNAREC = x86
    FFMPEG_ARCH = x86
 endif

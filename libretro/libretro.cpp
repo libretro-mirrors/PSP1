@@ -97,18 +97,18 @@ public:
 	LibretroHost() {
 	}
 
-	virtual void UpdateUI() {}
+	void UpdateUI() override {}
 
-	virtual void UpdateMemView() {}
-	virtual void UpdateDisassembly() {}
+	void UpdateMemView() override {}
+	void UpdateDisassembly() override {}
 
-	virtual void SetDebugMode(bool mode) {}
+	void SetDebugMode(bool mode) override {}
 
-	virtual bool InitGL(std::string *error_message) { return true; }
-	virtual void ShutdownGL() {}
+	bool InitGraphics(std::string *error_message) override { return true; }
+	void ShutdownGraphics() override {}
 
-	virtual void InitSound(PMixer *mixer) { libretro_mixer = mixer; };
-	virtual void UpdateSound()
+	void InitSound(PMixer *mixer) override { libretro_mixer = mixer; };
+	void UpdateSound() override
    {
       int16_t audio[512 * 2];
       int samples = __AudioMix(audio, (g_Config.iAudioLatency) ? 512 : 256);
@@ -118,15 +118,13 @@ public:
 #endif
       audio_batch_cb(audio, samples);
    }
-	virtual void ShutdownSound() { libretro_mixer = nullptr; };
+	void ShutdownSound() override { libretro_mixer = nullptr; };
 
-	virtual void BootDone() {}
+	void BootDone() override {}
 
-	virtual bool IsDebuggingEnabled() { return false; }
-	virtual bool AttemptLoadSymbolMap() { return false; }
-	virtual void ResetSymbolMap() {}
-	virtual void AddSymbol(std::string name, u32 addr, u32 size, int type=0) {}
-	virtual void SetWindowTitle(const char *message) {}
+	bool IsDebuggingEnabled() override { return false; }
+	bool AttemptLoadSymbolMap() override { return false; }
+	void SetWindowTitle(const char *message) override {}
 };
 
 void retro_set_environment(retro_environment_t cb)

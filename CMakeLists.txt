@@ -2,6 +2,7 @@
 cmake_minimum_required(VERSION 2.8.8)
 project(PPSSPP)
 enable_language(ASM)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeTests)
 
 add_definitions(-DPPSSPP)
 
@@ -135,7 +136,7 @@ if(MAEMO)
 endif()
 
 if (NOT BLACKBERRY AND NOT ANDROID AND NOT IOS AND NOT LIBRETRO)
-	include(FindSDL)
+	include(FindSDL2)
 endif()
 include(FindThreads)
 
@@ -747,15 +748,15 @@ elseif(BLACKBERRY)
 	set(TargetBin PPSSPPBlackberry)
 elseif(LIBRETRO)
 	set(TargetBin PPSSPPLibretro)
-elseif(SDL_FOUND)
+elseif(SDL2_FOUND)
 	set(TargetBin PPSSPPSDL)
 	# Require SDL
-	include_directories(${SDL_INCLUDE_DIR})
+	include_directories(${SDL2_INCLUDE_DIR})
 	set(nativeExtra ${nativeExtra} 
 		SDL/SDLJoystick.h
 		SDL/SDLJoystick.cpp
 		native/base/PCMain.cpp)
-	set(nativeExtraLibs ${nativeExtraLibs} ${SDL_LIBRARY})
+	set(nativeExtraLibs ${nativeExtraLibs} ${SDL2_LIBRARY})
 	if(APPLE)
 		set(nativeExtra ${nativeExtra} SDL/SDLMain.h SDL/SDLMain.mm)
 		set(nativeExtraLibs ${nativeExtraLibs} ${COCOA_LIBRARY})
@@ -764,7 +765,7 @@ elseif(SDL_FOUND)
 	endif()
 	set(TargetBin PPSSPPSDL)
 else()
-	message(FATAL_ERROR "Could not find SDL. Failing.")
+	message(FATAL_ERROR "Could not find SDL2. Failing.")
 endif()
 
 if(LIBRETRO)
@@ -790,6 +791,7 @@ else()
 		UI/GamepadEmu.cpp
 		UI/OnScreenDisplay.cpp
 		UI/ControlMappingScreen.cpp
+		UI/ReportScreen.cpp
 		UI/Store.cpp
 		UI/CwCheatScreen.cpp
 		UI/InstallZipScreen.cpp
@@ -799,7 +801,6 @@ else()
 			set(NativeAppSource ${NativeAppSource} android/jni/ArmEmitterTest.cpp)
 		endif()
 		set(nativeExtra ${nativeExtra} ${NativeAppSource})
-	endif()
 endif()
 
 add_library(native STATIC
@@ -1554,7 +1555,7 @@ if(IOS)
 	)
 	set(APP_DIR_NAME \${TARGET_BUILD_DIR}/\${FULL_PRODUCT_NAME})
 	add_custom_command(TARGET PPSSPP POST_BUILD
-		COMMAND tar -c -C . --exclude .DS_Store --exclude .git -H assets | tar -x -C '${APP_DIR_NAME}'
+		COMMAND tar -c -C . --exclude .DS_Store --exclude .git -H gnu assets | tar -x -C '${APP_DIR_NAME}'
 	)
 	# Force Xcode to relink the binary.
 	add_custom_command(TARGET Core PRE_BUILD

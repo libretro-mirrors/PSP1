@@ -69,6 +69,8 @@ public:
 
 	void CompileDelaySlot(int flags);
 	void EatInstruction(MIPSOpcode op);
+	void AddContinuedBlock(u32 dest);
+
 	void Comp_RunBlock(MIPSOpcode op);
 	void Comp_ReplacementFunc(MIPSOpcode op);
 
@@ -193,8 +195,9 @@ private:
 
 	void WriteDownCount(int offset = 0);
 	void WriteDownCountR(ARMReg reg);
-	void ClearRoundingMode();
-	void SetRoundingMode();
+	void RestoreRoundingMode(bool force = false);
+	void ApplyRoundingMode(bool force = false);
+	void UpdateRoundingMode();
 	void MovFromPC(ARMReg r);
 	void MovToPC(ARMReg r);
 

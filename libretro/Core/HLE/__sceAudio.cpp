@@ -253,12 +253,9 @@ u32 __AudioEnqueue(AudioChannel &chan, int chanNum, bool blocking)
       size_t sz1, sz2;
       chan.sampleQueue.pushPointers(totalSamples, &buf1, &sz1, &buf2, &sz2);
 
-      if (Memory::IsValidAddress(chan.sampleAddress + (totalSamples - 1) * sizeof(s16_le)))
-      {
-         Memory::MemcpyUnchecked(buf1, chan.sampleAddress, (u32)sz1 * sizeof(s16));
-         if (buf2)
-            Memory::MemcpyUnchecked(buf2, chan.sampleAddress + (u32)sz1 * sizeof(s16), (u32)sz2 * sizeof(s16));
-      }
+      memcpy(buf1, Memory::GetPointerUnchecked(chan.sampleAddress), sz1 * sizeof(s16));
+      if (buf2)
+         memcpy(buf2, Memory::GetPointerUnchecked(chan.sampleAddress + (u32)sz1 * sizeof(s16)), sz2 * sizeof(s16));
    }
    else
    {
@@ -271,28 +268,26 @@ u32 __AudioEnqueue(AudioChannel &chan, int chanNum, bool blocking)
       {
          const u32 totalSamples = chan.sampleCount * 2;
 
-         s16_le *sampleData = (s16_le *) Memory::GetPointer(chan.sampleAddress);
+         s16_le *sampleData = (s16_le *) Memory::GetPointerUnchecked(chan.sampleAddress);
 
          // Walking a pointer for speed.  But let's make sure we wouldn't trip on an invalid ptr.
-         if (Memory::IsValidAddress(chan.sampleAddress + (totalSamples - 1) * sizeof(s16_le))) {
-            s16 *buf1 = 0, *buf2 = 0;
-            size_t sz1, sz2;
-            chan.sampleQueue.pushPointers(totalSamples, &buf1, &sz1, &buf2, &sz2);
+         s16 *buf1 = 0, *buf2 = 0;
+         size_t sz1, sz2;
+         chan.sampleQueue.pushPointers(totalSamples, &buf1, &sz1, &buf2, &sz2);
 
-            // TODO: SSE/NEON (VQDMULH) implementations
-            for (u32 i = 0; i < sz1; i += 2)
+         // TODO: SSE/NEON (VQDMULH) implementations
+         for (u32 i = 0; i < sz1; i += 2)
+         {
+            buf1[i] = adjustvolume(sampleData[i], leftVol);
+            buf1[i + 1] = adjustvolume(sampleData[i + 1], rightVol);
+         }
+         if (buf2)
+         {
+            sampleData += sz1;
+            for (u32 i = 0; i < sz2; i += 2)
             {
-               buf1[i] = adjustvolume(sampleData[i], leftVol);
-               buf1[i + 1] = adjustvolume(sampleData[i + 1], rightVol);
-            }
-            if (buf2)
-            {
-               sampleData += sz1;
-               for (u32 i = 0; i < sz2; i += 2)
-               {
-                  buf2[i] = adjustvolume(sampleData[i], leftVol);
-                  buf2[i + 1] = adjustvolume(sampleData[i + 1], rightVol);
-               }
+               buf2[i] = adjustvolume(sampleData[i], leftVol);
+               buf2[i + 1] = adjustvolume(sampleData[i + 1], rightVol);
             }
          }
       }

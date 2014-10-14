@@ -51,6 +51,12 @@ static int audioHostIntervalCycles;
 
 #define MIXBUFFER_QUEUE (512 * 16)
 
+#if defined(_M_IX86) || defined(_M_ARM32)
+#define GET_PTR(address) (u8*)(Memory::base + ((address) & MEMVIEW32_MASK))
+#else
+#define GET_PTR(address) (u8*)(Memory::base + (address))
+#endif
+
 static s16 mixBufferQueue[MIXBUFFER_QUEUE];
 static int mixBufferHead = 0;
 static int mixBufferTail = 0;
@@ -253,9 +259,9 @@ u32 __AudioEnqueue(AudioChannel &chan, int chanNum, bool blocking)
       size_t sz1, sz2;
       chan.sampleQueue.pushPointers(totalSamples, &buf1, &sz1, &buf2, &sz2);
 
-      memcpy(buf1, Memory::GetPointerUnchecked(chan.sampleAddress), sz1 * sizeof(s16));
+      memcpy(buf1, GET_PTR(chan.sampleAddress), sz1 * sizeof(s16));
       if (buf2)
-         memcpy(buf2, Memory::GetPointerUnchecked(chan.sampleAddress + (u32)sz1 * sizeof(s16)), sz2 * sizeof(s16));
+         memcpy(buf2, GET_PTR(chan.sampleAddress + (u32)sz1 * sizeof(s16)), sz2 * sizeof(s16));
    }
    else
    {
@@ -268,7 +274,7 @@ u32 __AudioEnqueue(AudioChannel &chan, int chanNum, bool blocking)
       {
          const u32 totalSamples = chan.sampleCount * 2;
 
-         s16_le *sampleData = (s16_le *) Memory::GetPointerUnchecked(chan.sampleAddress);
+         s16_le *sampleData = (s16_le *)GET_PTR(chan.sampleAddress);
 
          // Walking a pointer for speed.  But let's make sure we wouldn't trip on an invalid ptr.
          s16 *buf1 = 0, *buf2 = 0;
@@ -296,9 +302,9 @@ u32 __AudioEnqueue(AudioChannel &chan, int chanNum, bool blocking)
          for (u32 i = 0; i < chan.sampleCount; i++)
          {
             // Expand to stereo
-            s16 sample = (s16)Memory::Read_U16(chan.sampleAddress + 2 * i);
-            chan.sampleQueue.push(adjustvolume(sample, leftVol));
-            chan.sampleQueue.push(adjustvolume(sample, rightVol));
+            s16 *sample = (s16*)GET_PTR(chan.sampleAddress + 2 * i);
+            chan.sampleQueue.push(adjustvolume(*sample, leftVol));
+            chan.sampleQueue.push(adjustvolume(*sample, rightVol));
          }
       }
    }

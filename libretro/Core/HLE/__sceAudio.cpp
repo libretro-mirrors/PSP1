@@ -52,7 +52,7 @@ static int audioHostIntervalCycles;
 #define MIXBUFFER_QUEUE (512 * 16)
 
 #if defined(_M_IX86) || defined(_M_ARM32)
-#define GET_PTR(address) (u8*)(Memory::base + ((address) & MEMVIEW32_MASK))
+#define GET_PTR(address) (u8*)(Memory::base + ((address) & Memory::MEMVIEW32_MASK))
 #else
 #define GET_PTR(address) (u8*)(Memory::base + (address))
 #endif

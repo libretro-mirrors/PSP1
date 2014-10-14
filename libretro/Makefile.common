@@ -409,4 +409,14 @@ ifdef WITH_DYNAREC
    endif
 endif
 
+#UDIS86
+# Compiled and linked even on ARM for now
+
+CFILES += $(EXTDIR)/udis86/decode.c \
+			 $(EXTDIR)/udis86/itab.c \
+			 $(EXTDIR)/udis86/syn-att.c \
+			 $(EXTDIR)/udis86/syn-intel.c \
+			 $(EXTDIR)/udis86/syn.c \
+			 $(EXTDIR)/udis86/udis86.c
+
 CFILES += $(LIBRETRO_SRC)

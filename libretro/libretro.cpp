@@ -827,7 +827,7 @@ bool retro_load_game(const struct retro_game_info *game)
 
    g_Config.currentDirectory      = retro_base_dir;
    g_Config.externalDirectory     = retro_base_dir;
-   g_Config.memCardDirectory      = retro_base_dir;
+   g_Config.memStickDirectory      = retro_base_dir;
    g_Config.flash0Directory       = retro_base_dir + "flash0/";
    g_Config.internalDataDirectory = retro_base_dir;
    g_Config.iShowFPSCounter = false;

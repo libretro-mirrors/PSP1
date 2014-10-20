@@ -101,6 +101,7 @@ else ifneq (,$(findstring osx,$(platform)))
 ifneq ($(shell sw_vers | grep -c 10.9),1)
    LDFLAGS += -mmacosx-version-min=10.5
 endif
+   LDFLAGS += -stdlib=libc++
    fpic = -fPIC
 
    FFMPEGINCFLAGS += -I$(FFMPEGDIR)/macosx/$(FFMPEG_ARCH)/include

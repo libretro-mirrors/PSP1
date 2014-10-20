@@ -97,8 +97,9 @@ else ifneq (,$(findstring imx6,$(platform)))
 else ifneq (,$(findstring osx,$(platform)))
    TARGET := $(TARGET_NAME)_libretro.dylib
    LDFLAGS += -dynamiclib
-   OSXVER = `sw_vers -productVersion | cut -c 4`
-ifneq ($(shell sw_vers | grep -c 10.9),1)
+   OSXVER = `sw_vers -productVersion | cut -d. -f 2`
+   OSX_LT_MAVERICKS = `(( $(OSXVER) <= 9 )) && echo "YES"`
+ifeq ($(OSX_LT_MAVERICKS),"YES")
    LDFLAGS += -mmacosx-version-min=10.5
 endif
    LDFLAGS += -stdlib=libc++

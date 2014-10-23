@@ -123,6 +123,11 @@ else ifneq (,$(findstring ios,$(platform)))
    FFMPEGINCFLAGS += -I$(FFMPEGDIR)/ios/universal/include
    FFMPEGLIBDIR :=   $(FFMPEGDIR)/ios/universal/lib
    FFMPEGLDFLAGS += -L$(FFMPEGLIBDIR) -lavformat -lavcodec -lavutil -lswresample -lswscale
+
+ifeq ($(IOSSDK),)
+   IOSSDK := $(shell xcrun -sdk iphoneos -show-sdk-path)
+endif
+
    CC = clang -arch armv7 -isysroot $(IOSSDK)
    CC_AS = $(CC)
    CXX = clang++ -arch armv7 -isysroot $(IOSSDK)

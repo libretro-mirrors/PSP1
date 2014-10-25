@@ -60,6 +60,8 @@ static u64 saved_flags;
 const bool USE_JIT_MISSMAP = false;
 static std::map<std::string, u32> notJitOps;
 
+JitState js;
+
 template<typename A, typename B>
 std::pair<B,A> flip_pair(const std::pair<A,B> &p) {
 	return std::pair<B, A>(p.second, p.first);

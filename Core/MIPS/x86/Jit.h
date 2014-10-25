@@ -40,6 +40,8 @@ namespace MIPSComp
 // This is called when Jit hits a breakpoint.  Returns 1 when hit.
 u32 JitBreakpoint();
 
+extern JitState js;
+
 struct JitOptions
 {
 	JitOptions();
@@ -292,7 +294,6 @@ private:
 
 	JitBlockCache blocks;
 	JitOptions jo;
-	JitState js;
 
 	GPRRegCache gpr;
 	FPURegCache fpr;

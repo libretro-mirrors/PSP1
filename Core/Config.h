@@ -113,6 +113,7 @@ public:
 	bool bAtomicAudioLocks;
 	int iLockedCPUSpeed;
 	bool bAutoSaveSymbolMap;
+	bool bCacheFullIsoInRam;
 	int iScreenRotation;
 
 	std::string sReportHost;

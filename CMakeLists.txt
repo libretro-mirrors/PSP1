@@ -835,6 +835,7 @@ else()
 			set(NativeAppSource ${NativeAppSource} android/jni/ArmEmitterTest.cpp)
 		endif()
 		set(nativeExtra ${nativeExtra} ${NativeAppSource})
+	endif()
 endif()
 
 add_library(native STATIC

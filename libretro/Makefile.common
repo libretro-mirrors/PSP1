@@ -13,37 +13,35 @@ INCFLAGS := \
 	-I$(EXTDIR)/xbrz \
 	-I$(EXTDIR)/xxhash
 
-ifneq ($(GLES), 1)
-   CFILES   += $(LIBRETRODIR)/ext/glew/glew.c
-   INCFLAGS += -I$(LIBRETRODIR)/ext/glew
-endif
+SOURCES_C   += $(LIBRETRODIR)/ext/glew/glew.c
+INCFLAGS += -I$(LIBRETRODIR)/ext/glew
 
-CXXFILES += $(NATIVEDIR)/ext/rg_etc1/rg_etc1.cpp
-CXXFILES += $(EXTDIR)/snappy/snappy-c.cpp
-CFILES   += $(NATIVEDIR)/ext/stb_vorbis/stb_vorbis.c \
+SOURCES_CXX += $(NATIVEDIR)/ext/rg_etc1/rg_etc1.cpp
+SOURCES_CXX += $(EXTDIR)/snappy/snappy-c.cpp
+SOURCES_C   += $(NATIVEDIR)/ext/stb_vorbis/stb_vorbis.c \
 				$(NATIVEDIR)/ext/libpng17/png.c
-CXXFILES += $(NATIVEDIR)/ext/vjson/json.cpp \
+SOURCES_CXX += $(NATIVEDIR)/ext/vjson/json.cpp \
 				$(EXTDIR)/snappy/snappy.cpp
-CFILES   += $(NATIVEDIR)/ext/libpng17/pngerror.c
-CFILES    += $(NATIVEDIR)/ext/libpng17/pngget.c \
+SOURCES_C   += $(NATIVEDIR)/ext/libpng17/pngerror.c
+SOURCES_C    += $(NATIVEDIR)/ext/libpng17/pngget.c \
 				 $(NATIVEDIR)/ext/libzip/zip_name_locate.c
-CFILES   += $(NATIVEDIR)/ext/libpng17/pngmem.c \
+SOURCES_C   += $(NATIVEDIR)/ext/libpng17/pngmem.c \
 				$(NATIVEDIR)/ext/libpng17/pngpread.c 
-CXXFILES += $(NATIVEDIR)/ext/cityhash/city.cpp \
+SOURCES_CXX += $(NATIVEDIR)/ext/cityhash/city.cpp \
 				$(COMMONDIR)/ChunkFile.cpp
-CFILES   += $(NATIVEDIR)/ext/libpng17/pngread.c
-CXXFILES += $(COMMONDIR)/ConsoleListener.cpp \
+SOURCES_C   += $(NATIVEDIR)/ext/libpng17/pngread.c
+SOURCES_CXX += $(COMMONDIR)/ConsoleListener.cpp \
 				$(COMMONDIR)/Crypto/md5.cpp \
 				$(COMMONDIR)/Crypto/sha1.cpp
-CFILES   += $(NATIVEDIR)/ext/libzip/mkstemp.c
-CXXFILES += $(COMMONDIR)/FileUtil.cpp
-CFILES   += $(NATIVEDIR)/ext/libzip/zip_add.c \
+SOURCES_C   += $(NATIVEDIR)/ext/libzip/mkstemp.c
+SOURCES_CXX += $(COMMONDIR)/FileUtil.cpp
+SOURCES_C   += $(NATIVEDIR)/ext/libzip/zip_add.c \
 				$(EXTDIR)/libkirk/AES.c \
 				$(NATIVEDIR)/ext/libzip/zip_add_dir.c
-CXXFILES += $(COMMONDIR)/KeyMap.cpp
-CFILES   += $(NATIVEDIR)/ext/libzip/zip_close.c
-CXXFILES += $(COMMONDIR)/LogManager.cpp
-CFILES   += $(EXTDIR)/libkirk/amctrl.c \
+SOURCES_CXX += $(COMMONDIR)/KeyMap.cpp
+SOURCES_C   += $(NATIVEDIR)/ext/libzip/zip_close.c
+SOURCES_CXX += $(COMMONDIR)/LogManager.cpp
+SOURCES_C   += $(EXTDIR)/libkirk/amctrl.c \
 				$(NATIVEDIR)/ext/libpng17/pngrio.c \
 				$(NATIVEDIR)/ext/libpng17/pngrtran.c \
 				$(NATIVEDIR)/ext/libzip/zip_delete.c \
@@ -51,35 +49,35 @@ CFILES   += $(EXTDIR)/libkirk/amctrl.c \
 				$(EXTDIR)/libkirk/SHA1.c \
 				$(NATIVEDIR)/ext/libzip/zip_entry_free.c \
 				$(NATIVEDIR)/ext/libzip/zip_entry_new.c 
-CXXFILES += $(COMMONDIR)/MemArena.cpp
-CFILES   += $(NATIVEDIR)/ext/libzip/zip_err_str.c \
+SOURCES_CXX += $(COMMONDIR)/MemArena.cpp
+SOURCES_C   += $(NATIVEDIR)/ext/libzip/zip_err_str.c \
 				$(NATIVEDIR)/ext/libzip/zip_error.c \
 				$(NATIVEDIR)/ext/libzip/zip_error_clear.c \
 				$(NATIVEDIR)/ext/libzip/zip_error_get.c
-CXXFILES += $(COMMONDIR)/MemoryUtil.cpp
-CFILES   += $(EXTDIR)/libkirk/bn.c \
+SOURCES_CXX += $(COMMONDIR)/MemoryUtil.cpp
+SOURCES_C   += $(EXTDIR)/libkirk/bn.c \
 				$(NATIVEDIR)/ext/libzip/zip_error_get_sys_type.c \
 				$(NATIVEDIR)/ext/libzip/zip_error_strerror.c \
 				$(EXTDIR)/libkirk/ec.c \
 				$(NATIVEDIR)/ext/libzip/zip_error_to_str.c \
 				$(NATIVEDIR)/ext/libzip/zip_fclose.c 
-CXXFILES += $(COMMONDIR)/Misc.cpp
-CFILES   += $(NATIVEDIR)/ext/libzip/zip_file_error_clear.c
-CXXFILES += $(COMMONDIR)/MsgHandler.cpp
-CFILES   += $(EXTDIR)/libkirk/kirk_engine.c \
+SOURCES_CXX += $(COMMONDIR)/Misc.cpp
+SOURCES_C   += $(NATIVEDIR)/ext/libzip/zip_file_error_clear.c
+SOURCES_CXX += $(COMMONDIR)/MsgHandler.cpp
+SOURCES_C   += $(EXTDIR)/libkirk/kirk_engine.c \
 				$(NATIVEDIR)/ext/libzip/zip_file_error_get.c \
 				$(NATIVEDIR)/ext/libzip/zip_file_get_offset.c \
 				$(NATIVEDIR)/ext/libzip/zip_file_strerror.c
-CXXFILES += $(COMMONDIR)/StringUtils.cpp
-CFILES   += $(NATIVEDIR)/ext/libzip/zip_filerange_crc.c \
+SOURCES_CXX += $(COMMONDIR)/StringUtils.cpp
+SOURCES_C   += $(NATIVEDIR)/ext/libzip/zip_filerange_crc.c \
 				$(NATIVEDIR)/ext/libzip/zip_fopen.c
-CXXFILES += $(EXTDIR)/xbrz/xbrz.cpp \
+SOURCES_CXX += $(EXTDIR)/xbrz/xbrz.cpp \
 				$(COMMONDIR)/ThreadPools.cpp
-CFILES   += $(NATIVEDIR)/ext/libzip/zip_fopen_index.c \
+SOURCES_C   += $(NATIVEDIR)/ext/libzip/zip_fopen_index.c \
 				$(NATIVEDIR)/ext/libzip/zip_fread.c \
 				$(NATIVEDIR)/ext/libzip/zip_free.c
-CXXFILES += $(COMMONDIR)/Timer.cpp
-CFILES   += $(NATIVEDIR)/ext/libzip/zip_get_archive_comment.c \
+SOURCES_CXX += $(COMMONDIR)/Timer.cpp
+SOURCES_C   += $(NATIVEDIR)/ext/libzip/zip_get_archive_comment.c \
 				$(NATIVEDIR)/ext/libzip/zip_get_archive_flag.c \
 				$(NATIVEDIR)/ext/libpng17/pngrutil.c \
 				$(NATIVEDIR)/ext/libzip/zip_get_file_comment.c \
@@ -102,11 +100,11 @@ CFILES   += $(NATIVEDIR)/ext/libzip/zip_get_archive_comment.c \
 				$(NATIVEDIR)/ext/libzip/zip_source_filep.c \
 				$(NATIVEDIR)/ext/libpng17/pngtrans.c \
 				$(NATIVEDIR)/ext/libzip/zip_source_free.c
-CXXFILES += $(GPUCOMMONDIR)/VertexDecoderCommon.cpp \
+SOURCES_CXX += $(GPUCOMMONDIR)/VertexDecoderCommon.cpp \
 				$(GPUCOMMONDIR)/DrawEngineCommon.cpp \
 				$(GPUCOMMONDIR)/SplineCommon.cpp \
 				$(GPUCOMMONDIR)/FramebufferCommon.cpp
-CFILES   += $(NATIVEDIR)/ext/libzip/zip_source_function.c \
+SOURCES_C   += $(NATIVEDIR)/ext/libzip/zip_source_function.c \
 				$(NATIVEDIR)/ext/libzip/zip_source_zip.c \
 				$(NATIVEDIR)/ext/libzip/zip_stat.c \
 				$(NATIVEDIR)/ext/libzip/zip_stat_index.c \
@@ -116,13 +114,13 @@ CFILES   += $(NATIVEDIR)/ext/libzip/zip_source_function.c \
 				$(NATIVEDIR)/ext/libzip/zip_strerror.c \
 				$(NATIVEDIR)/ext/libzip/zip_unchange.c \
 				$(NATIVEDIR)/ext/libzip/zip_unchange_all.c
-CXXFILES += $(GPUCOMMONDIR)/TransformCommon.cpp
-CFILES   += $(NATIVEDIR)/ext/libpng17/pngwtran.c \
+SOURCES_CXX += $(GPUCOMMONDIR)/TransformCommon.cpp
+SOURCES_C   += $(NATIVEDIR)/ext/libpng17/pngwtran.c \
 				$(NATIVEDIR)/ext/libzip/zip_unchange_archive.c \
 				$(NATIVEDIR)/ext/libzip/zip_unchange_data.c
-CXXFILES += $(GPUCOMMONDIR)/IndexGenerator.cpp
-CFILES   += $(NATIVEDIR)/ext/libpng17/pngwutil.c
-CXXFILES += $(GPUCOMMONDIR)/TextureDecoder.cpp \
+SOURCES_CXX += $(GPUCOMMONDIR)/IndexGenerator.cpp
+SOURCES_C   += $(NATIVEDIR)/ext/libpng17/pngwutil.c
+SOURCES_CXX += $(GPUCOMMONDIR)/TextureDecoder.cpp \
 				$(GPUCOMMONDIR)/PostShader.cpp \
 				$(GPUDIR)/Debugger/Breakpoints.cpp \
 				$(GPUDIR)/Debugger/Stepping.cpp \
@@ -151,7 +149,10 @@ CXXFILES += $(GPUCOMMONDIR)/TextureDecoder.cpp \
 				$(GPUDIR)/Common/TextureCacheCommon.cpp \
 				$(GPUDIR)/GLES/TextureCache.cpp \
 				$(GPUDIR)/GLES/TextureScaler.cpp
-CXXFILES += $(NATIVEDIR)/file/chunk_file.cpp \
+SOURCES_C   += $(NATIVEDIR)/gfx_es2/gl3stub.c \
+				$(NATIVEDIR)/math/fast/fast_math.c \
+				$(NATIVEDIR)/math/fast/fast_matrix.c
+SOURCES_CXX += $(NATIVEDIR)/file/chunk_file.cpp \
 				$(GPUDIR)/Common/SoftwareTransformCommon.cpp \
 				$(NATIVEDIR)/file/dialog.cpp \
 				$(NATIVEDIR)/file/easy_file.cpp \
@@ -183,15 +184,12 @@ CXXFILES += $(NATIVEDIR)/file/chunk_file.cpp \
 				$(NATIVEDIR)/gfx_es2/gpu_features.cpp \
 				$(NATIVEDIR)/gfx_es2/glsl_program.cpp \
 				$(NATIVEDIR)/gfx_es2/vertex_format.cpp \
-				$(NATIVEDIR)/gfx_es2/gl3stub.cpp \
 				$(NATIVEDIR)/i18n/i18n.cpp \
 				$(NATIVEDIR)/image/zim_load.cpp \
 				$(NATIVEDIR)/image/zim_save.cpp \
 				$(NATIVEDIR)/image/png_load.cpp \
 				$(NATIVEDIR)/input/gesture_detector.cpp \
 				$(NATIVEDIR)/input/input_state.cpp \
-				$(NATIVEDIR)/math/fast/fast_math.cpp \
-				$(NATIVEDIR)/math/fast/fast_matrix.cpp \
 				$(NATIVEDIR)/math/curves.cpp \
 				$(NATIVEDIR)/math/expression_parser.cpp \
 				$(NATIVEDIR)/math/lin/plane.cpp \
@@ -356,7 +354,7 @@ ifdef WITH_DYNAREC
    DYNAFLAGS += -DDYNAREC
    ifeq ($(WITH_DYNAREC), arm)
       DYNAFLAGS += -DNEW_DYNAREC=3
-		CXXFILES += $(COMMONDIR)/ArmEmitter.cpp \
+		SOURCES_CXX += $(COMMONDIR)/ArmEmitter.cpp \
 						$(EXTDIR)/disarm.cpp \
 						$(COMMONDIR)/ArmCPUDetect.cpp \
 						$(COMMONDIR)/ArmThunk.cpp \
@@ -373,11 +371,11 @@ ifdef WITH_DYNAREC
 						$(GPUCOMMONDIR)/VertexDecoderArm.cpp
 						
 		ifeq ($(HAVE_NEON),1)
-			CXXFILES   += \
+			SOURCES_CXX   += \
 							  $(COREDIR)/MIPS/ARM/ArmCompVFPUNEON.cpp \
 							  $(GPUDIR)/Common/TextureDecoderNEON.cpp
 
-			CFILES += $(NATIVEDIR)/ext/libpng17/arm/arm_init.c
+			SOURCES_C += $(NATIVEDIR)/ext/libpng17/arm/arm_init.c
 			ASMFILES   += $(NATIVEDIR)/math/fast/fast_matrix_neon.S \
 							$(NATIVEDIR)/ext/libpng17/arm/filter_neon.S \
 							$(NATIVEDIR)/ext/libpng17/arm/filter_neon_intrinsics.S
@@ -388,7 +386,7 @@ ifdef WITH_DYNAREC
       else
 	   CPUFLAGS := -msse -msse2 -D_M_IX86 -m32
       endif
-	   CXXFILES += $(COMMONDIR)/x64Analyzer.cpp \
+	   SOURCES_CXX += $(COMMONDIR)/x64Analyzer.cpp \
 						$(COMMONDIR)/x64Emitter.cpp \
 						$(COMMONDIR)/ABI.cpp \
 						$(COMMONDIR)/Thunk.cpp \
@@ -405,18 +403,18 @@ ifdef WITH_DYNAREC
 						$(COREDIR)/MIPS/x86/RegCache.cpp \
 						$(COREDIR)/MIPS/x86/RegCacheFPU.cpp \
 						$(GPUDIR)/Common/VertexDecoderX86.cpp
-		CFILES   += $(NATIVEDIR)/math/fast/fast_matrix_sse.c
+		SOURCES_C   += $(NATIVEDIR)/math/fast/fast_matrix_sse.c
    endif
 endif
 
 #UDIS86
 # Compiled and linked even on ARM for now
 
-CFILES += $(EXTDIR)/udis86/decode.c \
+SOURCES_C += $(EXTDIR)/udis86/decode.c \
 			 $(EXTDIR)/udis86/itab.c \
 			 $(EXTDIR)/udis86/syn-att.c \
 			 $(EXTDIR)/udis86/syn-intel.c \
 			 $(EXTDIR)/udis86/syn.c \
 			 $(EXTDIR)/udis86/udis86.c
 
-CFILES += $(LIBRETRO_SRC)
+SOURCES_C += $(LIBRETRO_SRC)

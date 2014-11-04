@@ -20,6 +20,9 @@
 #ifdef IOS
 #include <tr1/unordered_map>
 #include <string>
+namespace std {
+	using std::tr1::unordered_map;
+}
 #else
 #include <unordered_map>
 #endif

@@ -13,8 +13,10 @@ INCFLAGS := \
 	-I$(EXTDIR)/xbrz \
 	-I$(EXTDIR)/xxhash
 
+ifeq (,$(findstring android,$(platform)))
 SOURCES_C   += $(LIBRETRODIR)/ext/glew/glew.c
 INCFLAGS += -I$(LIBRETRODIR)/ext/glew
+endif
 
 SOURCES_CXX += $(NATIVEDIR)/ext/rg_etc1/rg_etc1.cpp
 SOURCES_CXX += $(EXTDIR)/snappy/snappy-c.cpp
@@ -375,10 +377,10 @@ ifdef WITH_DYNAREC
 							  $(COREDIR)/MIPS/ARM/ArmCompVFPUNEON.cpp \
 							  $(GPUDIR)/Common/TextureDecoderNEON.cpp
 
-			SOURCES_C += $(NATIVEDIR)/ext/libpng17/arm/arm_init.c
+			SOURCES_C += $(NATIVEDIR)/ext/libpng17/arm/arm_init.c \
+							$(NATIVEDIR)/ext/libpng17/arm/filter_neon_intrinsics.c
 			ASMFILES   += $(NATIVEDIR)/math/fast/fast_matrix_neon.S \
-							$(NATIVEDIR)/ext/libpng17/arm/filter_neon.S \
-							$(NATIVEDIR)/ext/libpng17/arm/filter_neon_intrinsics.S
+							$(NATIVEDIR)/ext/libpng17/arm/filter_neon.S
 		endif
    else
       ifeq ($(WITH_DYNAREC), x86_64)

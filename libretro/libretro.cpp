@@ -806,7 +806,7 @@ bool retro_load_game(const struct retro_game_info *game)
       return false;
    }
 
-#ifdef GLES
+#ifdef USING_GLES2
    hw_render.context_type = RETRO_HW_CONTEXT_OPENGLES2;
 #else
    hw_render.context_type = RETRO_HW_CONTEXT_OPENGL;

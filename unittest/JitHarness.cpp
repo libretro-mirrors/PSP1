@@ -18,6 +18,8 @@
 #include "base/timeutil.h"
 #include "Core/MIPS/JitCommon/JitCommon.h"
 #include "Core/MIPS/MIPSCodeUtils.h"
+#include "Core/MIPS/MIPSDebugInterface.h"
+#include "Core/MIPS/MIPSAsm.h"
 #include "Core/MemMap.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -101,13 +103,13 @@ bool TestJit() {
 
 	// TODO: Smarter way of seeding in the code sequence.
 	for (int i = 0; i < 100; ++i) {
-		*p++ = 0xD03B0000 | (1 >> 7) | (7 << 8);
-		*p++ = 0xD03B0000 | (1 >> 7);
-		*p++ = 0xD03B0000 | (7 << 8);
-		*p++ = 0xD03B0000 | (1 >> 7) | (7 << 8);
-		*p++ = 0xD03B0000 | (1 >> 7) | (7 << 8);
-		*p++ = 0xD03B0000 | (1 >> 7) | (7 << 8);
-		*p++ = 0xD03B0000 | (1 >> 7) | (7 << 8);
+		*p++ = 0xD03C0000 | (1 << 7) | (1 << 15) | (7 << 8);
+		*p++ = 0xD03C0000 | (1 << 7) | (1 << 15);
+		*p++ = 0xD03C0000 | (1 << 7) | (1 << 15) | (7 << 8);
+		*p++ = 0xD03C0000 | (1 << 7) | (1 << 15) | (7 << 8);
+		*p++ = 0xD03C0000 | (1 << 7) | (1 << 15) | (7 << 8);
+		*p++ = 0xD03C0000 | (1 << 7) | (1 << 15) | (7 << 8);
+		*p++ = 0xD03C0000 | (1 << 7) | (1 << 15) | (7 << 8);
 	}
 
 	*p++ = MIPS_MAKE_SYSCALL("UnitTestFakeSyscalls", "UnitTestTerminator");

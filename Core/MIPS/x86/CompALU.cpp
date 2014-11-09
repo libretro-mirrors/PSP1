@@ -43,6 +43,16 @@ using namespace MIPSAnalyst;
 
 namespace MIPSComp
 {
+	static bool NeedsTempForSETcc(X64Reg reg) {
+#ifndef _M_X64
+		// Can't use ESI or EDI (which we use), no 8-bit versions.  Only these.
+		if (reg != EAX && reg != EBX && reg != ECX && reg != EDX) {
+			return true;
+		}
+#endif
+		return false;
+	}
+
 	void Jit::CompImmLogic(MIPSOpcode op, void (XEmitter::*arith)(int, const OpArg &, const OpArg &))
 	{
 		u32 uimm = (u16)(op & 0xFFFF);

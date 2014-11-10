@@ -28,6 +28,9 @@ namespace MIPSComp {
 }
 
 // We compile this for x86 as well because it may be useful when developing the ARM JIT on a PC.
+
+// MP2E : This breaks the build on linux x86_64, ifdef'd out for now
+#ifdef ARM
 std::vector<std::string> DisassembleArm2(const u8 *data, int size) {
 	std::vector<std::string> lines;
 
@@ -56,6 +59,7 @@ std::vector<std::string> DisassembleArm2(const u8 *data, int size) {
 	}
 	return lines;
 }
+#endif
 
 #ifndef ARM
 

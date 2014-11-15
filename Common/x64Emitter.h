@@ -22,11 +22,11 @@
 
 #include "Common.h"
 
-#ifdef _M_X64
+#if defined(_M_X64) && !defined(_ARCH_64)
 #define _ARCH_64
 #endif
 
-#ifdef _M_X64
+#ifdef _ARCH_64
 #define PTRBITS 64
 #else
 #define PTRBITS 32
@@ -167,7 +167,7 @@ struct OpArg
 		//if scale == 0 never mind offsetting
 		offset = _offset;
 	}
-	bool operator==(OpArg b)
+	bool operator==(const OpArg &b) const
 	{
 		return operandReg == b.operandReg && scale == b.scale && offsetOrBaseReg == b.offsetOrBaseReg &&
 		       indexReg == b.indexReg && offset == b.offset;

@@ -449,7 +449,7 @@ void Jit::Comp_VVectorInit(MIPSOpcode op) {
 	switch ((op >> 16) & 0xF)
 	{
 	case 6: // v=zeros; break;  //vzero
-		MOVSS(XMM0, M(&zero));
+		XORPS(XMM0, R(XMM0));
 		break;
 	case 7: // v=ones; break;   //vone
 		MOVSS(XMM0, M(&one));
@@ -640,12 +640,11 @@ void Jit::Comp_VCrossQuat(MIPSOpcode op) {
 		SUBSS(XMM0, R(XMM1));
 		MOVSS(fpr.V(dregs[2]), XMM0);
 	} else if (sz == V_Quad) {
-		// Quaternion product  vqmul.q  untested
-		DISABLE;
-
+		// Quaternion product  vqmul.q
 		fpr.MapRegsV(sregs, sz, 0);
 
 		// Compute X
+		// d[0] = s[0] * t[3] + s[1] * t[2] - s[2] * t[1] + s[3] * t[0];
 		MOVSS(XMM0, fpr.V(sregs[0]));
 		MULSS(XMM0, fpr.V(tregs[3]));
 		MOVSS(XMM1, fpr.V(sregs[1]));
@@ -660,6 +659,7 @@ void Jit::Comp_VCrossQuat(MIPSOpcode op) {
 		MOVSS(fpr.V(dregs[0]), XMM0);
 
 		// Compute Y
+		//d[1] = s[1] * t[3] + s[2] * t[0] + s[3] * t[1] - s[0] * t[2];
 		MOVSS(XMM0, fpr.V(sregs[1]));
 		MULSS(XMM0, fpr.V(tregs[3]));
 		MOVSS(XMM1, fpr.V(sregs[2]));
@@ -674,6 +674,7 @@ void Jit::Comp_VCrossQuat(MIPSOpcode op) {
 		MOVSS(fpr.V(dregs[1]), XMM0);
 
 		// Compute Z
+		//d[2] = s[0] * t[1] - s[1] * t[0] + s[2] * t[3] + s[3] * t[2];
 		MOVSS(XMM0, fpr.V(sregs[0]));
 		MULSS(XMM0, fpr.V(tregs[1]));
 		MOVSS(XMM1, fpr.V(sregs[1]));
@@ -688,6 +689,7 @@ void Jit::Comp_VCrossQuat(MIPSOpcode op) {
 		MOVSS(fpr.V(dregs[2]), XMM0);
 
 		// Compute W
+		//d[3] = -s[0] * t[0] - s[1] * t[1] - s[2] * t[2] + s[3] * t[3];
 		MOVSS(XMM0, fpr.V(sregs[3]));
 		MULSS(XMM0, fpr.V(tregs[3]));
 		MOVSS(XMM1, fpr.V(sregs[1]));
@@ -695,7 +697,7 @@ void Jit::Comp_VCrossQuat(MIPSOpcode op) {
 		SUBSS(XMM0, R(XMM1));
 		MOVSS(XMM1, fpr.V(sregs[2]));
 		MULSS(XMM1, fpr.V(tregs[2]));
-		ADDSS(XMM0, R(XMM1));
+		SUBSS(XMM0, R(XMM1));
 		MOVSS(XMM1, fpr.V(sregs[0]));
 		MULSS(XMM1, fpr.V(tregs[0]));
 		SUBSS(XMM0, R(XMM1));
@@ -1094,17 +1096,17 @@ void Jit::Comp_Vcmp(MIPSOpcode op) {
 		ANDPS(XMM0, M(vcmpMask[n - 1]));
 		MOVAPS(M(vcmpResult), XMM0);
 
-		MOV(32, R(EAX), M(&vcmpResult[0]));
+		MOV(32, R(TEMPREG), M(&vcmpResult[0]));
 		for (int i = 1; i < n; ++i) {
-			OR(32, R(EAX), M(&vcmpResult[i]));
+			OR(32, R(TEMPREG), M(&vcmpResult[i]));
 		}
 
 		// Aggregate the bits. Urgh, expensive. Can optimize for the case of one comparison,
 		// which is the most common after all.
-		CMP(32, R(EAX), Imm8(affected_bits & 0x1F));
+		CMP(32, R(TEMPREG), Imm8(affected_bits & 0x1F));
 		SETcc(CC_E, R(ECX));
 		SHL(32, R(ECX), Imm8(5));
-		OR(32, R(EAX), R(ECX));
+		OR(32, R(TEMPREG), R(ECX));
 	} else {
 		// Finalize the comparison for ES/NS.
 		if (cond == VC_ES || cond == VC_NS) {
@@ -1113,17 +1115,17 @@ void Jit::Comp_Vcmp(MIPSOpcode op) {
 			// It's inversed below for NS.
 		}
 
-		MOVD_xmm(R(EAX), XMM0);
+		MOVD_xmm(R(TEMPREG), XMM0);
 		if (inverse) {
-			XOR(32, R(EAX), Imm32(0xFFFFFFFF));
+			XOR(32, R(TEMPREG), Imm32(0xFFFFFFFF));
 		}
-		AND(32, R(EAX), Imm32(0x31));
+		AND(32, R(TEMPREG), Imm32(0x31));
 	}
 	
 	gpr.UnlockAllX();
 	gpr.MapReg(MIPS_REG_VFPUCC, true, true);
 	AND(32, gpr.R(MIPS_REG_VFPUCC), Imm32(~affected_bits));
-	OR(32, gpr.R(MIPS_REG_VFPUCC), R(EAX));
+	OR(32, gpr.R(MIPS_REG_VFPUCC), R(TEMPREG));
 
 	fpr.ReleaseSpillLocks();
 }
@@ -1452,12 +1454,12 @@ void Jit::Comp_Vf2i(MIPSOpcode op) {
 	// Except for truncate, we need to update MXCSR to our preferred rounding mode.
 	if (setMXCSR != -1) {
 		STMXCSR(M(&mxcsrTemp));
-		MOV(32, R(EAX), M(&mxcsrTemp));
-		AND(32, R(EAX), Imm32(~(3 << 13)));
+		MOV(32, R(TEMPREG), M(&mxcsrTemp));
+		AND(32, R(TEMPREG), Imm32(~(3 << 13)));
 		if (setMXCSR != 0) {
-			OR(32, R(EAX), Imm32(setMXCSR << 13));
+			OR(32, R(TEMPREG), Imm32(setMXCSR << 13));
 		}
-		MOV(32, M(&mips_->temp), R(EAX));
+		MOV(32, M(&mips_->temp), R(TEMPREG));
 		LDMXCSR(M(&mips_->temp));
 	}
 
@@ -1490,12 +1492,12 @@ void Jit::Comp_Vf2i(MIPSOpcode op) {
 		MAXSD(XMM0, M(&minIntAsDouble));
 		// We've set the rounding mode above, so this part's easy.
 		switch ((op >> 21) & 0x1f) {
-		case 16: CVTSD2SI(EAX, R(XMM0)); break; //n
-		case 17: CVTTSD2SI(EAX, R(XMM0)); break; //z - truncate
-		case 18: CVTSD2SI(EAX, R(XMM0)); break; //u
-		case 19: CVTSD2SI(EAX, R(XMM0)); break; //d
+		case 16: CVTSD2SI(TEMPREG, R(XMM0)); break; //n
+		case 17: CVTTSD2SI(TEMPREG, R(XMM0)); break; //z - truncate
+		case 18: CVTSD2SI(TEMPREG, R(XMM0)); break; //u
+		case 19: CVTSD2SI(TEMPREG, R(XMM0)); break; //d
 		}
-		MOVD_xmm(fpr.VX(tempregs[i]), R(EAX));
+		MOVD_xmm(fpr.VX(tempregs[i]), R(TEMPREG));
 	}
 
 	for (int i = 0; i < n; ++i) {
@@ -2471,9 +2473,9 @@ void Jit::Comp_Viim(MIPSOpcode op) {
 	s32 imm = (s32)(s16)(u16)(op & 0xFFFF);
 	FP32 fp;
 	fp.f = (float)imm;
-	MOV(32, R(EAX), Imm32(fp.u));
+	MOV(32, R(TEMPREG), Imm32(fp.u));
 	fpr.MapRegV(dreg, MAP_DIRTY | MAP_NOINIT);
-	MOVD_xmm(fpr.VX(dreg), R(EAX));
+	MOVD_xmm(fpr.VX(dreg), R(TEMPREG));
 
 	ApplyPrefixD(&dreg, V_Single);
 	fpr.ReleaseSpillLocks();
@@ -2491,9 +2493,9 @@ void Jit::Comp_Vfim(MIPSOpcode op) {
 	FP16 half;
 	half.u = op & 0xFFFF;
 	FP32 fval = half_to_float_fast5(half);
-	MOV(32, R(EAX), Imm32(fval.u));
+	MOV(32, R(TEMPREG), Imm32(fval.u));
 	fpr.MapRegV(dreg, MAP_DIRTY | MAP_NOINIT);
-	MOVD_xmm(fpr.VX(dreg), R(EAX));
+	MOVD_xmm(fpr.VX(dreg), R(TEMPREG));
 
 	ApplyPrefixD(&dreg, V_Single);
 	fpr.ReleaseSpillLocks();

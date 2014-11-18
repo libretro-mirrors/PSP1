@@ -35,6 +35,7 @@ std::vector<std::string> DisassembleArm2(const u8 *data, int size) {
 	std::vector<std::string> lines;
 
 	char temp[256];
+	int bkpt_count = 0;
 	for (int i = 0; i < size; i += 4) {
 		const u32 *codePtr = (const u32 *)(data + i);
 		u32 inst = codePtr[0];
@@ -46,7 +47,7 @@ std::vector<std::string> DisassembleArm2(const u8 *data, int size) {
 			int reg0 = (inst & 0x0000F000) >> 12;
 			int reg1 = (next & 0x0000F000) >> 12;
 			if (reg0 == reg1) {
-				sprintf(temp, "MOV32 %s, %04x%04x", ArmRegName(reg0), hi, low);
+				snprintf(temp, sizeof(temp), "MOV32 %s, %04x%04x", ArmRegName(reg0), hi, low);
 				// sprintf(temp, "%08x MOV32? %s, %04x%04x", (u32)inst, ArmRegName(reg0), hi, low);
 				lines.push_back(temp);
 				i += 4;
@@ -55,7 +56,18 @@ std::vector<std::string> DisassembleArm2(const u8 *data, int size) {
 		}
 		ArmDis((u32)(intptr_t)codePtr, inst, temp, sizeof(temp), false);
 		std::string buf = temp;
-		lines.push_back(buf);
+		if (buf == "BKPT 1") {
+			bkpt_count++;
+		} else {
+			if (bkpt_count) {
+				lines.push_back(StringFromFormat("BKPT 1 (x%i)", bkpt_count));
+				bkpt_count = 0;
+			}
+			lines.push_back(buf);
+		}
+	}
+	if (bkpt_count) {
+		lines.push_back(StringFromFormat("BKPT 1 (x%i)", bkpt_count));
 	}
 	return lines;
 }

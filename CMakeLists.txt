@@ -42,26 +42,16 @@ endif()
 
 if(ARM OR SIMULATOR)
 	set(USING_EGL ON)
-	set(MOBILE_DEVICE ON)
 endif()
 
 include(CheckIncludeFile)
 check_include_file(/opt/vc/include/bcm_host.h RPI)
-if(RPI)
-	set(MOBILE_DEVICE OFF)
-endif()
 
 if(BB)
-	set(MOBILE_DEVICE OFF)
 	set(ARMV7 ON)
 	set(USING_FBDEV ON)
 endif()
 
-
-if(USING_EGL)
-	# Default to GLES2 but could be GL.
-	set(USING_GLES2 ON)
-endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 	set(LINUX ON)
@@ -128,6 +118,8 @@ if(ANDROID OR BLACKBERRY OR IOS)
 			"Re-run ${CMAKE_COMMAND} with:\n"
 			"\"-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}\"")
 	endif()
+	set(MOBILE_DEVICE ON)
+	set(USING_GLES2 ON)
 endif()
 
 if(ANDROID)
@@ -524,8 +516,9 @@ if(USE_FFMPEG)
 		)
 	endif()
 
-	if(APPLE OR BLACKBERRY)
-		set(FFMPEG_LIBRARIES ${FFMPEG_LIBRARIES} iconv)
+	find_library(ICONV_LIBRARY NAMES iconv)
+	if (ICONV_LIBRARY)
+		set(FFMPEG_LIBRARIES ${FFMPEG_LIBRARIES} ${ICONV_LIBRARY})
 	endif()
 
 	if(APPLE)

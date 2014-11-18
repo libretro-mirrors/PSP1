@@ -307,6 +307,11 @@ elseif(X86)
 		Common/x64Analyzer.h
 		Common/x64Emitter.cpp
 		Common/x64Emitter.h)
+elseif(MIPS)
+	set(CommonExtra ${CommonExtra}
+		Common/FakeCPUDetect.cpp
+		Common/MipsEmitter.cpp
+		Common/MipsEmitter.h)
 else()
 	set(CommonExtra ${CommonExtra}
 		Common/FakeCPUDetect.cpp
@@ -1092,6 +1097,12 @@ elseif(X86)
 		Core/MIPS/x86/RegCacheFPU.cpp
 		Core/MIPS/x86/RegCacheFPU.h
 		GPU/Common/VertexDecoderX86.cpp
+		ext/disarm.cpp)
+elseif(MIPS)
+	set(CoreExtra ${CoreExtra}
+		Core/MIPS/MIPS/MipsJit.cpp
+		Core/MIPS/MIPS/MipsJit.h
+		GPU/Common/VertexDecoderFake.cpp
 		ext/disarm.cpp)
 else()
 	set(CoreExtra ${CoreExtra}

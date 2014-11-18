@@ -122,6 +122,7 @@ JitOptions::JitOptions()
 	continueBranches = false;
 	continueJumps = false;
 	continueMaxInstructions = 300;
+	enableVFPUSIMD = true;
 }
 
 #ifdef _MSC_VER
@@ -133,6 +134,7 @@ Jit::Jit(MIPSState *mips) : blocks(mips, this), mips_(mips)
 	blocks.Init();
 	gpr.SetEmitter(this);
 	fpr.SetEmitter(this);
+	fpr.SetOptions(&jo);
 	AllocCodeSpace(1024 * 1024 * 16);
 	asm_.Init(mips, this);
 	safeMemFuncs.Init(&thunks);

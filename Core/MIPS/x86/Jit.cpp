@@ -411,7 +411,7 @@ const u8 *Jit::DoJit(u32 em_address, JitBlock *b)
 	// We add a check before the block, used when entering from a linked block.
 	b->checkedEntry = GetCodePtr();
 	// Downcount flag check. The last block decremented downcounter, and the flag should still be available.
-	FixupBranch skip = J_CC(CC_NBE);
+	FixupBranch skip = J_CC(CC_NS);
 	MOV(32, M(&mips_->pc), Imm32(js.blockStart));
 	JMP(asm_.outerLoop, true);  // downcount hit zero - go advance.
 	SetJumpTarget(skip);
@@ -625,6 +625,7 @@ void Jit::Comp_ReplacementFunc(MIPSOpcode op)
 			MOV(32, R(ECX), M(&mips_->r[MIPS_REG_RA]));
 			SUB(32, M(&mips_->downcount), R(EAX));
 			ApplyRoundingMode();
+			// Need to set flags again, ApplyRoundingMode destroyed them (and EAX.)
 			SUB(32, M(&mips_->downcount), Imm8(0));
 			WriteExitDestInReg(ECX);
 			js.compiling = false;

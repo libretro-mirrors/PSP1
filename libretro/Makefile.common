@@ -386,7 +386,7 @@ ifdef WITH_DYNAREC
       ifeq ($(WITH_DYNAREC), x86_64)
 	   CPUFLAGS := -msse -msse2 -D_M_X64
       else
-	   CPUFLAGS := -msse -msse2 -D_M_IX86 -m32
+	   CPUFLAGS := -msse -msse2 -D_M_IX86 -m32 -D_ARCH_32
       endif
 	   SOURCES_CXX += $(COMMONDIR)/x64Analyzer.cpp \
 						$(COMMONDIR)/x64Emitter.cpp \

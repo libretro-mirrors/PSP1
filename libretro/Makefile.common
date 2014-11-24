@@ -355,7 +355,7 @@ SOURCES_CXX += $(NATIVEDIR)/file/chunk_file.cpp \
 ifdef WITH_DYNAREC
    DYNAFLAGS += -DDYNAREC
    ifeq ($(WITH_DYNAREC), arm)
-      DYNAFLAGS += -DNEW_DYNAREC=3
+      DYNAFLAGS += -DNEW_DYNAREC=3 -D_ARCH_32
 		SOURCES_CXX += $(COMMONDIR)/ArmEmitter.cpp \
 						$(EXTDIR)/disarm.cpp \
 						$(COMMONDIR)/ArmCPUDetect.cpp \

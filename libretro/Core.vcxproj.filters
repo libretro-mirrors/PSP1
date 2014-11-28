@@ -185,7 +185,6 @@
     <ClCompile Include="..\Core\MIPS\MIPS.cpp" />
     <ClCompile Include="..\Core\MIPS\MIPSAnalyst.cpp" />
     <ClCompile Include="..\Core\MIPS\MIPSAsm.cpp" />
-    <ClCompile Include="..\Core\MIPS\MIPSAsmTables.cpp" />
     <ClCompile Include="..\Core\MIPS\MIPSCodeUtils.cpp" />
     <ClCompile Include="..\Core\MIPS\MIPSDebugInterface.cpp" />
     <ClCompile Include="..\Core\MIPS\MIPSDis.cpp" />
@@ -241,6 +240,24 @@
     <ClInclude Include="..\ext\snappy\snappy-internal.h">
       <Filter>Ext\Snappy</Filter>
     </ClInclude>
+    <ClCompile Include="..\ext\udis86\itab.c">
+      <Filter>Ext\udis86</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ext\udis86\syn.c">
+      <Filter>Ext\udis86</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ext\udis86\syn-att.c">
+      <Filter>Ext\udis86</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ext\udis86\syn-intel.c">
+      <Filter>Ext\udis86</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ext\udis86\udis86.c">
+      <Filter>Ext\udis86</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ext\udis86\decode.c">
+      <Filter>Ext\udis86</Filter>
+    </ClCompile>
     <ClInclude Include="..\ext\disarm.h">
       <Filter>Ext</Filter>
     </ClInclude>
@@ -362,7 +379,6 @@
     <ClInclude Include="..\Core\MIPS\MIPS.h" />
     <ClInclude Include="..\Core\MIPS\MIPSAnalyst.h" />
     <ClInclude Include="..\Core\MIPS\MIPSAsm.h" />
-    <ClInclude Include="..\Core\MIPS\MIPSAsmTables.h" />
     <ClInclude Include="..\Core\MIPS\MIPSCodeUtils.h" />
     <ClInclude Include="..\Core\MIPS\MIPSDebugInterface.h" />
     <ClInclude Include="..\Core\MIPS\MIPSDis.h" />

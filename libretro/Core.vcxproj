@@ -171,6 +171,12 @@
     <ClCompile Include="..\ext\snappy\snappy-c.cpp" />
     <ClCompile Include="..\ext\snappy\snappy.cpp" />
     <ClCompile Include="..\git-version.cpp" />
+    <ClCompile Include="..\ext\udis86\decode.c" />
+    <ClCompile Include="..\ext\udis86\itab.c" />
+    <ClCompile Include="..\ext\udis86\syn-att.c" />
+    <ClCompile Include="..\ext\udis86\syn-intel.c" />
+    <ClCompile Include="..\ext\udis86\syn.c" />
+    <ClCompile Include="..\ext\udis86\udis86.c" />
     <ClCompile Include="..\Core\Config.cpp" />
     <ClCompile Include="..\Core\Core.cpp" />
     <ClCompile Include="..\Core\CoreTiming.cpp" />
@@ -336,7 +342,6 @@
     <ClCompile Include="..\Core\MIPS\MIPS.cpp" />
     <ClCompile Include="..\Core\MIPS\MIPSAnalyst.cpp" />
     <ClCompile Include="..\Core\MIPS\MIPSAsm.cpp" />
-    <ClCompile Include="..\Core\MIPS\MIPSAsmTables.cpp" />
     <ClCompile Include="..\Core\MIPS\MIPSCodeUtils.cpp" />
     <ClCompile Include="..\Core\MIPS\MIPSDebugInterface.cpp" />
     <ClCompile Include="..\Core\MIPS\MIPSDis.cpp" />
@@ -583,7 +588,6 @@
     <ClInclude Include="..\Core\MIPS\MIPS.h" />
     <ClInclude Include="..\Core\MIPS\MIPSAnalyst.h" />
     <ClInclude Include="..\Core\MIPS\MIPSAsm.h" />
-    <ClInclude Include="..\Core\MIPS\MIPSAsmTables.h" />
     <ClInclude Include="..\Core\MIPS\MIPSCodeUtils.h" />
     <ClInclude Include="..\Core\MIPS\MIPSDebugInterface.h" />
     <ClInclude Include="..\Core\MIPS\MIPSDis.h" />
@@ -632,6 +636,9 @@
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.vcxproj">
       <Project>{3fcdbae2-5103-4350-9a8e-848ce9c73195}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\ext\armips\libarmips.vcxproj">
+      <Project>{129e5e2b-39c1-4d84-96fe-dfd22dbb4a25}</Project>
     </ProjectReference>
     <ProjectReference Include="..\GPU\GPU.vcxproj">
       <Project>{457f45d2-556f-47bc-a31d-aff0d15beaed}</Project>

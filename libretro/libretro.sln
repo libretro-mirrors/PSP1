@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Express 2013 for Windows Desktop
+# Visual Studio 2013
 VisualStudioVersion = 12.0.30723.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libretro", "libretro.vcxproj", "{BB42DE67-FDBA-407A-A388-CA510A0F5530}"
@@ -16,6 +16,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zlib", "zlib.vcxproj", "{F761046E-6C38-4428-A5F1-38391A37BB34}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libkirk", "libkirk.vcxproj", "{3BAAE095-E0AB-4B0E-B5DF-CE39C8AE31DE}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libarmips", "..\ext\armips\libarmips.vcxproj", "{129E5E2B-39C1-4D84-96FE-DFD22DBB4A25}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -81,6 +83,14 @@ Global
 		{3BAAE095-E0AB-4B0E-B5DF-CE39C8AE31DE}.Release|Win32.Build.0 = Release|Win32
 		{3BAAE095-E0AB-4B0E-B5DF-CE39C8AE31DE}.Release|x64.ActiveCfg = Release|x64
 		{3BAAE095-E0AB-4B0E-B5DF-CE39C8AE31DE}.Release|x64.Build.0 = Release|x64
+		{129E5E2B-39C1-4D84-96FE-DFD22DBB4A25}.Debug|Win32.ActiveCfg = Debug|Win32
+		{129E5E2B-39C1-4D84-96FE-DFD22DBB4A25}.Debug|Win32.Build.0 = Debug|Win32
+		{129E5E2B-39C1-4D84-96FE-DFD22DBB4A25}.Debug|x64.ActiveCfg = Debug|x64
+		{129E5E2B-39C1-4D84-96FE-DFD22DBB4A25}.Debug|x64.Build.0 = Debug|x64
+		{129E5E2B-39C1-4D84-96FE-DFD22DBB4A25}.Release|Win32.ActiveCfg = Release|Win32
+		{129E5E2B-39C1-4D84-96FE-DFD22DBB4A25}.Release|Win32.Build.0 = Release|Win32
+		{129E5E2B-39C1-4D84-96FE-DFD22DBB4A25}.Release|x64.ActiveCfg = Release|x64
+		{129E5E2B-39C1-4D84-96FE-DFD22DBB4A25}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -334,7 +334,6 @@ SOURCES_CXX += $(NATIVEDIR)/file/chunk_file.cpp \
 				$(COREDIR)/MIPS/MIPSStackWalk.cpp \
 				$(COREDIR)/MIPS/MIPSTables.cpp \
 				$(COREDIR)/MIPS/MIPSVFPUUtils.cpp \
-				$(COREDIR)/MIPS/MIPSAsmTables.cpp \
 				$(COREDIR)/MIPS/MIPSAsm.cpp \
 				$(COREDIR)/MemMap.cpp \
 				$(COREDIR)/MemMapFunctions.cpp \

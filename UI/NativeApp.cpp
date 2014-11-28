@@ -32,6 +32,7 @@
 #if !defined(MOBILE_DEVICE)
 #include <algorithm>
 #endif
+#include <memory>
 
 #if defined(_WIN32)
 #include <libpng17/png.h>
@@ -93,6 +94,10 @@
 
 #if !defined(MOBILE_DEVICE)
 #include "Common/KeyMap.h"
+#endif
+
+#ifdef __SYMBIAN32__
+#define unique_ptr auto_ptr
 #endif
 
 // The new UI framework, for initialization
@@ -379,8 +384,8 @@ void NativeInit(int argc, const char *argv[],
 				boot_filename = argv[i];
 				skipLogo = true;
 
-				FileInfo info;
-				if (!getFileInfo(boot_filename.c_str(), &info) || info.exists == false) {
+				std::unique_ptr<FileLoader> fileLoader(ConstructFileLoader(boot_filename));
+				if (!fileLoader->Exists()) {
 					fprintf(stderr, "File not found: %s\n", boot_filename.c_str());
 					exit(1);
 				}

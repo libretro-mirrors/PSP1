@@ -17,6 +17,7 @@
 
 #include <string>
 #include <map>
+#include <memory>
 #include <algorithm>
 
 #include "base/logging.h"
@@ -36,6 +37,10 @@
 #include "Core/Util/GameManager.h"
 #include "Core/Config.h"
 #include "UI/GameInfoCache.h"
+
+#ifdef __SYMBIAN32__
+#define unique_ptr auto_ptr
+#endif
 
 GameInfoCache g_gameInfoCache;
 
@@ -246,8 +251,9 @@ public:
 			return;
 
 		std::string filename = gamePath_;
+		std::unique_ptr<FileLoader> fileLoader(ConstructFileLoader(filename));
 		info_->path = gamePath_;
-		info_->fileType = Identify_File(filename);
+		info_->fileType = Identify_File(fileLoader.get());
 		// Fallback title
 		info_->title = getFilename(info_->path);
 
@@ -376,7 +382,7 @@ handleELF:
 				// Let's assume it's an ISO.
 				// TODO: This will currently read in the whole directory tree. Not really necessary for just a
 				// few files.
-				BlockDevice *bd = constructBlockDevice(gamePath_.c_str());
+				BlockDevice *bd = constructBlockDevice(fileLoader.get());
 				if (!bd)
 					return;  // nothing to do here..
 				ISOFileSystem umd(&handles, bd, "/PSP_GAME");

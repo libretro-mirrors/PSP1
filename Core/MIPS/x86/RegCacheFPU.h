@@ -85,7 +85,7 @@ namespace MIPSComp {
 
 enum {
 	MAP_DIRTY = 1,
-	MAP_NOINIT = 2,
+	MAP_NOINIT = 2 | MAP_DIRTY,
 };
 
 // The PSP has 160 FP registers: 32 FPRs + 128 VFPU registers.
@@ -114,7 +114,7 @@ public:
 	int GetTempV() {
 		return GetTempR() - 32;
 	}
-	// TODO: GetTempVS?
+	int GetTempVS(u8 *v, VectorSize vsz);
 
 	void SetEmitter(XEmitter *emitter) {emit = emitter;}
 	void SetOptions(MIPSComp::JitOptions *jo) {jo_ = jo;}

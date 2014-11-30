@@ -1081,7 +1081,7 @@ void Jit::Comp_VecDo3(MIPSOpcode op) {
 		}
 		else
 		{
-			fpr.MapRegV(dregs[i], (dregs[i] == sregs[i] ? 0 : MAP_NOINIT) | MAP_DIRTY);
+			fpr.MapRegV(dregs[i], dregs[i] == sregs[i] ? MAP_DIRTY : MAP_NOINIT);
 			fpr.SpillLockV(dregs[i]);
 			tempxregs[i] = fpr.VX(dregs[i]);
 		}
@@ -1433,7 +1433,7 @@ void Jit::Comp_Vi2f(MIPSOpcode op) {
 	if (*mult != 1.0f)
 		MOVSS(XMM1, M(mult));
 	for (int i = 0; i < n; i++) {
-		fpr.MapRegV(tempregs[i], (sregs[i] == dregs[i] ? 0 : MAP_NOINIT) | MAP_DIRTY);
+		fpr.MapRegV(tempregs[i], sregs[i] == dregs[i] ? MAP_DIRTY : MAP_NOINIT);
 		if (fpr.V(sregs[i]).IsSimpleReg()) {
 			CVTDQ2PS(fpr.VX(tempregs[i]), fpr.V(sregs[i]));
 		} else {
@@ -1854,7 +1854,7 @@ void Jit::Comp_Vsgn(MIPSOpcode op) {
 		}
 		else
 		{
-			fpr.MapRegV(dregs[i], (dregs[i] == sregs[i] ? 0 : MAP_NOINIT) | MAP_DIRTY);
+			fpr.MapRegV(dregs[i], dregs[i] == sregs[i] ? MAP_DIRTY : MAP_NOINIT);
 			fpr.SpillLockV(dregs[i]);
 			tempxregs[i] = fpr.VX(dregs[i]);
 		}
@@ -1912,7 +1912,7 @@ void Jit::Comp_Vocp(MIPSOpcode op) {
 		}
 		else
 		{
-			fpr.MapRegV(dregs[i], (dregs[i] == sregs[i] ? 0 : MAP_NOINIT) | MAP_DIRTY);
+			fpr.MapRegV(dregs[i], dregs[i] == sregs[i] ? MAP_DIRTY : MAP_NOINIT);
 			fpr.SpillLockV(dregs[i]);
 			tempxregs[i] = fpr.VX(dregs[i]);
 		}
@@ -2063,7 +2063,7 @@ void Jit::Comp_VV2Op(MIPSOpcode op) {
 		}
 		else
 		{
-			fpr.MapRegV(dregs[i], (dregs[i] == sregs[i] ? 0 : MAP_NOINIT) | MAP_DIRTY);
+			fpr.MapRegV(dregs[i], dregs[i] == sregs[i] ? MAP_DIRTY : MAP_NOINIT);
 			fpr.SpillLockV(dregs[i]);
 			tempxregs[i] = fpr.VX(dregs[i]);
 		}
@@ -2317,6 +2317,31 @@ void Jit::Comp_VMatrixInit(MIPSOpcode op) {
 	MatrixSize sz = GetMtxSize(op);
 	int n = GetMatrixSide(sz);
 
+	// Not really about trying here, it will work if enabled.
+	if (jo.enableVFPUSIMD) {
+		VectorSize vsz = GetVectorSize(sz);
+		u8 vecs[4];
+		GetMatrixColumns(_VD, sz, vecs);
+		for (int i = 0; i < n; i++) {
+			u8 vec[4];
+			GetVectorRegs(vec, vsz, vecs[i]);
+			fpr.MapRegsVS(vec, vsz, MAP_NOINIT | MAP_DIRTY);
+			switch ((op >> 16) & 0xF) {
+			case 3:
+				MOVAPS(fpr.VSX(vec), M(&identityMatrix[i]));
+				break;
+			case 6:
+				XORPS(fpr.VSX(vec), fpr.VS(vec));
+				break;
+			case 7:
+				MOVAPS(fpr.VSX(vec), M(&oneOneOneOne));
+				break;
+			}
+		}
+		fpr.ReleaseSpillLocks();
+		return;
+	}
+
 	u8 dregs[16];
 	GetMatrixRegs(dregs, sz, _VD);
 
@@ -2363,6 +2388,48 @@ void Jit::Comp_Vmmov(MIPSOpcode op) {
 
 	MatrixSize sz = GetMtxSize(op);
 	int n = GetMatrixSide(sz);
+
+	if (jo.enableVFPUSIMD) {
+		VectorSize vsz = GetVectorSize(sz);
+		u8 dest[4][4];
+		MatrixOverlapType overlap = GetMatrixOverlap(_VD, _VS, sz);
+
+		u8 vecs[4];
+		if (overlap == OVERLAP_NONE) {
+			GetMatrixColumns(_VD, sz, vecs);
+			for (int i = 0; i < n; ++i) {
+				GetVectorRegs(dest[i], vsz, vecs[i]);
+			}
+		} else {
+			for (int i = 0; i < n; ++i) {
+				fpr.GetTempVS(dest[i], vsz);
+			}
+		}
+
+		GetMatrixColumns(_VS, sz, vecs);
+		for (int i = 0; i < n; i++) {
+			u8 vec[4];
+			GetVectorRegs(vec, vsz, vecs[i]);
+			fpr.MapRegsVS(vec, vsz, 0);
+			fpr.MapRegsVS(dest[i], vsz, MAP_NOINIT);
+			MOVAPS(fpr.VSX(dest[i]), fpr.VS(vec));
+		}
+
+		if (overlap != OVERLAP_NONE) {
+			// Okay, move from the temps to VD now.
+			GetMatrixColumns(_VD, sz, vecs);
+			for (int i = 0; i < n; i++) {
+				u8 vec[4];
+				GetVectorRegs(vec, vsz, vecs[i]);
+				fpr.MapRegsVS(vec, vsz, MAP_NOINIT);
+				fpr.MapRegsVS(dest[i], vsz, 0);
+				MOVAPS(fpr.VSX(vec), fpr.VS(dest[i]));
+			}
+		}
+
+		fpr.ReleaseSpillLocks();
+		return;
+	}
 
 	u8 sregs[16], dregs[16];
 	GetMatrixRegs(sregs, sz, _VS);
@@ -2447,7 +2514,7 @@ void Jit::Comp_VScl(MIPSOpcode op) {
 		}
 		else
 		{
-			fpr.MapRegV(dregs[i], (dregs[i] == sregs[i] ? 0 : MAP_NOINIT) | MAP_DIRTY);
+			fpr.MapRegV(dregs[i], dregs[i] == sregs[i] ? MAP_DIRTY : MAP_NOINIT);
 			fpr.SpillLockV(dregs[i]);
 			tempxregs[i] = fpr.VX(dregs[i]);
 		}
@@ -2711,14 +2778,14 @@ void Jit::Comp_Vi2x(MIPSOpcode op) {
 			// Will be discarded on release.
 			vreg = fpr.GetTempV();
 		}
-		fpr.MapRegV(vreg, (vreg == sregs[0] ? 0 : MAP_NOINIT) | MAP_DIRTY);
+		fpr.MapRegV(vreg, vreg == sregs[0] ? MAP_DIRTY : MAP_NOINIT);
 		fpr.SpillLockV(vreg);
 		dst0 = fpr.VX(vreg);
 	} else {
 		// Pair, let's check if we should use dregs[0] directly.  No temp needed.
 		int vreg = dregs[0];
 		if (IsOverlapSafeAllowS(dregs[0], 0, 2, sregs)) {
-			fpr.MapRegV(vreg, (vreg == sregs[0] ? 0 : MAP_NOINIT) | MAP_DIRTY);
+			fpr.MapRegV(vreg, vreg == sregs[0] ? MAP_DIRTY : MAP_NOINIT);
 			fpr.SpillLockV(vreg);
 			dst0 = fpr.VX(vreg);
 		}
@@ -2788,7 +2855,7 @@ void Jit::Comp_Vi2x(MIPSOpcode op) {
 	fpr.ReleaseSpillLocks();
 }
 
-static const float MEMORY_ALIGNED16( vavg_table[4] ) = {1.0f, 1.0f / 2.0f, 1.0f / 3.0f, 1.0f / 4.0f};
+static const float MEMORY_ALIGNED16(vavg_table[4]) = { 1.0f, 1.0f / 2.0f, 1.0f / 3.0f, 1.0f / 4.0f };
 
 void Jit::Comp_Vhoriz(MIPSOpcode op) {
 	CONDITIONAL_DISABLE;
@@ -2802,6 +2869,41 @@ void Jit::Comp_Vhoriz(MIPSOpcode op) {
 	u8 sregs[4], dregs[1];
 	GetVectorRegsPrefixS(sregs, sz, _VS);
 	GetVectorRegsPrefixD(dregs, V_Single, _VD);
+	if (fpr.TryMapDirtyInVS(dregs, V_Single, sregs, sz)) {
+		switch (sz) {
+		case V_Pair:
+			MOVAPS(XMM0, fpr.VS(sregs));
+			MOVAPS(XMM1, R(XMM0));
+			SHUFPS(XMM1, R(XMM1), _MM_SHUFFLE(3,2,1,1));
+			ADDPS(XMM0, R(XMM1));
+			MOVAPS(fpr.VSX(dregs), R(XMM0));
+			break;
+		case V_Triple:
+			MOVAPS(XMM0, fpr.VS(sregs));
+			MOVAPS(XMM1, R(XMM0));
+			SHUFPS(XMM1, R(XMM1), _MM_SHUFFLE(3,2,1,1));
+			ADDPS(XMM0, R(XMM1));
+			SHUFPS(XMM1, R(XMM1), _MM_SHUFFLE(3,2,1,2));
+			ADDPS(XMM0, R(XMM1));
+			MOVAPS(fpr.VSX(dregs), R(XMM0));
+			break;
+		case V_Quad:
+			MOVAPS(XMM0, fpr.VS(sregs));
+			MOVHLPS(XMM1, XMM0);
+			ADDPS(XMM0, R(XMM1));
+			MOVAPS(XMM1, R(XMM0));
+			SHUFPS(XMM1, R(XMM1), _MM_SHUFFLE(1,1,1,1));
+			ADDPS(XMM0, R(XMM1));
+			MOVAPS(fpr.VSX(dregs), R(XMM0));
+			break;
+		}
+		if (((op >> 16) & 31) == 7) { // vavg
+			MULSS(fpr.VSX(dregs), M(&vavg_table[n]));
+		}
+		ApplyPrefixD(dregs, V_Single);
+		fpr.ReleaseSpillLocks();
+		return;
+	}
 
 	// Flush SIMD.
 	fpr.SimpleRegsV(sregs, sz, 0);
@@ -2809,7 +2911,7 @@ void Jit::Comp_Vhoriz(MIPSOpcode op) {
 
 	X64Reg reg = XMM0;
 	if (IsOverlapSafeAllowS(dregs[0], 0, n, sregs)) {
-		fpr.MapRegV(dregs[0], (dregs[0] == sregs[0] ? 0 : MAP_NOINIT) | MAP_DIRTY);
+		fpr.MapRegV(dregs[0], dregs[0] == sregs[0] ? MAP_DIRTY : MAP_NOINIT);
 		fpr.SpillLockV(dregs[0]);
 		reg = fpr.VX(dregs[0]);
 	}
@@ -2884,6 +2986,39 @@ void Jit::Comp_Vfim(MIPSOpcode op) {
 	fpr.ReleaseSpillLocks();
 }
 
+void Jit::CompVrotShuffle(u8 *dregs, int imm, int n, bool negSin) {
+	char what[4] = { '0', '0', '0', '0' };
+	if (((imm >> 2) & 3) == (imm & 3)) {
+		for (int i = 0; i < 4; i++)
+			what[i] = 'S';
+	}
+	what[(imm >> 2) & 3] = 'S';
+	what[imm & 3] = 'C';
+
+	// TODO: shufps SIMD version
+
+	for (int i = 0; i < n; i++) {
+		fpr.MapRegV(dregs[i], MAP_DIRTY | MAP_NOINIT);
+		switch (what[i]) {
+		case 'C': MOVSS(fpr.V(dregs[i]), XMM1); break;
+		case 'S':
+			MOVSS(fpr.V(dregs[i]), XMM0);
+			if (negSin) {
+				XORPS(fpr.VX(dregs[i]), M(&signBitLower));
+			}
+			break;
+		case '0':
+		{
+			XORPS(fpr.VX(dregs[i]), fpr.V(dregs[i]));
+			break;
+		}
+		default:
+			ERROR_LOG(JIT, "Bad what in vrot");
+			break;
+		}
+	}
+}
+
 // Very heavily used by FF:CC
 void Jit::Comp_VRot(MIPSOpcode op) {
 	CONDITIONAL_DISABLE;
@@ -2895,8 +3030,22 @@ void Jit::Comp_VRot(MIPSOpcode op) {
 	int n = GetNumVectorElements(sz);
 
 	u8 dregs[4];
+	u8 dregs2[4];
+
+	u32 nextOp = Memory::Read_Opcode_JIT(js.compilerPC + 4).encoding;
+	int vd2 = -1;
+	int imm2 = -1;
+	if (false && (nextOp >> 26) == 60 && ((nextOp >> 21) & 0x1F) == 29 && _VS == MIPS_GET_VS(nextOp)) {
+		// Pair of vrot. Let's join them.
+		vd2 = MIPS_GET_VD(nextOp);
+		imm2 = (nextOp >> 16) & 0x1f;
+		NOTICE_LOG(JIT, "Joint VFPU at %08x", js.blockStart);
+	}
+
 	u8 sreg;
 	GetVectorRegs(dregs, sz, vd);
+	if (vd2 >= 0)
+		GetVectorRegs(dregs2, sz, vd2);
 	GetVectorRegs(&sreg, V_Single, vs);
 
 	// Flush SIMD.
@@ -2907,44 +3056,31 @@ void Jit::Comp_VRot(MIPSOpcode op) {
 	gpr.FlushBeforeCall();
 	fpr.Flush();
 
-	bool negSin = (imm & 0x10) ? true : false;
+	bool negSin1 = (imm & 0x10) ? true : false;
 
 #ifdef _M_X64
 	MOVSS(XMM0, fpr.V(sreg));
-	ABI_CallFunction(negSin ? (const void *)&SinCosNegSin : (const void *)&SinCos);
+	ABI_CallFunction(negSin1 ? (const void *)&SinCosNegSin : (const void *)&SinCos);
 #else
 	// Sigh, passing floats with cdecl isn't pretty, ends up on the stack.
-	ABI_CallFunctionA(negSin ? (const void *)&SinCosNegSin : (const void *)&SinCos, fpr.V(sreg));
+	ABI_CallFunctionA(negSin2 ? (const void *)&SinCosNegSin : (const void *)&SinCos, fpr.V(sreg));
 #endif
 
 	MOVSS(XMM0, M(&sincostemp[0]));
 	MOVSS(XMM1, M(&sincostemp[1]));
-	
-	char what[4] = {'0', '0', '0', '0'};
-	if (((imm >> 2) & 3) == (imm & 3)) {
-		for (int i = 0; i < 4; i++)
-			what[i] = 'S';
-	}
-	what[(imm >> 2) & 3] = 'S';
-	what[imm & 3] = 'C';
 
-	for (int i = 0; i < n; i++) {
-		fpr.MapRegV(dregs[i], MAP_DIRTY | MAP_NOINIT);
-		switch (what[i]) {
-		case 'C': MOVSS(fpr.V(dregs[i]), XMM1); break;
-		case 'S': MOVSS(fpr.V(dregs[i]), XMM0); break;
-		case '0':
-			{
-				XORPS(fpr.VX(dregs[i]), fpr.V(dregs[i]));
-				break;
-			}
-		default:
-			ERROR_LOG(JIT, "Bad what in vrot");
-			break;
-		}
+	CompVrotShuffle(dregs, imm, n, false);
+	if (vd2 != -1) {
+		// If the negsin setting differs between the two joint invocations, we need to flip the second one.
+		bool negSin2 = (imm2 & 0x10) ? true : false;
+		CompVrotShuffle(dregs2, imm2, n, negSin1 != negSin2);
+		js.compilerPC += 4;
 	}
-
 	fpr.ReleaseSpillLocks();
+}
+
+void Jit::Comp_ColorConv(MIPSOpcode op) {
+	DISABLE;
 }
 
 }

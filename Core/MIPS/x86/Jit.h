@@ -147,6 +147,7 @@ public:
 	void Comp_VCrossQuat(MIPSOpcode op);
 	void Comp_Vsgn(MIPSOpcode op);
 	void Comp_Vocp(MIPSOpcode op);
+	void Comp_ColorConv(MIPSOpcode op);
 
 	void Comp_DoNothing(MIPSOpcode op);
 
@@ -238,6 +239,7 @@ private:
 
 	void CompFPTriArith(MIPSOpcode op, void (XEmitter::*arith)(X64Reg reg, OpArg), bool orderMatters);
 	void CompFPComp(int lhs, int rhs, u8 compare, bool allowNaN = false);
+	void CompVrotShuffle(u8 *dregs, int imm, int n, bool negSin);
 
 	void CallProtectedFunction(const void *func, const OpArg &arg1);
 	void CallProtectedFunction(const void *func, const OpArg &arg1, const OpArg &arg2);

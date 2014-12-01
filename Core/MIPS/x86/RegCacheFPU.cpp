@@ -25,7 +25,7 @@
 #include "Core/MIPS/x86/RegCache.h"
 #include "Core/MIPS/x86/RegCacheFPU.h"
 
-u32 FPURegCache::tempValues[NUM_TEMPS];
+float FPURegCache::tempValues[NUM_TEMPS];
 
 FPURegCache::FPURegCache() : mips(0), initialReady(false), emit(0) {
 	memset(regs, 0, sizeof(regs));
@@ -68,15 +68,15 @@ void FPURegCache::SetupInitialRegs() {
 }
 
 void FPURegCache::SpillLock(int p1, int p2, int p3, int p4) {
-	regs[p1].locked = true;
-	if (p2 != 0xFF) regs[p2].locked = true;
-	if (p3 != 0xFF) regs[p3].locked = true;
-	if (p4 != 0xFF) regs[p4].locked = true;
+	regs[p1].locked++;
+	if (p2 != 0xFF) regs[p2].locked++;
+	if (p3 != 0xFF) regs[p3].locked++;
+	if (p4 != 0xFF) regs[p4].locked++;
 }
 
 void FPURegCache::SpillLockV(const u8 *vec, VectorSize sz) {
 	for (int i = 0; i < GetNumVectorElements(sz); i++) {
-		vregs[vec[i]].locked = true;
+		vregs[vec[i]].locked++;
 	}
 }
 
@@ -88,7 +88,17 @@ void FPURegCache::SpillLockV(int vec, VectorSize sz) {
 
 void FPURegCache::ReleaseSpillLockV(const u8 *vec, VectorSize sz) {
 	for (int i = 0; i < GetNumVectorElements(sz); i++) {
-		vregs[vec[i]].locked = false;
+		vregs[vec[i]].locked = 0;
+	}
+}
+
+void FPURegCache::ReduceSpillLock(int mipsreg) {
+	regs[mipsreg].locked--;
+}
+
+void FPURegCache::ReduceSpillLockV(const u8 *vec, VectorSize sz) {
+	for (int i = 0; i < GetNumVectorElements(sz); i++) {
+		vregs[vec[i]].locked--;
 	}
 }
 
@@ -103,12 +113,22 @@ void FPURegCache::MapRegsV(int vec, VectorSize sz, int flags) {
 	for (int i = 0; i < GetNumVectorElements(sz); i++) {
 		MapReg(r[i] + 32, (flags & MAP_NOINIT) != MAP_NOINIT, (flags & MAP_DIRTY) != 0);
 	}
+	if ((flags & MAP_NOLOCK) != 0) {
+		// We have to lock so the sz won't spill, so we unlock after.
+		// If they were already locked, we only reduce the lock we added above.
+		ReduceSpillLockV(r, sz);
+	}
 }
 
 void FPURegCache::MapRegsV(const u8 *r, VectorSize sz, int flags) {
 	SpillLockV(r, sz);
 	for (int i = 0; i < GetNumVectorElements(sz); i++) {
 		MapReg(r[i] + 32, (flags & MAP_NOINIT) != MAP_NOINIT, (flags & MAP_DIRTY) != 0);
+	}
+	if ((flags & MAP_NOLOCK) != 0) {
+		// We have to lock so the sz won't spill, so we unlock after.
+		// If they were already locked, we only reduce the lock we added above.
+		ReduceSpillLockV(r, sz);
 	}
 }
 
@@ -205,6 +225,8 @@ bool FPURegCache::TryMapRegsVS(const u8 *v, VectorSize vsz, int flags) {
 		// Already mapped then, perfect.  Just mark dirty.
 		if ((flags & MAP_DIRTY) != 0)
 			xregs[VSX(v)].dirty = true;
+		if ((flags & MAP_NOLOCK) == 0)
+			SpillLockV(v, vsz);
 		return true;
 	}
 
@@ -217,6 +239,8 @@ bool FPURegCache::TryMapRegsVS(const u8 *v, VectorSize vsz, int flags) {
 		vregs[v[0]].lane = 1;
 		if ((flags & MAP_DIRTY) != 0)
 			xregs[VSX(v)].dirty = true;
+		if ((flags & MAP_NOLOCK) == 0)
+			SpillLockV(v, vsz);
 		Invariant();
 		return true;
 	}
@@ -251,6 +275,10 @@ bool FPURegCache::TryMapRegsVS(const u8 *v, VectorSize vsz, int flags) {
 		vr.away = true;
 	}
 	xregs[xr].dirty = dirty;
+
+	if ((flags & MAP_NOLOCK) == 0) {
+		SpillLockV(v, vsz);
+	}
 
 	Invariant();
 	return true;
@@ -298,8 +326,14 @@ X64Reg FPURegCache::LoadRegsVS(const u8 *v, int n) {
 	// Let's also check if the memory addresses are sequential.
 	int sequential = 1;
 	for (int i = 1; i < n; ++i) {
-		if (voffset[v[i]] != voffset[v[i - 1]] + 1) {
-			break;
+		if (v[i] < 128) {
+			if (voffset[v[i]] != voffset[v[i - 1]] + 1) {
+				break;
+			}
+		} else {
+			if (v[i] != v[i - 1] + 1) {
+				break;
+			}
 		}
 		++sequential;
 	}
@@ -333,7 +367,7 @@ X64Reg FPURegCache::LoadRegsVS(const u8 *v, int n) {
 				break;
 			}
 		}
-		const float *f = &mips->v[voffset[v[0]]];
+		const float *f = v[0] < 128 ? &mips->v[voffset[v[0]]] : &tempValues[v[0] - 128];
 		if (((intptr_t)f & 0x7) == 0 && n == 2) {
 			emit->MOVQ_xmm(res, vregs[v[0]].location);
 		} else if (((intptr_t)f & 0xf) == 0) {
@@ -395,14 +429,18 @@ X64Reg FPURegCache::LoadRegsVS(const u8 *v, int n) {
 		}
 
 		if (n == 3) {
-			emit->MOVSS(xr2, vregs[v[2]].location);
-			emit->MOVSS(xr1, vregs[v[1]].location);
+			if (!vregs[v[2]].location.IsSimpleReg(xr2))
+				emit->MOVSS(xr2, vregs[v[2]].location);
+			if (!vregs[v[1]].location.IsSimpleReg(xr1))
+				emit->MOVSS(xr1, vregs[v[1]].location);
 			emit->SHUFPS(xr1, Gen::R(xr2), _MM_SHUFFLE(3, 0, 0, 0));
 			emit->MOVSS(xr2, vregs[v[0]].location);
 			emit->MOVSS(xr1, Gen::R(xr2));
 		} else if (n == 4) {
-			emit->MOVSS(xr2, vregs[v[2]].location);
-			emit->MOVSS(xr1, vregs[v[3]].location);
+			if (!vregs[v[2]].location.IsSimpleReg(xr2))
+				emit->MOVSS(xr2, vregs[v[2]].location);
+			if (!vregs[v[3]].location.IsSimpleReg(xr1))
+				emit->MOVSS(xr1, vregs[v[3]].location);
 			emit->UNPCKLPS(xr2, Gen::R(xr1));
 			emit->MOVSS(xr1, vregs[v[1]].location);
 			emit->SHUFPS(xr1, Gen::R(xr2), _MM_SHUFFLE(1, 0, 0, 3));
@@ -423,10 +461,13 @@ bool FPURegCache::TryMapDirtyInVS(const u8 *vd, VectorSize vdsz, const u8 *vs, V
 	// But, they could still fail based on overlap.  Hopefully not common...
 	bool success = TryMapRegsVS(vs, vssz, 0);
 	if (success) {
-		SpillLockV(vs, vssz);
 		success = TryMapRegsVS(vd, vdsz, avoidLoad ? MAP_NOINIT : MAP_DIRTY);
 	}
 	ReleaseSpillLockV(vs, vssz);
+	ReleaseSpillLockV(vd, vdsz);
+
+	_dbg_assert_msg_(JIT, !success || IsMappedVS(vd, vdsz), "vd should be mapped now");
+	_dbg_assert_msg_(JIT, !success || IsMappedVS(vs, vssz), "vs should be mapped now");
 
 	return success;
 }
@@ -439,15 +480,18 @@ bool FPURegCache::TryMapDirtyInInVS(const u8 *vd, VectorSize vdsz, const u8 *vs,
 	// But, they could still fail based on overlap.  Hopefully not common...
 	bool success = TryMapRegsVS(vs, vssz, 0);
 	if (success) {
-		SpillLockV(vs, vssz);
 		success = TryMapRegsVS(vt, vtsz, 0);
 	}
 	if (success) {
-		SpillLockV(vt, vtsz);
 		success = TryMapRegsVS(vd, vdsz, avoidLoad ? MAP_NOINIT : MAP_DIRTY);
 	}
+	ReleaseSpillLockV(vd, vdsz);
 	ReleaseSpillLockV(vs, vssz);
 	ReleaseSpillLockV(vt, vtsz);
+
+	_dbg_assert_msg_(JIT, !success || IsMappedVS(vd, vdsz), "vd should be mapped now");
+	_dbg_assert_msg_(JIT, !success || IsMappedVS(vs, vssz), "vs should be mapped now");
+	_dbg_assert_msg_(JIT, !success || IsMappedVS(vt, vtsz), "vt should be mapped now");
 
 	return success;
 }
@@ -497,14 +541,13 @@ void FPURegCache::SimpleRegV(const u8 v, int flags) {
 	Invariant();
 }
 
-void FPURegCache::ReleaseSpillLock(int mipsreg)
-{
-	regs[mipsreg].locked = false;
+void FPURegCache::ReleaseSpillLock(int mipsreg) {
+	regs[mipsreg].locked = 0;
 }
 
 void FPURegCache::ReleaseSpillLocks() {
 	for (int i = 0; i < NUM_MIPS_FPRS; i++)
-		regs[i].locked = false;
+		regs[i].locked = 0;
 	for (int i = TEMP0; i < TEMP0 + NUM_TEMPS; ++i)
 		DiscardR(i);
 }
@@ -564,23 +607,30 @@ void FPURegCache::StoreFromRegister(int i) {
 		if (regs[i].lane != 0) {
 			const int *mri = xregs[xr].mipsRegs;
 			int seq = 1;
-			for (int i = 1; i < 4; ++i) {
-				if (mri[i] == -1) {
+			for (int j = 1; j < 4; ++j) {
+				if (mri[j] == -1) {
 					break;
 				}
-				if (voffset[mri[i] - 32] == voffset[mri[i - 1] - 32] + 1) {
+				if (mri[j] - 32 >= 128 && mri[j - 1] - 32 >= 128 && mri[j] == mri[j - 1] + 1) {
+					seq++;
+				} else if (mri[j] - 32 < 128 && mri[j - 1] - 32 < 128 && voffset[mri[j] - 32] == voffset[mri[j - 1] - 32] + 1) {
 					seq++;
 				} else {
 					break;
 				}
 			}
 
+			const float *f = mri[0] - 32 < 128 ? &mips->v[voffset[mri[0] - 32]] : &tempValues[mri[0] - 32 - 128];
+			int align = (intptr_t)f & 0xf;
+
 			// If we can do a multistore...
-			if (seq == 2 || seq == 4) {
+			if ((seq == 2 && (align & 0x7) == 0) || seq == 4) {
 				OpArg newLoc = GetDefaultLocation(mri[0]);
 				if (xregs[xr].dirty) {
-					if (seq == 4)
+					if (seq == 4 && align == 0)
 						emit->MOVAPS(newLoc, xr);
+					else if (seq == 4)
+						emit->MOVUPS(newLoc, xr);
 					else
 						emit->MOVQ_xmm(newLoc, xr);
 				}
@@ -802,6 +852,34 @@ void FPURegCache::Invariant() const {
 #endif
 }
 
+static int GetMRMtx(int mr) {
+	if (mr < 32)
+		return -1;
+	if (mr >= 128 + 32)
+		return -1;
+	return ((mr - 32) >> 2) & 7;
+}
+
+static int GetMRRow(int mr) {
+	if (mr < 32)
+		return -1;
+	if (mr >= 128 + 32)
+		return -1;
+	return ((mr - 32) >> 0) & 3;
+}
+
+static int GetMRCol(int mr) {
+	if (mr < 32)
+		return -1;
+	if (mr >= 128 + 32)
+		return -1;
+	return ((mr - 32) >> 5) & 3;
+}
+
+static bool IsMRTemp(int mr) {
+	return mr >= 128 + 32;
+}
+
 int FPURegCache::SanityCheck() const {
 	for (int i = 0; i < NUM_MIPS_FPRS; i++) {
 		const MIPSCachedFPReg &mr = regs[i];
@@ -842,6 +920,11 @@ int FPURegCache::SanityCheck() const {
 			return 8;
 
 		bool hasMoreRegs = hasReg;
+		int mtx = -2;
+		int row = -2;
+		int col = -2;
+		bool rowMatched = true;
+		bool colMatched = true;
 		for (int j = 0; j < 4; ++j) {
 			if (xr.mipsRegs[j] == -1) {
 				hasMoreRegs = false;
@@ -854,6 +937,26 @@ int FPURegCache::SanityCheck() const {
 			const MIPSCachedFPReg &mr = regs[xr.mipsRegs[j]];
 			if (!mr.location.IsSimpleReg(X64Reg(i)))
 				return 10;
+
+			if (!IsMRTemp(xr.mipsRegs[j])) {
+				if (mtx == -2)
+					mtx = GetMRMtx(xr.mipsRegs[j]);
+				else if (mtx != GetMRMtx(xr.mipsRegs[j]))
+					return 11;
+
+				if (row == -2)
+					row = GetMRRow(xr.mipsRegs[j]);
+				else if (row != GetMRRow(xr.mipsRegs[j]))
+					rowMatched = false;
+
+				if (col == -2)
+					col = GetMRCol(xr.mipsRegs[j]);
+				else if (col != GetMRCol(xr.mipsRegs[j]))
+					colMatched = false;
+			}
+		}
+		if (!rowMatched && !colMatched) {
+			return 12;
 		}
 	}
 

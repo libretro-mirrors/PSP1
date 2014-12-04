@@ -178,7 +178,7 @@ namespace SaveState
 			next_ = 0;
 		}
 
-		bool Empty()
+		bool Empty() const
 		{
 			return next_ == first_;
 		}

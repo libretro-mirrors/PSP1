@@ -163,7 +163,7 @@ public:
 	~Psmf();
 	void DoState(PointerWrap &p);
 	
-	bool isValidCurrentStreamNumber() {
+	bool isValidCurrentStreamNumber() const {
 		return currentStreamNum >= 0 && currentStreamNum < (int)streamMap.size();  // urgh, checking size isn't really right here.
 	}
 
@@ -497,7 +497,7 @@ void PsmfPlayer::DoState(PointerWrap &p) {
 		p.Do(psmfPlayerAtracAu);
 	}
 	p.Do(psmfPlayerAvcAu);
-	if (s >= 6) {
+	if (s >= 7) {
 		bool hasFinishThread = finishThread != NULL;
 		p.Do(hasFinishThread);
 		if (hasFinishThread) {

@@ -1937,6 +1937,74 @@ void Jit::Comp_Vocp(MIPSOpcode op) {
 	fpr.ReleaseSpillLocks();
 }
 
+void Jit::Comp_Vbfy(MIPSOpcode op) {
+	CONDITIONAL_DISABLE;
+	if (js.HasUnknownPrefix())
+		DISABLE;
+
+	VectorSize sz = GetVecSize(op);
+	int n = GetNumVectorElements(sz);
+	if (n != 2 && n != 4) {
+		DISABLE;
+	}
+
+	u8 sregs[4], dregs[4];
+	GetVectorRegsPrefixS(sregs, sz, _VS);
+	GetVectorRegsPrefixD(dregs, sz, _VD);
+	// Flush SIMD.
+	fpr.SimpleRegsV(sregs, sz, 0);
+	fpr.SimpleRegsV(dregs, sz, MAP_NOINIT | MAP_DIRTY);
+
+	X64Reg tempxregs[4];
+	for (int i = 0; i < n; ++i) {
+		if (!IsOverlapSafe(dregs[i], i, n, sregs)) {
+			int reg = fpr.GetTempV();
+			fpr.MapRegV(reg, MAP_NOINIT | MAP_DIRTY);
+			fpr.SpillLockV(reg);
+			tempxregs[i] = fpr.VX(reg);
+		} else {
+			fpr.MapRegV(dregs[i], dregs[i] == sregs[i] ? MAP_DIRTY : MAP_NOINIT);
+			fpr.SpillLockV(dregs[i]);
+			tempxregs[i] = fpr.VX(dregs[i]);
+		}
+	}
+
+	int subop = (op >> 16) & 0x1F;
+	if (subop == 3) {
+		// vbfy2
+		MOVSS(tempxregs[0], fpr.V(sregs[0]));
+		MOVSS(tempxregs[1], fpr.V(sregs[1]));
+		MOVSS(tempxregs[2], fpr.V(sregs[0]));
+		MOVSS(tempxregs[3], fpr.V(sregs[1]));
+		ADDSS(tempxregs[0], fpr.V(sregs[2]));
+		ADDSS(tempxregs[1], fpr.V(sregs[3]));
+		SUBSS(tempxregs[2], fpr.V(sregs[2]));
+		SUBSS(tempxregs[3], fpr.V(sregs[3]));
+	} else if (subop == 2) {
+		// vbfy1
+		MOVSS(tempxregs[0], fpr.V(sregs[0]));
+		MOVSS(tempxregs[1], fpr.V(sregs[0]));
+		ADDSS(tempxregs[0], fpr.V(sregs[1]));
+		SUBSS(tempxregs[1], fpr.V(sregs[1]));
+		if (n == 4) {
+			MOVSS(tempxregs[2], fpr.V(sregs[2]));
+			MOVSS(tempxregs[3], fpr.V(sregs[2]));
+			ADDSS(tempxregs[2], fpr.V(sregs[3]));
+			SUBSS(tempxregs[3], fpr.V(sregs[3]));
+		}
+	} else {
+		DISABLE;
+	}
+
+	for (int i = 0; i < n; ++i) {
+		if (!fpr.V(dregs[i]).IsSimpleReg(tempxregs[i]))
+			MOVSS(fpr.V(dregs[i]), tempxregs[i]);
+	}
+
+	ApplyPrefixD(dregs, sz);
+
+	fpr.ReleaseSpillLocks();
+}
 static float sincostemp[2];
 
 union u32float {
@@ -2604,7 +2672,11 @@ void Jit::Comp_Vmmul(MIPSOpcode op) {
 			// Map the D column.
 			u8 dcol[4];
 			GetVectorRegs(dcol, vsz, dcols[i]);
+#ifndef _M_X64
+			fpr.MapRegsVS(dcol, vsz, MAP_DIRTY | MAP_NOINIT | MAP_NOLOCK);
+#else
 			fpr.MapRegsVS(dcol, vsz, MAP_DIRTY | MAP_NOINIT);
+#endif
 			MOVAPS(fpr.VS(dcol), XMM1);
 		}
 		fpr.ReleaseSpillLocks();
@@ -2754,11 +2826,9 @@ void Jit::Comp_Vtfm(MIPSOpcode op) {
 		// The T matrix we will address individually.
 		GetVectorRegs(dcol, sz, vd);
 		GetMatrixRows(vs, msz, scols);
-		memset(tregs, 255, sizeof(tregs));
 		GetVectorRegs(tregs, sz, vt);
-		for (int i = 0; i < ARRAY_SIZE(tregs); i++) {
-			if (tregs[i] != 255)
-				fpr.StoreFromRegisterV(tregs[i]);
+		for (int i = 0; i < n; i++) {
+			fpr.StoreFromRegisterV(tregs[i]);
 		}
 
 		u8 scol[4][4];
@@ -2767,7 +2837,6 @@ void Jit::Comp_Vtfm(MIPSOpcode op) {
 		for (int i = 0; i < n; i++) {
 			GetVectorRegs(scol[i], sz, scols[i]);
 			fpr.MapRegsVS(scol[i], sz, 0);
-			fpr.SpillLockV(scols[i], sz);
 		}
 
 		// Now, work our way through the matrix, loading things as we go.
@@ -2791,7 +2860,6 @@ void Jit::Comp_Vtfm(MIPSOpcode op) {
 		fpr.ReleaseSpillLocks();
 		return;
 	}
-
 
 	u8 sregs[16], dregs[4], tregs[4];
 	GetMatrixRegs(sregs, msz, _VS);
@@ -2985,32 +3053,52 @@ void Jit::Comp_Vhoriz(MIPSOpcode op) {
 	GetVectorRegsPrefixS(sregs, sz, _VS);
 	GetVectorRegsPrefixD(dregs, V_Single, _VD);
 	if (fpr.TryMapDirtyInVS(dregs, V_Single, sregs, sz)) {
-		switch (sz) {
-		case V_Pair:
-			MOVAPS(XMM0, fpr.VS(sregs));
-			MOVAPS(XMM1, R(XMM0));
-			SHUFPS(XMM1, R(XMM1), _MM_SHUFFLE(3,2,1,1));
-			ADDPS(XMM0, R(XMM1));
-			MOVAPS(fpr.VSX(dregs), R(XMM0));
-			break;
-		case V_Triple:
-			MOVAPS(XMM0, fpr.VS(sregs));
-			MOVAPS(XMM1, R(XMM0));
-			SHUFPS(XMM1, R(XMM1), _MM_SHUFFLE(3,2,1,1));
-			ADDPS(XMM0, R(XMM1));
-			SHUFPS(XMM1, R(XMM1), _MM_SHUFFLE(3,2,1,2));
-			ADDPS(XMM0, R(XMM1));
-			MOVAPS(fpr.VSX(dregs), R(XMM0));
-			break;
-		case V_Quad:
-			MOVAPS(XMM0, fpr.VS(sregs));
-			MOVHLPS(XMM1, XMM0);
-			ADDPS(XMM0, R(XMM1));
-			MOVAPS(XMM1, R(XMM0));
-			SHUFPS(XMM1, R(XMM1), _MM_SHUFFLE(1,1,1,1));
-			ADDPS(XMM0, R(XMM1));
-			MOVAPS(fpr.VSX(dregs), R(XMM0));
-			break;
+		if (cpu_info.bSSE4_1) {
+			switch (sz) {
+			case V_Pair:
+				MOVAPS(XMM0, fpr.VS(sregs));
+				DPPS(XMM0, M(&oneOneOneOne), 0x31);
+				MOVAPS(fpr.VSX(dregs), R(XMM0));
+				break;
+			case V_Triple:
+				MOVAPS(XMM0, fpr.VS(sregs));
+				DPPS(XMM0, M(&oneOneOneOne), 0x71);
+				MOVAPS(fpr.VSX(dregs), R(XMM0));
+				break;
+			case V_Quad:
+				MOVAPS(XMM0, fpr.VS(sregs));
+				DPPS(XMM0, M(&oneOneOneOne), 0xF1);
+				MOVAPS(fpr.VSX(dregs), R(XMM0));
+				break;
+			}
+		} else {
+			switch (sz) {
+			case V_Pair:
+				MOVAPS(XMM0, fpr.VS(sregs));
+				MOVAPS(XMM1, R(XMM0));
+				SHUFPS(XMM1, R(XMM1), _MM_SHUFFLE(3, 2, 1, 1));
+				ADDPS(XMM0, R(XMM1));
+				MOVAPS(fpr.VSX(dregs), R(XMM0));
+				break;
+			case V_Triple:
+				MOVAPS(XMM0, fpr.VS(sregs));
+				MOVAPS(XMM1, R(XMM0));
+				SHUFPS(XMM1, R(XMM1), _MM_SHUFFLE(3, 2, 1, 1));
+				ADDPS(XMM0, R(XMM1));
+				SHUFPS(XMM1, R(XMM1), _MM_SHUFFLE(3, 2, 1, 2));
+				ADDPS(XMM0, R(XMM1));
+				MOVAPS(fpr.VSX(dregs), R(XMM0));
+				break;
+			case V_Quad:
+				MOVAPS(XMM0, fpr.VS(sregs));
+				MOVHLPS(XMM1, XMM0);
+				ADDPS(XMM0, R(XMM1));
+				MOVAPS(XMM1, R(XMM0));
+				SHUFPS(XMM1, R(XMM1), _MM_SHUFFLE(1, 1, 1, 1));
+				ADDPS(XMM0, R(XMM1));
+				MOVAPS(fpr.VSX(dregs), R(XMM0));
+				break;
+			}
 		}
 		if (((op >> 16) & 31) == 7) { // vavg
 			MULSS(fpr.VSX(dregs), M(&vavg_table[n]));
@@ -3150,11 +3238,11 @@ void Jit::Comp_VRot(MIPSOpcode op) {
 	u32 nextOp = Memory::Read_Opcode_JIT(js.compilerPC + 4).encoding;
 	int vd2 = -1;
 	int imm2 = -1;
-	if (false && (nextOp >> 26) == 60 && ((nextOp >> 21) & 0x1F) == 29 && _VS == MIPS_GET_VS(nextOp)) {
+	if ((nextOp >> 26) == 60 && ((nextOp >> 21) & 0x1F) == 29 && _VS == MIPS_GET_VS(nextOp)) {
 		// Pair of vrot. Let's join them.
 		vd2 = MIPS_GET_VD(nextOp);
 		imm2 = (nextOp >> 16) & 0x1f;
-		NOTICE_LOG(JIT, "Joint VFPU at %08x", js.blockStart);
+		// NOTICE_LOG(JIT, "Joint VFPU at %08x", js.blockStart);
 	}
 
 	u8 sreg;

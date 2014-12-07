@@ -17,6 +17,7 @@
 
 #pragma once
 
+#include "Common/CPUDetect.h"
 #include "Core/MIPS/JitCommon/JitState.h"
 #include "Core/MIPS/JitCommon/JitBlockCache.h"
 #include "Core/MIPS/ARM/ArmRegCache.h"
@@ -33,7 +34,21 @@ namespace MIPSComp
 
 struct ArmJitOptions
 {
-	ArmJitOptions();
+	ArmJitOptions()  {
+		enableBlocklink = true;
+		downcountInRegister = true;
+		useBackJump = false;
+		useForwardJump = false;
+		cachePointers = true;
+		immBranches = false;
+		continueBranches = false;
+		continueJumps = false;
+		continueMaxInstructions = 300;
+
+		useNEONVFPU = false;  // true
+		if (!cpu_info.bNEON)
+			useNEONVFPU = false;
+	}
 
 	bool useNEONVFPU;
 	bool enableBlocklink;
@@ -47,10 +62,10 @@ struct ArmJitOptions
 	int continueMaxInstructions;
 };
 
-class Jit : public ArmGen::ARMXCodeBlock
+class ArmJit : public ArmGen::ARMXCodeBlock
 {
 public:
-	Jit(MIPSState *mips);
+	ArmJit(MIPSState *mips);
 
 	void DoState(PointerWrap &p);
 	static void DoDummyState(PointerWrap &p);
@@ -198,12 +213,12 @@ private:
 	void FlushPrefixV();
 
 	void WriteDownCount(int offset = 0);
-	void WriteDownCountR(ARMReg reg);
+	void WriteDownCountR(ArmGen::ARMReg reg);
 	void RestoreRoundingMode(bool force = false);
 	void ApplyRoundingMode(bool force = false);
 	void UpdateRoundingMode();
-	void MovFromPC(ARMReg r);
-	void MovToPC(ARMReg r);
+	void MovFromPC(ArmGen::ARMReg r);
+	void MovToPC(ArmGen::ARMReg r);
 
 	bool ReplaceJalTo(u32 dest);
 
@@ -211,7 +226,7 @@ private:
 	void RestoreDowncount();
 
 	void WriteExit(u32 destination, int exit_num);
-	void WriteExitDestInR(ARMReg Reg);
+	void WriteExitDestInR(ArmGen::ARMReg Reg);
 	void WriteSyscallExit();
 
 	// Utility compilation functions
@@ -221,11 +236,12 @@ private:
 	void BranchRSRTComp(MIPSOpcode op, ArmGen::CCFlags cc, bool likely);
 
 	// Utilities to reduce duplicated code
-	void CompImmLogic(MIPSGPReg rs, MIPSGPReg rt, u32 uimm, void (ARMXEmitter::*arith)(ARMReg dst, ARMReg src, Operand2 op2), bool (ARMXEmitter::*tryArithI2R)(ARMReg dst, ARMReg src, u32 val), u32 (*eval)(u32 a, u32 b));
-	void CompType3(MIPSGPReg rd, MIPSGPReg rs, MIPSGPReg rt, void (ARMXEmitter::*arithOp2)(ARMReg dst, ARMReg rm, Operand2 rn), bool (ARMXEmitter::*tryArithI2R)(ARMReg dst, ARMReg rm, u32 val), u32 (*eval)(u32 a, u32 b), bool symmetric = false);
+	void CompImmLogic(MIPSGPReg rs, MIPSGPReg rt, u32 uimm, void (ARMXEmitter::*arith)(ArmGen::ARMReg dst, ArmGen::ARMReg src, ArmGen::Operand2 op2), bool (ARMXEmitter::*tryArithI2R)(ArmGen::ARMReg dst, ArmGen::ARMReg src, u32 val), u32 (*eval)(u32 a, u32 b));
+	void CompType3(MIPSGPReg rd, MIPSGPReg rs, MIPSGPReg rt, void (ARMXEmitter::*arithOp2)(ArmGen::ARMReg dst, ArmGen::ARMReg rm, ArmGen::Operand2 rn), bool (ARMXEmitter::*tryArithI2R)(ArmGen::ARMReg dst, ArmGen::ARMReg rm, u32 val), u32 (*eval)(u32 a, u32 b), bool symmetric = false);
 
 	void CompShiftImm(MIPSOpcode op, ArmGen::ShiftType shiftType, int sa);
 	void CompShiftVar(MIPSOpcode op, ArmGen::ShiftType shiftType);
+	void CompVrotShuffle(u8 *dregs, int imm, VectorSize sz, bool negSin);
 
 	void ApplyPrefixST(u8 *vregs, u32 prefix, VectorSize sz);
 	void ApplyPrefixD(const u8 *vregs, VectorSize sz);
@@ -241,9 +257,46 @@ private:
 	}
 	void GetVectorRegsPrefixD(u8 *regs, VectorSize sz, int vectorReg);
 
+
+	// For NEON mappings, it will be easier to deal directly in ARM registers.
+
+	ArmGen::ARMReg NEONMapPrefixST(int vfpuReg, VectorSize sz, u32 prefix, int mapFlags);
+	ArmGen::ARMReg NEONMapPrefixS(int vfpuReg, VectorSize sz, int mapFlags) {
+		return NEONMapPrefixST(vfpuReg, sz, js.prefixS, mapFlags);
+	}
+	ArmGen::ARMReg NEONMapPrefixT(int vfpuReg, VectorSize sz, int mapFlags) {
+		return NEONMapPrefixST(vfpuReg, sz, js.prefixT, mapFlags);
+	}
+
+	struct DestARMReg {
+		ArmGen::ARMReg rd;
+		ArmGen::ARMReg backingRd;
+		VectorSize sz;
+
+		operator ArmGen::ARMReg() const { return rd; }
+	};
+
+	struct MappedRegs {
+		ArmGen::ARMReg vs;
+		ArmGen::ARMReg vt;
+		DestARMReg vd;
+		bool overlap;
+	};
+
+	MappedRegs NEONMapDirtyInIn(MIPSOpcode op, VectorSize dsize, VectorSize ssize, VectorSize tsize, bool applyPrefixes = true);
+	MappedRegs NEONMapInIn(MIPSOpcode op, VectorSize ssize, VectorSize tsize, bool applyPrefixes = true);
+	MappedRegs NEONMapDirtyIn(MIPSOpcode op, VectorSize dsize, VectorSize ssize, bool applyPrefixes = true);
+
+	DestARMReg NEONMapPrefixD(int vfpuReg, VectorSize sz, int mapFlags);
+	void NEONApplyPrefixD(DestARMReg dest);
+
+	// NEON utils
+	void NEONMaskToSize(ArmGen::ARMReg vs, VectorSize sz);
+	void NEONTranspose4x4(ArmGen::ARMReg cols[4]);
+
 	// Utils
 	void SetR0ToEffectiveAddress(MIPSGPReg rs, s16 offset);
-	void SetCCAndR0ForSafeAddress(MIPSGPReg rs, s16 offset, ARMReg tempReg, bool reverse = false);
+	void SetCCAndR0ForSafeAddress(MIPSGPReg rs, s16 offset, ArmGen::ARMReg tempReg, bool reverse = false);
 	void Comp_ITypeMemLR(MIPSOpcode op, bool load);
 
 	JitBlockCache blocks;
@@ -272,8 +325,8 @@ public:
 	const u8 *breakpointBailout;
 };
 
-typedef void (Jit::*MIPSCompileFunc)(MIPSOpcode opcode);
-typedef int (Jit::*MIPSReplaceFunc)();
+typedef void (ArmJit::*MIPSCompileFunc)(MIPSOpcode opcode);
+typedef int (ArmJit::*MIPSReplaceFunc)();
 
 }	// namespace MIPSComp
 

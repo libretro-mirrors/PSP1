@@ -17,23 +17,4 @@
 
 #pragma once
 
-#include "Core/Dialog/PSPDialog.h"
-#include "Core/MemMap.h"
-
-struct SceUtilityScreenshotParams;
-
-class PSPScreenshotDialog : public PSPDialog {
-public:
-	PSPScreenshotDialog();
-	virtual ~PSPScreenshotDialog();
-
-	virtual int Init(u32 paramAddr);
-	virtual int Update(int animSpeed) override;
-	virtual int ContStart();
-	virtual void DoState(PointerWrap &p) override;
-
-protected:
-	int mode;
-	PSPPointer<SceUtilityScreenshotParams> params_;
-};
-
+void Register_sceSha256();

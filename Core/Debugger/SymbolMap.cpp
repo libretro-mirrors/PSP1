@@ -960,6 +960,8 @@ void SymbolMap::getLabels(std::vector<LabelDefinition>& dest) const
 	}
 }
 
+#if defined(_WIN32)
+
 struct DefaultSymbol {
 	u32 address;
 	const char* name;
@@ -1028,5 +1030,7 @@ void SymbolMap::FillSymbolListBox(HWND listbox,SymbolType symType) const {
 	SendMessage(listbox, WM_SETREDRAW, TRUE, 0);
 	RedrawWindow(listbox, NULL, NULL, RDW_ERASE | RDW_FRAME | RDW_INVALIDATE | RDW_ALLCHILDREN);
 }
+
+#endif
 
 #endif

@@ -100,7 +100,11 @@ bool TestArmEmitter() {
 	emitter.VBIC_imm(I_32, R0, VIMM___x___x, 0xF3);
 	emitter.VMVN_imm(I_32, R0, VIMM___x___x, 0xF3);
 	emitter.VPADD(F_32, D0, D0, D0);
+	RET(CheckLast(emitter, "f3000d00 VPADD.f32 d0, d0, d0"));
 	emitter.VMOV(Q14, Q2);
+
+	emitter.VMLA_scalar(F_32, Q8, Q13, DScalar(D8, 1));
+	RET(CheckLast(emitter, "f3ea01e8 VMLA.f32 q8, q13, d8[1]"));
 
 	emitter.VMOV(S9, R3);
 	RET(CheckLast(emitter, "ee043a90 VMOV s9, r3"));
@@ -108,7 +112,7 @@ bool TestArmEmitter() {
 	RET(CheckLast(emitter, "ee119a90 VMOV r9, s3"));
 
 	emitter.VMVN(Q1, Q13);
-	RET(CheckLast(emitter, "f3b025ea VMVN q1, q3"));
+	RET(CheckLast(emitter, "f3b025ea VMVN q1, q13"));
 
 	emitter.VMOV(S3, S6);
 	RET(CheckLast(emitter, "eef01a43 VMOV s3, s6"));
@@ -138,7 +142,7 @@ bool TestArmEmitter() {
 	emitter.VADD(F_32, Q1, Q2, Q3);
 	RET(CheckLast(emitter, "f2042d46 VADD.f32 q1, q2, q3"));
 	emitter.VADD(F_32, Q11, Q11, Q10);
-	RET(CheckLast(emitter, "f2466de4 VADD.f32, Q11, Q11, Q10"));
+	RET(CheckLast(emitter, "f2466de4 VADD.f32 q11, q11, q10"));
 	emitter.VMLA(F_32, Q1, Q2, Q3);
 	RET(CheckLast(emitter, "f2042d56 VMLA.f32 q1, q2, q3"));
 	emitter.VMLS(F_32, Q1, Q2, Q3);
@@ -165,8 +169,8 @@ bool TestArmEmitter() {
 	//RET(CheckLast(emitter, "eef10a60 VNEG.f32 s1, s1"));
 	emitter.VNEG(F_32, Q1, Q2);
 	RET(CheckLast(emitter, "f3b927c4 VNEG.f32 q1, q2"));
-	emitter.VABS(F_32, Q1, Q2);
-	RET(CheckLast(emitter, "f3b92744 VABS.f32 q1, q2"));
+	//emitter.VABS(F_32, Q1, Q2);
+	//RET(CheckLast(emitter, "f3b92744 VABS.f32 q1, q2"));
 	emitter.VMOV(D26, D30);
 	RET(CheckLast(emitter, "eef0ab6e VMOV d26, d30"));
 
@@ -206,8 +210,8 @@ bool TestArmEmitter() {
 	int R001 = GetRowName(0, M_4x4, 1, 0);
 	int R002 = GetRowName(0, M_4x4, 2, 0);
 	int R003 = GetRowName(0, M_4x4, 3, 0);
-	printf("Col 000: %s\n", GetVectorNotation(C000, V_Quad));
-	printf("Row 000: %s\n", GetVectorNotation(R000, V_Quad));
+	printf("Col 010: %s\n", GetVectorNotation(C010, V_Quad));
+	printf("Row 003: %s\n", GetVectorNotation(R003, V_Quad));
 	
 	MIPSAnalyst::AnalysisResults results;
 	memset(&results, 0, sizeof(results));

@@ -34,7 +34,8 @@ SOURCES_CXX += $(NATIVEDIR)/ext/cityhash/city.cpp \
 SOURCES_C   += $(NATIVEDIR)/ext/libpng17/pngread.c
 SOURCES_CXX += $(COMMONDIR)/ConsoleListener.cpp \
 				$(COMMONDIR)/Crypto/md5.cpp \
-				$(COMMONDIR)/Crypto/sha1.cpp
+				$(COMMONDIR)/Crypto/sha1.cpp \
+				$(COMMONDIR)/Crypto/sha256.cpp
 SOURCES_C   += $(NATIVEDIR)/ext/libzip/mkstemp.c
 SOURCES_CXX += $(COMMONDIR)/FileUtil.cpp
 SOURCES_C   += $(NATIVEDIR)/ext/libzip/zip_add.c \
@@ -253,6 +254,7 @@ SOURCES_CXX += $(NATIVEDIR)/file/chunk_file.cpp \
 				$(COREDIR)/FileSystems/VirtualDiscFileSystem.cpp \
 				$(COREDIR)/Font/PGF.cpp \
 				$(COREDIR)/HLE/HLE.cpp \
+				$(COREDIR)/HLE/sceSha256.cpp \
 				$(COREDIR)/HLE/ReplaceTables.cpp \
 				$(COREDIR)/HLE/HLEHelperThread.cpp \
 				$(COREDIR)/HLE/HLETables.cpp \

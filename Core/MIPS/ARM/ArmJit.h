@@ -18,12 +18,13 @@
 #pragma once
 
 #include "Common/CPUDetect.h"
+#include "Common/ArmEmitter.h"
 #include "Core/MIPS/JitCommon/JitState.h"
 #include "Core/MIPS/JitCommon/JitBlockCache.h"
+#include "Core/MIPS/ARM/ArmAsm.h"
 #include "Core/MIPS/ARM/ArmRegCache.h"
 #include "Core/MIPS/ARM/ArmRegCacheFPU.h"
-#include "Core/MIPS/ARM/ArmAsm.h"
-#include "Core/Config.h"
+#include "Core/MIPS/MIPSVFPUUtils.h"
 
 #ifndef offsetof
 #include "stddef.h"
@@ -66,6 +67,7 @@ class ArmJit : public ArmGen::ARMXCodeBlock
 {
 public:
 	ArmJit(MIPSState *mips);
+	virtual ~ArmJit();
 
 	void DoState(PointerWrap &p);
 	static void DoDummyState(PointerWrap &p);
@@ -324,9 +326,6 @@ public:
 
 	const u8 *breakpointBailout;
 };
-
-typedef void (ArmJit::*MIPSCompileFunc)(MIPSOpcode opcode);
-typedef int (ArmJit::*MIPSReplaceFunc)();
 
 }	// namespace MIPSComp
 

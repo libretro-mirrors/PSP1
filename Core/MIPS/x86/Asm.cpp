@@ -32,6 +32,7 @@
 #include "Core/MIPS/x86/Jit.h"
 
 using namespace Gen;
+using namespace X64JitConstants;
 
 //TODO - make an option
 //#if _DEBUG
@@ -51,11 +52,6 @@ static bool enableDebug = false;
 //R15 - Pointer to array of block pointers 
 
 extern volatile CoreState coreState;
-
-void Jit()
-{
-	MIPSComp::jit->Compile(currentMIPS->pc);
-}
 
 // IDEA, NOT IMPLEMENTED: no more block numbers - hack opcodes just contain offset within
 // dynarec buffer, gets rid of lookup into block buffer
@@ -135,7 +131,7 @@ void AsmRoutineManager::Generate(MIPSState *mips, MIPSComp::Jit *jit)
 
 			//Ok, no block, let's jit
 			jit->RestoreRoundingMode(true, this);
-			ABI_CallFunction(&Jit);
+			ABI_CallFunction(&MIPSComp::JitAt);
 			jit->ApplyRoundingMode(true, this);
 			JMP(dispatcherNoCheck, true); // Let's just dispatch again, we'll enter the block since we know it's there.
 

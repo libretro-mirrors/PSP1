@@ -42,6 +42,7 @@
 
 #include "Core/MIPS/JitCommon/JitBlockCache.h"
 #include "Core/MIPS/JitCommon/JitCommon.h"
+#include "Core/MIPS/JitCommon/NativeJit.h"
 
 #if defined(ARM)
 #include "Core/MIPS/ARM/ArmAsm.h"
@@ -70,6 +71,7 @@ op_agent_t agent;
 
 #ifdef ARM
 using namespace ArmGen;
+using namespace ArmJitConstants;
 #elif defined(_M_X64) || defined(_M_IX86)
 using namespace Gen;
 #endif

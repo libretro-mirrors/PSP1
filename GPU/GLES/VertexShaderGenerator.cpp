@@ -29,6 +29,7 @@
 #include "GPU/GPUState.h"
 #include "Core/Config.h"
 #include "GPU/GLES/VertexShaderGenerator.h"
+#include "GPU/GLES/ShaderManager.h"
 #include "GPU/Common/VertexDecoderCommon.h"
 
 // SDL 1.2 on Apple does not have support for OpenGL 3 and hence needs
@@ -47,8 +48,7 @@ bool CanUseHardwareTransform(int prim) {
 	return !gstate.isModeThrough() && prim != GE_PRIM_RECTANGLES;
 }
 
-// prim so we can special case for RECTANGLES :(
-void ComputeVertexShaderID(VertexShaderID *id, u32 vertType, int prim, bool useHWTransform) {
+void ComputeVertexShaderID(ShaderID *id, u32 vertType, bool useHWTransform) {
 	bool doTexture = gstate.isTextureMapEnabled() && !gstate.isModeClear();
 	bool doTextureProjection = gstate.getUVGenMode() == GE_TEXMAP_TEXTURE_MATRIX;
 	bool doShadeMapping = gstate.getUVGenMode() == GE_TEXMAP_ENVIRONMENT_MAP;
@@ -163,6 +163,7 @@ void GenerateVertexShader(int prim, u32 vertType, char *buffer, bool useHWTransf
 	const char *attribute = "attribute";
 	const char * const * boneWeightDecl = boneWeightAttrDecl;
 	bool highpFog = false;
+	bool highpTexcoord = false;
 
 #if defined(USING_GLES2)
 	// Let's wait until we have a real use for this.
@@ -178,6 +179,8 @@ void GenerateVertexShader(int prim, u32 vertType, char *buffer, bool useHWTransf
 	// PowerVR needs highp to do the fog in MHU correctly.
 	// Others don't, and some can't handle highp in the fragment shader.
 	highpFog = gl_extensions.gpuVendor == GPU_VENDOR_POWERVR;
+	highpTexcoord = gl_extensions.gpuVendor == GPU_VENDOR_POWERVR;
+
 #elif !defined(FORCE_OPENGL_2_0)
 	if (gl_extensions.VersionGEThan(3, 3, 0)) {
 		glslES30 = true;
@@ -339,9 +342,9 @@ void GenerateVertexShader(int prim, u32 vertType, char *buffer, bool useHWTransf
 	}
 	if (doTexture) {
 		if (doTextureProjection)
-			WRITE(p, "%s mediump vec3 v_texcoord;\n", varying);
+			WRITE(p, "%s %s vec3 v_texcoord;\n", varying, highpTexcoord ? "highp" : "mediump");
 		else
-			WRITE(p, "%s mediump vec2 v_texcoord;\n", varying);
+			WRITE(p, "%s %s vec2 v_texcoord;\n", varying, highpTexcoord ? "highp" : "mediump");
 	}
 
 

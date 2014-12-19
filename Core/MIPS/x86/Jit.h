@@ -53,6 +53,7 @@ struct JitOptions
 	bool continueJumps;
 	int continueMaxInstructions;
 	bool enableVFPUSIMD;
+	bool reserveR15ForAsm;
 };
 
 // TODO: Hmm, humongous.

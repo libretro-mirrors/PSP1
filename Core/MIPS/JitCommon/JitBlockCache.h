@@ -18,15 +18,7 @@
 #pragma once
 
 #include <map>
-#ifdef IOS
-#include <tr1/unordered_map>
-namespace std {
-	using std::tr1::unordered_map;
-	using std::tr1::unordered_multimap;
-}
-#else
 #include <unordered_map>
-#endif
 #include <vector>
 #include <string>
 
@@ -37,24 +29,20 @@ namespace std {
 #if defined(ARM)
 #include "Common/ArmEmitter.h"
 namespace ArmGen { class ARMXEmitter; }
-typedef ArmGen::ARMXCodeBlock CodeBlock;
+typedef ArmGen::ARMXCodeBlock NativeCodeBlock;
 #elif defined(_M_IX86) || defined(_M_X64)
 #include "Common/x64Emitter.h"
 namespace Gen { class XEmitter; }
-typedef Gen::XCodeBlock CodeBlock;
-#elif defined(PPC)
-#include "Common/ppcEmitter.h"
-namespace PpcGen { class PPCXEmitter; }
-typedef PpcGen::PPCXCodeBlock CodeBlock;
+typedef Gen::XCodeBlock NativeCodeBlock;
 #elif defined(MIPS)
 #include "Common/MipsEmitter.h"
 namespace MIPSGen { class MIPSEmitter; }
-typedef MIPSGen::MIPSCodeBlock CodeBlock;
+typedef MIPSGen::MIPSCodeBlock NativeCodeBlock;
 #else
 #warning "Unsupported arch!"
 #include "Common/FakeEmitter.h"
 namespace FakeGen { class FakeXEmitter; }
-typedef FakeGen::FakeXCodeBlock CodeBlock;
+typedef FakeGen::FakeXCodeBlock NativeCodeBlock;
 #endif
 
 #if defined(ARM)
@@ -108,7 +96,7 @@ typedef void (*CompiledCode)();
 
 class JitBlockCache {
 public:
-	JitBlockCache(MIPSState *mips_, CodeBlock *codeBlock);
+	JitBlockCache(MIPSState *mips_, NativeCodeBlock *codeBlock);
 	~JitBlockCache();
 
 	int AllocateBlock(u32 em_address);
@@ -171,7 +159,7 @@ private:
 	MIPSOpcode GetEmuHackOpForBlock(int block_num) const;
 
 	MIPSState *mips_;
-	CodeBlock *codeBlock_;
+	NativeCodeBlock *codeBlock_;
 	JitBlock *blocks_;
 	std::unordered_multimap<u32, int> proxyBlockMap_;
 

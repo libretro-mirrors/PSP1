@@ -243,7 +243,8 @@ if(NOT MSVC)
 
 	if(IOS)
 		add_definitions(-DGL_ETC1_RGB8_OES=0)
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -U__STRICT_ANSI__")
+		set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
 		# armv7s (without resorting to FastMemory) is still a work in progress
 		# comment out the next line to enable default/"standard" architectures (which is a fat armv7/armv7s binary)
 		set(CMAKE_OSX_ARCHITECTURES "armv7")
@@ -781,6 +782,7 @@ elseif(SDL2_FOUND)
 	set(TargetBin PPSSPPSDL)
 	# Require SDL
 	include_directories(${SDL2_INCLUDE_DIR})
+	add_definitions(-DSDL)
 	set(nativeExtra ${nativeExtra} 
 		SDL/SDLJoystick.h
 		SDL/SDLJoystick.cpp

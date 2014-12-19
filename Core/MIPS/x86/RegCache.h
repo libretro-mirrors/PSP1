@@ -23,7 +23,9 @@
 
 namespace X64JitConstants {
 #ifdef _M_X64
+	const Gen::X64Reg MEMBASEREG = Gen::RBX;
 	const Gen::X64Reg CTXREG = Gen::R14;
+	const Gen::X64Reg JITBASEREG = Gen::R15;
 #else
 	const Gen::X64Reg CTXREG = Gen::EBP;
 #endif
@@ -117,7 +119,7 @@ public:
 private:
 	Gen::X64Reg GetFreeXReg();
 	Gen::X64Reg FindBestToSpill(bool unusedOnly, bool *clobbered);
-	const int *GetAllocationOrder(int &count);
+	const Gen::X64Reg *GetAllocationOrder(int &count);
 
 	MIPSCachedReg regs[X64JitConstants::NUM_MIPS_GPRS];
 	X64CachedReg xregs[X64JitConstants::NUM_X_REGS];

@@ -15,15 +15,14 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-// WARNING - THIS LIBRARY IS NOT THREAD SAFE!!!
-
-#ifndef _DOLPHIN_ARM_CODEGEN_
-#define _DOLPHIN_ARM_CODEGEN_
+#pragma once
 
 #include <vector>
 #include <stdint.h>
 
 #include "Common.h"
+#include "ArmCommon.h"
+#include "CodeBlock.h"
 #include "MsgHandler.h"
 
 // TODO: Check if Pandora still needs signal.h/kill here. Symbian doesn't.
@@ -70,28 +69,6 @@ enum ARMReg
 	REG_UPDATE = R13,
 	INVALID_REG = 0xFFFFFFFF
 };
-
-enum CCFlags
-{
-	CC_EQ = 0, // Equal
-	CC_NEQ, // Not equal
-	CC_CS, // Carry Set
-	CC_CC, // Carry Clear
-	CC_MI, // Minus (Negative)
-	CC_PL, // Plus
-	CC_VS, // Overflow
-	CC_VC, // No Overflow
-	CC_HI, // Unsigned higher
-	CC_LS, // Unsigned lower or same
-	CC_GE, // Signed greater than or equal
-	CC_LT, // Signed less than
-	CC_GT, // Signed greater than
-	CC_LE, // Signed less than or equal
-	CC_AL, // Always (unconditional) 14
-	CC_HS = CC_CS, // Alias of CC_CS  Unsigned higher or same
-	CC_LO = CC_CC, // Alias of CC_CC  Unsigned lower
-};
-const u32 NO_COND = 0xE0000000;
 
 enum ShiftType
 {
@@ -908,53 +885,10 @@ public:
 // Everything that needs to generate machine code should inherit from this.
 // You get memory management for free, plus, you can use all the MOV etc functions without
 // having to prefix them with gen-> or something similar.
-class ARMXCodeBlock : public ARMXEmitter
-{
-protected:
-	u8 *region;
-	size_t region_size;
 
+class ARMXCodeBlock : public CodeBlock<ARMXEmitter> {
 public:
-	ARMXCodeBlock() : region(NULL), region_size(0) {}
-	virtual ~ARMXCodeBlock() { if (region) FreeCodeSpace(); }
-
-	// Call this before you generate any code.
-	void AllocCodeSpace(int size);
-
-	// Always clear code space with breakpoints, so that if someone accidentally executes
-	// uninitialized, it just breaks into the debugger.
-	void ClearCodeSpace();
-
-	// Call this when shutting down. Don't rely on the destructor, even though it'll do the job.
-	void FreeCodeSpace();
-
-	bool IsInSpace(const u8 *ptr) const
-	{
-		return ptr >= region && ptr < region + region_size;
-	}
-
-	// Cannot currently be undone. Will write protect the entire code region.
-	// Start over if you need to change the code (call FreeCodeSpace(), AllocCodeSpace()).
-	void WriteProtect();
-	void UnWriteProtect();
-
-	void ResetCodePtr()
-	{
-		SetCodePtr(region);
-	}
-
-	size_t GetSpaceLeft() const
-	{
-		return region_size - (GetCodePtr() - region);
-	}
-
-	u8 *GetBasePtr() {
-		return region;
-	}
-
-	size_t GetOffset(const u8 *ptr) const {
-		return ptr - region;
-	}
+	void PoisonMemory() override;
 };
 
 // VFP Specific
@@ -966,5 +900,3 @@ extern const VFPEnc VFPOps[16][2];
 extern const char *VFPOpNames[16];
 
 }  // namespace
-
-#endif

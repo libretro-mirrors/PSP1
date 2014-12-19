@@ -17,16 +17,7 @@
 
 #pragma once
 
-#ifdef IOS
-#include <tr1/unordered_map>
-#include <string>
-namespace std {
-	using std::tr1::unordered_map;
-}
-#else
 #include <unordered_map>
-#endif
-
 #include "GPU/Common/GPUDebugInterface.h"
 #include "GPU/Common/IndexGenerator.h"
 #include "GPU/Common/VertexDecoderCommon.h"
@@ -227,11 +218,7 @@ private:
 	GEPrimitiveType prevPrim_;
 
 	// Cached vertex decoders
-#ifdef IOS
-	std::tr1::unordered_map<u32, VertexDecoder *> decoderMap_;
-#else
 	std::unordered_map<u32, VertexDecoder *> decoderMap_;
-#endif
 	VertexDecoder *dec_;
 	VertexDecoderJitCache *decJitCache_;
 	u32 lastVType_;
@@ -239,11 +226,7 @@ private:
 	TransformedVertex *transformed;
 	TransformedVertex *transformedExpanded;
 
-#ifdef IOS
-	std::tr1::unordered_map<u32, VertexArrayInfo *> vai_;
-#else
 	std::unordered_map<u32, VertexArrayInfo *> vai_;
-#endif
 
 	// Fixed index buffer for easy quad generation from spline/bezier
 	u16 *quadIndices_;

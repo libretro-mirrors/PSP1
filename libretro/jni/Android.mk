@@ -61,7 +61,9 @@ include $(CLEAR_VARS)
 ifeq ($(TARGET_ARCH),arm)
   LOCAL_CFLAGS += -DANDROID_ARM -DARM -DARMEABI_V7A
   LOCAL_ARM_MODE := arm
+ifeq ($(TARGET_ARCH_ABI), armeabi-v7a)
   LOCAL_ARM_NEON := true
+endif
   LOCAL_CLFAGS += -marm
 endif
 

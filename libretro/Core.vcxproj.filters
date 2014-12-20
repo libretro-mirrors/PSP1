@@ -223,6 +223,13 @@
     <ClCompile Include="..\Core\Util\GameManager.cpp" />
     <ClCompile Include="..\Core\Util\PPGeDraw.cpp" />
     <ClCompile Include="..\Core\Util\ppge_atlas.cpp" />
+    <ClCompile Include="..\ext\udis86\decode.c" />
+    <ClCompile Include="..\ext\udis86\itab.c" />
+    <ClCompile Include="..\ext\udis86\syn-att.c" />
+    <ClCompile Include="..\ext\udis86\syn-intel.c" />
+    <ClCompile Include="..\ext\udis86\syn.c" />
+    <ClCompile Include="..\ext\udis86\udis86.c" />
+    <ClCompile Include="..\Core\HLE\sceSha256.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\ext\snappy\snappy.h">
@@ -240,24 +247,6 @@
     <ClInclude Include="..\ext\snappy\snappy-internal.h">
       <Filter>Ext\Snappy</Filter>
     </ClInclude>
-    <ClCompile Include="..\ext\udis86\itab.c">
-      <Filter>Ext\udis86</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ext\udis86\syn.c">
-      <Filter>Ext\udis86</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ext\udis86\syn-att.c">
-      <Filter>Ext\udis86</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ext\udis86\syn-intel.c">
-      <Filter>Ext\udis86</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ext\udis86\udis86.c">
-      <Filter>Ext\udis86</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ext\udis86\decode.c">
-      <Filter>Ext\udis86</Filter>
-    </ClCompile>
     <ClInclude Include="..\ext\disarm.h">
       <Filter>Ext</Filter>
     </ClInclude>
@@ -406,6 +395,7 @@
     <ClInclude Include="..\Core\Util\GameManager.h" />
     <ClInclude Include="..\Core\Util\PPGeDraw.h" />
     <ClInclude Include="..\Core\Util\ppge_atlas.h" />
+    <ClInclude Include="..\Core\HLE\sceSha256.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CMakeLists.txt" />

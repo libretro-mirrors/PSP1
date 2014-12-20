@@ -947,7 +947,7 @@ DataType SymbolMap::GetDataType(u32 startAddress) const {
 	return it->second.type;
 }
 
-#if defined(_WIN32_NO_MINGW)
+#if defined(_WIN32_NO_MINGW) && !defined(__LIBRETRO__)
 
 void SymbolMap::getLabels(std::vector<LabelDefinition>& dest) const
 {

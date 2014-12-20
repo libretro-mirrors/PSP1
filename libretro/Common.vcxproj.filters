@@ -33,6 +33,7 @@
     <ClInclude Include="..\Common\Timer.h" />
     <ClInclude Include="..\Common\x64Analyzer.h" />
     <ClInclude Include="..\Common\x64Emitter.h" />
+    <ClInclude Include="..\Common\Crypto\sha256.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Common\ABI.cpp" />
@@ -59,6 +60,7 @@
     <ClCompile Include="..\Common\Timer.cpp" />
     <ClCompile Include="..\Common\x64Analyzer.cpp" />
     <ClCompile Include="..\Common\x64Emitter.cpp" />
+    <ClCompile Include="..\Common\Crypto\sha256.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CMakeLists.txt" />

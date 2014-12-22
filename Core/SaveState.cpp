@@ -29,6 +29,7 @@
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/Host.h"
+#include "Core/Screenshot.h"
 #include "Core/System.h"
 #include "Core/FileSystems/MetaFileSystem.h"
 #include "Core/ELF/ParamSFO.h"
@@ -50,6 +51,7 @@ namespace SaveState
 		SAVESTATE_LOAD,
 		SAVESTATE_VERIFY,
 		SAVESTATE_REWIND,
+		SAVESTATE_SAVE_SCREENSHOT,
 	};
 
 	struct Operation
@@ -271,6 +273,11 @@ namespace SaveState
 		Enqueue(Operation(SAVESTATE_REWIND, std::string(""), callback, cbUserData));
 	}
 
+	void SaveScreenshot(const std::string &filename, Callback callback, void *cbUserData)
+	{
+		Enqueue(Operation(SAVESTATE_SAVE_SCREENSHOT, filename, callback, cbUserData));
+	}
+
 	bool CanRewind()
 	{
 		return !rewindStates.Empty();
@@ -314,20 +321,34 @@ namespace SaveState
 			I18NCategory *s = GetI18NCategory("Screen");
 			osm.Show("Failed to load state. Error in the file system.", 2.0);
 			if (callback)
-				(*callback)(false, cbUserData);
+				callback(false, cbUserData);
 		}
 	}
 
 	void SaveSlot(int slot, Callback callback, void *cbUserData)
 	{
 		std::string fn = GenerateSaveSlotFilename(slot, STATE_EXTENSION);
+		std::string shot = GenerateSaveSlotFilename(slot, SCREENSHOT_EXTENSION);
 		if (!fn.empty()) {
-			Save(fn, callback, cbUserData);
+			auto renameCallback = [=](bool status, void *data) {
+				if (status) {
+					if (File::Exists(fn)) {
+						File::Delete(fn);
+					}
+					File::Rename(fn + ".tmp", fn);
+				}
+				if (callback) {
+					callback(status, data);
+				}
+			};
+			// Let's also create a screenshot.
+			SaveScreenshot(shot, Callback(), 0);
+			Save(fn + ".tmp", renameCallback, cbUserData);
 		} else {
 			I18NCategory *s = GetI18NCategory("Screen");
 			osm.Show("Failed to save state. Error in the file system.", 2.0);
 			if (callback)
-				(*callback)(false, cbUserData);
+				callback(false, cbUserData);
 		}
 	}
 
@@ -534,6 +555,10 @@ namespace SaveState
 					osm.Show(i18nLoadFailure, 2.0);
 					callbackResult = false;
 				}
+				break;
+
+			case SAVESTATE_SAVE_SCREENSHOT:
+				TakeGameScreenshot(op.filename.c_str(), SCREENSHOT_JPG, SCREENSHOT_RENDER);
 				break;
 
 			default:

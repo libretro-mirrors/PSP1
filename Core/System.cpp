@@ -436,11 +436,13 @@ void PSP_Shutdown() {
 		CPU_Shutdown();
 	}
 	GPU_Shutdown();
+	g_paramSFO.Clear();
 	host->SetWindowTitle(0);
 	currentMIPS = 0;
 	pspIsInited = false;
 	pspIsIniting = false;
 	pspIsQuiting = false;
+	g_Config.unloadGameConfig();
 }
 
 void PSP_RunLoopUntil(u64 globalticks) {

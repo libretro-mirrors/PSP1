@@ -48,7 +48,7 @@ inline float vfpu_cos(float angle) {
 inline void vfpu_sincos(float angle, float &sine, float &cosine) {
 	angle -= floorf(angle * 0.25f) * 4.f;
 	angle *= (float)M_PI_2;
-#if defined(__linux__)
+#if defined(__linux__) && !defined(ANDROID)
 	sincosf(angle, &sine, &cosine);
 #else
 	sine = sinf(angle);

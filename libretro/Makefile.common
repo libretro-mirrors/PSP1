@@ -6,6 +6,7 @@ INCFLAGS := \
 	-I$(NATIVEDIR)/ext/stb_vorbis \
 	$(FFMPEGINCFLAGS) \
 	-I$(EXTDIR)/cityhash \
+	-I$(EXTDIR)/armips \
 	-I$(NATIVEDIR)/ext/libzip \
 	-I$(NATIVEDIR)/ext \
 	-I$(NATIVEDIR) \
@@ -336,7 +337,6 @@ SOURCES_CXX += $(NATIVEDIR)/file/chunk_file.cpp \
 				$(COREDIR)/MIPS/MIPSStackWalk.cpp \
 				$(COREDIR)/MIPS/MIPSTables.cpp \
 				$(COREDIR)/MIPS/MIPSVFPUUtils.cpp \
-				$(COREDIR)/MIPS/MIPSAsm.cpp \
 				$(COREDIR)/MemMap.cpp \
 				$(COREDIR)/MemMapFunctions.cpp \
 				$(COREDIR)/PSPLoaders.cpp \
@@ -373,7 +373,7 @@ ifdef WITH_DYNAREC
 						$(COREDIR)/MIPS/ARM/ArmRegCache.cpp \
 						$(COREDIR)/MIPS/ARM/ArmRegCacheFPU.cpp \
 						$(GPUCOMMONDIR)/VertexDecoderArm.cpp
-						
+		
 		ifeq ($(HAVE_NEON),1)
 			SOURCES_CXX   += \
 							  $(COREDIR)/MIPS/ARM/ArmCompVFPUNEON.cpp \

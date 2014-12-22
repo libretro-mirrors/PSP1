@@ -23,6 +23,10 @@
 
 namespace SaveState
 {
+   struct SaveStart
+   {
+      void DoState(PointerWrap &p);
+   };
 	typedef std::function<void(bool status, void *cbUserData)> Callback;
 
 	// TODO: Better place for this?

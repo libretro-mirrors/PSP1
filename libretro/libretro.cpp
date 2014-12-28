@@ -779,6 +779,11 @@ bool retro_load_game(const struct retro_game_info *game)
 {
    const char *tmp = NULL;
    enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_XRGB8888;
+#ifdef _WIN32
+   char slash = '\\';
+#else
+   char slash = '/';
+#endif
 
    struct retro_input_descriptor desc[] = {
       { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,  "D-Pad Left" },
@@ -808,17 +813,9 @@ bool retro_load_game(const struct retro_game_info *game)
       retro_base_dir = std::string(_dir);
    }
 
-#ifdef _WIN32
-   retro_base_dir  += "\\";
-#else
-   retro_base_dir += "/";
-#endif
+   retro_base_dir += slash;
    retro_base_dir += "PPSSPP";
-#ifdef _WIN32
-   retro_base_dir += "\\";
-#else
-   retro_base_dir += "/";
-#endif
+   retro_base_dir += slash;
 
    if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
    {

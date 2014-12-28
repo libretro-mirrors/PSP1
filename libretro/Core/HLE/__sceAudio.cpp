@@ -37,11 +37,6 @@
 #include "Core/HLE/sceKernelThread.h"
 
 
-// Should be used to lock anything related to the outAudioQueue.
-// atomic locks are used on the lock. TODO: make this lock-free
-atomic_flag atomicLock_;
-recursive_mutex mutex_;
-
 enum latency {
 	LOW_LATENCY = 0,
 	MEDIUM_LATENCY = 1,
@@ -426,12 +421,8 @@ void __AudioUpdate() {
 			size_t sz1, sz2;
 			outAudioQueue.pushPointers(hwBlockSize * 2, &buf1, &sz1, &buf2, &sz2);
 			ClampBufferToS16(buf1, mixBuffer, sz1);
-			if (buf2) {
+			if (buf2)
 				ClampBufferToS16(buf2, mixBuffer + sz1, sz2);
-			}
-		} else {
-			// This happens quite a lot. There's still something slightly off
-			// about the amount of audio we produce.
 		}
 	}
 }
@@ -451,10 +442,8 @@ int __AudioMix(short *outstereo, int numFrames)
 		outAudioQueue.popPointers(numFrames * 2, &buf1, &sz1, &buf2, &sz2);
 
 		memcpy(outstereo, buf1, sz1 * sizeof(s16));
-		if (buf2) {
+		if (buf2)
 			memcpy(outstereo + sz1, buf2, sz2 * sizeof(s16));
-		}
-
 	}
 
 	int remains = (int)(numFrames * 2 - sz1 - sz2);

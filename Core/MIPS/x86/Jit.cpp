@@ -123,7 +123,7 @@ JitOptions::JitOptions()
 	continueBranches = false;
 	continueJumps = false;
 	continueMaxInstructions = 300;
-	enableVFPUSIMD = false;
+	enableVFPUSIMD = true;
 	// Set by Asm if needed.
 	reserveR15ForAsm = false;
 }

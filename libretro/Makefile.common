@@ -259,7 +259,7 @@ SOURCES_CXX += $(NATIVEDIR)/file/chunk_file.cpp \
 				$(COREDIR)/HLE/ReplaceTables.cpp \
 				$(COREDIR)/HLE/HLEHelperThread.cpp \
 				$(COREDIR)/HLE/HLETables.cpp \
-				$(LIBRETRODIR)/Core/HLE/__sceAudio.cpp \
+				$(COREDIR)/HLE/__sceAudio.cpp \
 				$(COREDIR)/HLE/sceAtrac.cpp \
 				$(COREDIR)/HLE/sceAudio.cpp \
 				$(COREDIR)/HLE/sceAudiocodec.cpp \

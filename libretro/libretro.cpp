@@ -110,8 +110,8 @@ public:
 	void InitSound(PMixer *mixer) override { libretro_mixer = mixer; };
 	void UpdateSound() override
    {
-      int16_t audio[512 * 2];
-      int samples = __AudioMix(audio, (g_Config.iAudioLatency) ? 512 : 256);
+      int16_t audio[8192 * 2];
+      int samples = __AudioMix(audio, 8192);
 #if 0
       if (log_cb)
          log_cb(RETRO_LOG_INFO, "samples: %d\n", samples);

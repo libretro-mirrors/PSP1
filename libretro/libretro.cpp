@@ -20,6 +20,7 @@
 #include "input/input_state.h"
 #include "native/gfx_es2/fbo.h"
 #include "native/gfx_es2/gl_state.h"
+#include "native/gfx/gl_lost_manager.h"
 #include "native/thread/thread.h"
 #include "native/thread/threadutil.h"
 
@@ -63,6 +64,8 @@ void NativeRender()
 {
    fbo_override_backbuffer(libretro_framebuffer);
 
+   glstate.depthWrite.set(GL_TRUE);
+   glstate.colorMask.set(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
    glstate.Restore();
 
    ReapplyGfxState();
@@ -289,10 +292,37 @@ static void extract_directory(char *buf, const char *path, size_t size)
    }
 }
 
+static void initialize_gl(void)
+{
+#if !defined(IOS) && !defined(USING_GLES2)
+   if (glewInit() != GLEW_OK)
+   {
+      if (log_cb)
+         log_cb(RETRO_LOG_ERROR, "glewInit() failed.\n");
+      environ_cb(RETRO_ENVIRONMENT_SHUTDOWN, nullptr);
+      return;
+   }
+#endif
+   glstate.Initialize();
+   CheckGLExtensions();
+}
+
 static void context_reset(void)
 {
    if (log_cb)
       log_cb(RETRO_LOG_INFO, "Context reset!\n");
+
+   if (gpu)
+      gpu->DeviceLost();
+
+   //RecreateViews(); /* TODO ? */
+
+   gl_lost();
+
+   initialize_gl();
+
+   glstate.Restore();
+
 }
 
 static void set_language_auto(void)
@@ -841,6 +871,10 @@ bool retro_load_game(const struct retro_game_info *game)
 
    host = new LibretroHost;
 
+	// We do this here, instead of in NativeInitGraphics, because the display may be reset.
+	// When it's reset we don't want to forget all our managed things.
+	gl_lost_manager_init();
+
    g_Config.Load("");
 
    g_Config.currentDirectory      = retro_base_dir;
@@ -869,6 +903,9 @@ bool retro_load_game(const struct retro_game_info *game)
    check_variables();
 
    g_Config.bVertexDecoderJit = (coreParam.cpuCore == CPU_JIT) ? true : false;
+
+
+
 
    return true;
 }
@@ -970,6 +1007,7 @@ void retro_input_poll_thread()
    }
 }
 
+
 void retro_run(void)
 {
    bool updated = false;
@@ -1012,9 +1050,13 @@ void retro_run(void)
                break;
 
          }
-		   gpu->ClearCacheNextFrame();
-		   gpu->Resized();		   	   
-		   gpu_refresh = false;
+
+         if (gpu)
+         {
+            gpu->ClearCacheNextFrame();
+            gpu->Resized();		   	   
+            gpu_refresh = false;
+         }
 	   }
    }
   
@@ -1041,17 +1083,7 @@ void retro_run(void)
 
       if (!gl_initialized)
       {
-#if !defined(IOS) && !defined(USING_GLES2)
-         if (glewInit() != GLEW_OK)
-         {
-            if (log_cb)
-               log_cb(RETRO_LOG_ERROR, "glewInit() failed.\n");
-            environ_cb(RETRO_ENVIRONMENT_SHUTDOWN, nullptr);
-            return;
-         }
-#endif
-         glstate.Initialize();
-         CheckGLExtensions();
+         initialize_gl();
          gl_initialized = true;
       }
 

@@ -24,15 +24,16 @@
 
 class GamePauseScreen : public UIDialogScreenWithGameBackground {
 public:
-	GamePauseScreen(const std::string &filename) : UIDialogScreenWithGameBackground(filename), saveSlots_(NULL) {}
+	GamePauseScreen(const std::string &filename) : UIDialogScreenWithGameBackground(filename), finishNextFrame_(false) {}
 	virtual ~GamePauseScreen();
 
-	virtual void onFinish(DialogResult result);
+	void onFinish(DialogResult result) override;
+	virtual void dialogFinished(const Screen *dialog, DialogResult dr) override;
 
 protected:
-	virtual void CreateViews();
-	virtual void update(InputState &input);
-	virtual void sendMessage(const char *message, const char *value);
+	virtual void CreateViews() override;
+	virtual void update(InputState &input) override;
+	virtual void sendMessage(const char *message, const char *value) override;
 	void CallbackDeleteConfig(bool yes);
 
 private:
@@ -41,19 +42,20 @@ private:
 	UI::EventReturn OnExitToMenu(UI::EventParams &e);
 	UI::EventReturn OnReportFeedback(UI::EventParams &e);
 
-	UI::EventReturn OnSaveState(UI::EventParams &e);
-	UI::EventReturn OnLoadState(UI::EventParams &e);
 	UI::EventReturn OnRewind(UI::EventParams &e);
 
-	UI::EventReturn OnStateSelected(UI::EventParams &e);
+	UI::EventReturn OnScreenshotClicked(UI::EventParams &e);
 	UI::EventReturn OnCwCheat(UI::EventParams &e);
 
 	UI::EventReturn OnCreateConfig(UI::EventParams &e);
 	UI::EventReturn OnDeleteConfig(UI::EventParams &e);
 
 	UI::EventReturn OnSwitchUMD(UI::EventParams &e);
+	UI::EventReturn OnState(UI::EventParams &e);
 
-	UI::ChoiceStrip *saveSlots_;
 	UI::Choice *saveStateButton_;
 	UI::Choice *loadStateButton_;
+
+	// hack
+	bool finishNextFrame_;
 };

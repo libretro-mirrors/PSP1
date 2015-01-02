@@ -373,51 +373,33 @@ void __AudioUpdate()
 	// Audio throttle doesn't really work on the PSP since the mixing intervals are so closely tied
 	// to the CPU. Much better to throttle the frame rate on frame display and just throw away audio
 	// if the buffer somehow gets full.
-	bool firstChannel = true;
+   memset(mixBuffer, 0, hwBlockSize * 2 * sizeof(s32));
 
 	for (u32 i = 0; i < PSP_AUDIO_CHANNEL_MAX + 1; i++)
    {
-		if (!chans[i].reserved)
-			continue;
+      if (!chans[i].reserved)
+         continue;
 
-		__AudioWakeThreads(chans[i], 0, hwBlockSize);
+      __AudioWakeThreads(chans[i], 0, hwBlockSize);
 
-		if (!chans[i].sampleQueue.size())
-			continue;
+      if (!chans[i].sampleQueue.size())
+         continue;
 
-		const s16 *buf1 = 0, *buf2 = 0;
-		size_t sz1, sz2;
+      const s16 *buf1 = 0, *buf2 = 0;
+      size_t sz1, sz2;
 
-		chans[i].sampleQueue.popPointers(hwBlockSize * 2, &buf1, &sz1, &buf2, &sz2);
+      chans[i].sampleQueue.popPointers(hwBlockSize * 2, &buf1, &sz1, &buf2, &sz2);
 
-		if (firstChannel)
+      // Surprisingly hard to SIMD efficiently on SSE2 due to lack of 16-to-32-bit sign extension. NEON should be straight-forward though, and SSE4.1 can do it nicely.
+      for (size_t s = 0; s < sz1; s++)
+         mixBuffer[s] += buf1[s];
+      if (buf2)
       {
-			for (size_t s = 0; s < sz1; s++)
-				mixBuffer[s] = buf1[s];
-			if (buf2)
-         {
-				for (size_t s = 0; s < sz2; s++)
-					mixBuffer[s + sz1] = buf2[s];
-			}
-			firstChannel = false;
-		}
-      else
-      {
-			// Surprisingly hard to SIMD efficiently on SSE2 due to lack of 16-to-32-bit sign extension. NEON should be straight-forward though, and SSE4.1 can do it nicely.
-			for (size_t s = 0; s < sz1; s++)
-				mixBuffer[s] += buf1[s];
-			if (buf2)
-         {
-				for (size_t s = 0; s < sz2; s++)
-					mixBuffer[s + sz1] += buf2[s];
-			}
-		}
-	}
+         for (size_t s = 0; s < sz2; s++)
+            mixBuffer[s + sz1] += buf2[s];
+      }
+   }
 
-	if (firstChannel) {
-		// Nothing was written above, let's memset.
-		memset(mixBuffer, 0, hwBlockSize * 2 * sizeof(s32));
-	}
 
    if (outAudioQueue.room() >= hwBlockSize * 2)
    {

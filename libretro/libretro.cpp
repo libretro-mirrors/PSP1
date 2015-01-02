@@ -35,6 +35,8 @@
 #define PATH_MAX MAX_PATH
 #endif
 
+#define SAMPLERATE 44100
+
 #ifdef BAKE_IN_GIT
 const char *PPSSPP_GIT_VERSION = "v0.9.9-git";
 #endif
@@ -113,8 +115,8 @@ public:
 	void InitSound(PMixer *mixer) override { libretro_mixer = mixer; };
 	void UpdateSound() override
    {
-      int16_t audio[8192 * 2];
-      int samples = __AudioMix(audio, 8192);
+      static int16_t audio[SAMPLERATE];
+      int samples = __AudioMix(audio, SAMPLERATE / 2);
 #if 0
       if (log_cb)
          log_cb(RETRO_LOG_INFO, "samples: %d\n", samples);
@@ -259,7 +261,7 @@ void retro_get_system_info(struct retro_system_info *info)
 void retro_get_system_av_info(struct retro_system_av_info *info)
 {
    info->timing.fps = 60.0f / 1.001f;
-   info->timing.sample_rate = 44100.0;
+   info->timing.sample_rate = SAMPLERATE;
 
    info->geometry.base_width = screen_width;
    info->geometry.base_height = screen_height;

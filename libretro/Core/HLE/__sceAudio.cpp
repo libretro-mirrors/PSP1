@@ -55,16 +55,12 @@ int hostAttemptBlockSize = 512;
 static int audioIntervalCycles;
 static int audioHostIntervalCycles;
 
-static s32 *mixBuffer;
-
 // High and low watermarks, basically.  For perfect emulation, the correct values are 0 and 1, respectively.
 // TODO: Tweak. Hm, there aren't actually even used currently...
 static int chanQueueMaxSizeFactor;
 static int chanQueueMinSizeFactor;
 
-// TODO: Need to replace this with something lockless. Mutexes in the audio pipeline
-// is bad mojo.
-FixedSizeQueue<s16, 512 * 16> outAudioQueue;
+#include "FixedSizeQueueC.c"
 
 static inline s16 adjustvolume(s16 sample, int vol) {
 #ifdef ARM
@@ -172,7 +168,7 @@ void __AudioInit() {
 	mixBuffer = new s32[hwBlockSize * 2];
 	memset(mixBuffer, 0, hwBlockSize * 2 * sizeof(s32));
 
-	outAudioQueue.clear();
+   queue_clear();
 	CoreTiming::RegisterMHzChangeCallback(&__AudioCPUMHzChange);
 }
 
@@ -189,7 +185,7 @@ void __AudioDoState(PointerWrap &p) {
 	p.Do(mixFrequency);
 
 	{	
-		outAudioQueue.DoState(p);
+      queue_DoState(p);
 	}
 
 	int chanCount = ARRAY_SIZE(chans);
@@ -400,12 +396,11 @@ void __AudioUpdate()
       }
    }
 
-
-   if (outAudioQueue.room() >= hwBlockSize * 2)
+   if (queue_room() >= hwBlockSize * 2)
    {
       s16 *buf1 = 0, *buf2 = 0;
       size_t sz1, sz2;
-      outAudioQueue.pushPointers(hwBlockSize * 2, &buf1, &sz1, &buf2, &sz2);
+      queue_pushPointers(hwBlockSize * 2, &buf1, &sz1, &buf2, &sz2);
       ClampBufferToS16(buf1, mixBuffer, sz1);
       if (buf2)
          ClampBufferToS16(buf2, mixBuffer + sz1, sz2);
@@ -424,7 +419,7 @@ int __AudioMix(short *outstereo, int numFrames)
 	const s16 *buf1 = 0, *buf2 = 0;
 	size_t sz1, sz2;
 	{
-		outAudioQueue.popPointers(numFrames * 2, &buf1, &sz1, &buf2, &sz2);
+      queue_popPointers(numFrames * 2, &buf1, &sz1, &buf2, &sz2);
 
 		memcpy(outstereo, buf1, sz1 * sizeof(s16));
 		if (buf2)

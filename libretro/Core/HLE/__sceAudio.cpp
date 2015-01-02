@@ -213,49 +213,51 @@ void __AudioShutdown() {
 		chans[i].clear();
 }
 
-u32 __AudioEnqueue(AudioChannel &chan, int chanNum, bool blocking) {
+u32 __AudioEnqueue(AudioChannel &chan, int chanNum, bool blocking)
+{
 	u32 ret = chan.sampleCount;
 
-	if (chan.sampleAddress == 0) {
+	if (chan.sampleAddress == 0)
+   {
 		// For some reason, multichannel audio lies and returns the sample count here.
-		if (chanNum == PSP_AUDIO_CHANNEL_SRC || chanNum == PSP_AUDIO_CHANNEL_OUTPUT2) {
+		if (chanNum == PSP_AUDIO_CHANNEL_SRC || chanNum == PSP_AUDIO_CHANNEL_OUTPUT2)
 			ret = 0;
-		}
 	}
 
 	// If there's anything on the queue at all, it should be busy, but we try to be a bit lax.
 	//if (chan.sampleQueue.size() > chan.sampleCount * 2 * chanQueueMaxSizeFactor || chan.sampleAddress == 0) {
-	if (chan.sampleQueue.size() > 0) {
-		if (blocking) {
+   
+	if (chan.sampleQueue.size() > 0)
+   {
+		if (!blocking) // Non-blocking doesn't even enqueue, but it's not commonly used.
+         return SCE_ERROR_AUDIO_CHANNEL_BUSY;
+      {
 			// TODO: Regular multichannel audio seems to block for 64 samples less?  Or enqueue the first 64 sync?
 			int blockSamples = (int)chan.sampleQueue.size() / 2 / chanQueueMinSizeFactor;
 
-			if (__KernelIsDispatchEnabled()) {
+			if (__KernelIsDispatchEnabled())
+         {
 				AudioChannelWaitInfo waitInfo = {__KernelGetCurThread(), blockSamples};
 				chan.waitingThreads.push_back(waitInfo);
 				// Also remember the value to return in the waitValue.
 				__KernelWaitCurThread(WAITTYPE_AUDIOCHANNEL, (SceUID)chanNum + 1, ret, 0, false, "blocking audio");
-			} else {
-				// TODO: Maybe we shouldn't take this audio after all?
-				ret = SCE_KERNEL_ERROR_CAN_NOT_WAIT;
 			}
+         else // TODO: Maybe we shouldn't take this audio after all?
+				ret = SCE_KERNEL_ERROR_CAN_NOT_WAIT;
 
 			// Fall through to the sample queueing, don't want to lose the samples even though
 			// we're getting full.  The PSP would enqueue after blocking.
-		} else {
-			// Non-blocking doesn't even enqueue, but it's not commonly used.
-			return SCE_ERROR_AUDIO_CHANNEL_BUSY;
 		}
 	}
 
-	if (chan.sampleAddress == 0) {
+	if (chan.sampleAddress == 0)
 		return ret;
-	}
 
 	int leftVol = chan.leftVolume;
 	int rightVol = chan.rightVolume;
 
-	if (leftVol == (1 << 15) && rightVol == (1 << 15) && chan.format == PSP_AUDIO_FORMAT_STEREO && IS_LITTLE_ENDIAN) {
+	if (leftVol == (1 << 15) && rightVol == (1 << 15) && chan.format == PSP_AUDIO_FORMAT_STEREO && IS_LITTLE_ENDIAN)
+   {
 		// TODO: Add mono->stereo conversion to this path.
 
 		// Good news: the volume doesn't affect the values at all.
@@ -265,35 +267,42 @@ u32 __AudioEnqueue(AudioChannel &chan, int chanNum, bool blocking) {
 		size_t sz1, sz2;
 		chan.sampleQueue.pushPointers(totalSamples, &buf1, &sz1, &buf2, &sz2);
 
-		if (Memory::IsValidAddress(chan.sampleAddress + (totalSamples - 1) * sizeof(s16_le))) {
+		if (Memory::IsValidAddress(chan.sampleAddress + (totalSamples - 1) * sizeof(s16_le)))
+      {
 			Memory::Memcpy(buf1, chan.sampleAddress, (u32)sz1 * sizeof(s16));
 			if (buf2)
 				Memory::Memcpy(buf2, chan.sampleAddress + (u32)sz1 * sizeof(s16), (u32)sz2 * sizeof(s16));
 		}
-	} else {
+	}
+   else
+   {
 		// Remember that maximum volume allowed is 0xFFFFF so left shift is no issue.
 		// This way we can optimally shift by 16.
 		leftVol <<=1;
 		rightVol <<=1;
 
-		if (chan.format == PSP_AUDIO_FORMAT_STEREO) {
+		if (chan.format == PSP_AUDIO_FORMAT_STEREO)
+      {
 			const u32 totalSamples = chan.sampleCount * 2;
 
 			s16_le *sampleData = (s16_le *) Memory::GetPointer(chan.sampleAddress);
 
 			// Walking a pointer for speed.  But let's make sure we wouldn't trip on an invalid ptr.
-			if (Memory::IsValidAddress(chan.sampleAddress + (totalSamples - 1) * sizeof(s16_le))) {
+			if (Memory::IsValidAddress(chan.sampleAddress + (totalSamples - 1) * sizeof(s16_le)))
+         {
 				s16 *buf1 = 0, *buf2 = 0;
 				size_t sz1, sz2;
 				chan.sampleQueue.pushPointers(totalSamples, &buf1, &sz1, &buf2, &sz2);
 				AdjustVolumeBlock(buf1, sampleData, sz1, leftVol, rightVol);
-				if (buf2) {
+				if (buf2)
 					AdjustVolumeBlock(buf2, sampleData + sz1, sz2, leftVol, rightVol);
-				}
 			}
-		} else if (chan.format == PSP_AUDIO_FORMAT_MONO) {
+		}
+      else if (chan.format == PSP_AUDIO_FORMAT_MONO)
+      {
 			// Rare, so unoptimized. Expands to stereo.
-			for (u32 i = 0; i < chan.sampleCount; i++) {
+			for (u32 i = 0; i < chan.sampleCount; i++)
+         {
 				s16 sample = (s16)Memory::Read_U16(chan.sampleAddress + 2 * i);
 				chan.sampleQueue.push(adjustvolume(sample, leftVol));
 				chan.sampleQueue.push(adjustvolume(sample, rightVol));
@@ -351,57 +360,54 @@ inline void ClampBufferToS16(s16 *out, s32 *in, size_t size) {
 		in += 8;
 		size -= 8;
 	}
-	for (size_t i = 0; i < size; i++) {
-		out[i] = clamp_s16(in[i]);
-	}
-#else
-	for (size_t i = 0; i < size; i++) {
-		out[i] = clamp_s16(in[i]);
-	}
 #endif
+	for (size_t i = 0; i < size; i++)
+		out[i] = clamp_s16(in[i]);
 }
 
 // Mix samples from the various audio channels into a single sample queue.
 // This single sample queue is where __AudioMix should read from. If the sample queue is full, we should
 // just sleep the main emulator thread a little.
-void __AudioUpdate() {
+void __AudioUpdate()
+{
 	// Audio throttle doesn't really work on the PSP since the mixing intervals are so closely tied
 	// to the CPU. Much better to throttle the frame rate on frame display and just throw away audio
 	// if the buffer somehow gets full.
 	bool firstChannel = true;
 
-	for (u32 i = 0; i < PSP_AUDIO_CHANNEL_MAX + 1; i++)	{
+	for (u32 i = 0; i < PSP_AUDIO_CHANNEL_MAX + 1; i++)
+   {
 		if (!chans[i].reserved)
 			continue;
 
 		__AudioWakeThreads(chans[i], 0, hwBlockSize);
 
-		if (!chans[i].sampleQueue.size()) {
+		if (!chans[i].sampleQueue.size())
 			continue;
-		}
-
-		if (hwBlockSize * 2 > (int)chans[i].sampleQueue.size()) {
-			ERROR_LOG(SCEAUDIO, "Channel %i buffer underrun at %i of %i", i, (int)chans[i].sampleQueue.size() / 2, hwBlockSize);
-		}
 
 		const s16 *buf1 = 0, *buf2 = 0;
 		size_t sz1, sz2;
 
 		chans[i].sampleQueue.popPointers(hwBlockSize * 2, &buf1, &sz1, &buf2, &sz2);
 
-		if (firstChannel) {
+		if (firstChannel)
+      {
 			for (size_t s = 0; s < sz1; s++)
 				mixBuffer[s] = buf1[s];
-			if (buf2) {
+			if (buf2)
+         {
 				for (size_t s = 0; s < sz2; s++)
 					mixBuffer[s + sz1] = buf2[s];
 			}
 			firstChannel = false;
-		} else {
+		}
+      else
+      {
 			// Surprisingly hard to SIMD efficiently on SSE2 due to lack of 16-to-32-bit sign extension. NEON should be straight-forward though, and SSE4.1 can do it nicely.
 			for (size_t s = 0; s < sz1; s++)
 				mixBuffer[s] += buf1[s];
-			if (buf2) {
+			if (buf2)
+         {
 				for (size_t s = 0; s < sz2; s++)
 					mixBuffer[s + sz1] += buf2[s];
 			}
@@ -413,18 +419,15 @@ void __AudioUpdate() {
 		memset(mixBuffer, 0, hwBlockSize * 2 * sizeof(s32));
 	}
 
-	if (g_Config.bEnableSound)
+   if (outAudioQueue.room() >= hwBlockSize * 2)
    {
-
-		if (outAudioQueue.room() >= hwBlockSize * 2) {
-			s16 *buf1 = 0, *buf2 = 0;
-			size_t sz1, sz2;
-			outAudioQueue.pushPointers(hwBlockSize * 2, &buf1, &sz1, &buf2, &sz2);
-			ClampBufferToS16(buf1, mixBuffer, sz1);
-			if (buf2)
-				ClampBufferToS16(buf2, mixBuffer + sz1, sz2);
-		}
-	}
+      s16 *buf1 = 0, *buf2 = 0;
+      size_t sz1, sz2;
+      outAudioQueue.pushPointers(hwBlockSize * 2, &buf1, &sz1, &buf2, &sz2);
+      ClampBufferToS16(buf1, mixBuffer, sz1);
+      if (buf2)
+         ClampBufferToS16(buf2, mixBuffer + sz1, sz2);
+   }
 }
 
 // numFrames is number of stereo frames.
@@ -450,12 +453,7 @@ int __AudioMix(short *outstereo, int numFrames)
 	if (remains > 0)
 		memset(outstereo + numFrames * 2 - remains, 0, remains*sizeof(s16));
 
-	if (sz1 + sz2 < (size_t)numFrames) {
+	if (sz1 + sz2 < (size_t)numFrames)
 		underrun = (int)(sz1 + sz2) / 2;
-      // we always grab everything in the queue in libretro, don't spam logs about it
-#ifndef __LIBRETRO__
-		VERBOSE_LOG(SCEAUDIO, "Audio out buffer UNDERRUN at %i of %i", underrun, numFrames);
-#endif
-	}
 	return underrun >= 0 ? underrun : numFrames;
 }

@@ -2,11 +2,6 @@
 
 OnScreenMessages osm;
 
-void OnScreenMessages::Draw(DrawBuffer &draw, const Bounds &bounds) {
-	//(void)draw;
-   //(void)bounds;
-}
-
 void OnScreenMessages::Show(const std::string &message, float duration_s, uint32_t color, int icon, bool checkUnique) {
 	(void)message;
    (void)duration_s;

@@ -26,6 +26,8 @@
 // There's a good description of the thread scheduling rules in:
 // http://code.google.com/p/jpcsp/source/browse/trunk/src/jpcsp/HLE/modules150/ThreadManForUser.java
 
+class Thread;
+
 int sceKernelChangeThreadPriority(SceUID threadID, int priority);
 SceUID __KernelCreateThreadInternal(const char *threadName, SceUID moduleID, u32 entry, u32 prio, int stacksize, u32 attr);
 int __KernelCreateThread(const char *threadName, SceUID moduleID, u32 entry, u32 prio, int stacksize, u32 attr, u32 optionAddr);
@@ -219,7 +221,6 @@ bool __KernelInCallback();
 bool __KernelCheckCallbacks();
 bool __KernelForceCallbacks();
 bool __KernelCurHasReadyCallbacks();
-class Thread;
 void __KernelSwitchContext(Thread *target, const char *reason);
 bool __KernelExecutePendingMipsCalls(Thread *currentThread, bool reschedAfter);
 void __KernelNotifyCallback(SceUID cbId, int notifyArg);

@@ -169,7 +169,6 @@ void retro_set_environment(retro_environment_t cb)
       { "ppsspp_gpu_hardware_transform", "GPU Hardware T&L; enabled|disabled" },
       { "ppsspp_vertex_cache", "Vertex Cache (Speedhack); enabled|disabled" },
       { "ppsspp_prescale_uv", "Prescale UV (Speedhack); disabled|enabled" },
-      { "ppsspp_separate_cpu_thread", "CPU Threading; disabled|enabled" },
       { "ppsspp_separate_io_thread", "IO Threading; disabled|enabled" },
       { "ppsspp_unsafe_func_replacements", "Unsafe FuncReplacements; enabled|disabled" },
       { "ppsspp_sound_speedhack", "Sound Speedhack; disabled|enabled" },
@@ -666,18 +665,7 @@ static void check_variables(void)
       g_Config.bTexDeposterize = false;
 
 
-   var.key = "ppsspp_separate_cpu_thread";
-   var.value = NULL;
-
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      if (!strcmp(var.value, "enabled"))
-         g_Config.bSeparateCPUThread = true;
-      else if (!strcmp(var.value, "disabled"))
-         g_Config.bSeparateCPUThread = false;
-   }
-   else
-      g_Config.bSeparateCPUThread = false;
+   g_Config.bSeparateCPUThread = false;
 
    var.key = "ppsspp_separate_io_thread";
    var.value = NULL;

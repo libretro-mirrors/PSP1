@@ -15,10 +15,6 @@
 // Official git repository and contact information can be found at
 // https://github.com/hrydgard/ppsspp and http://www.ppsspp.org/.
 
-#ifdef __LIBRETRO__
-#include "ThreadEventQueueLR.h"
-#else
-
 #pragma once
 
 #include "native/base/mutex.h"
@@ -32,74 +28,34 @@ struct ThreadEventQueue : public B {
 	}
 
 	void SetThreadEnabled(bool threadEnabled) {
-		threadEnabled_ = threadEnabled;
 	}
 
 	bool ThreadEnabled() {
-		return threadEnabled_;
+		return false;
 	}
 
 	void ScheduleEvent(Event ev) {
-		if (threadEnabled_) {
-			lock_guard guard(eventsLock_);
-			events_.push_back(ev);
-			eventsWait_.notify_one();
-		} else {
-			events_.push_back(ev);
-		}
+      events_.push_back(ev);
 
-		if (!threadEnabled_) {
-			RunEventsUntil(0);
-		}
+      RunEventsUntil(0);
 	}
 
 	bool HasEvents() {
-		if (threadEnabled_) {
-			lock_guard guard(eventsLock_);
-			return !events_.empty();
-		} else {
-			return !events_.empty();
-		}
+      return !events_.empty();
 	}
 
 	void NotifyDrain() {
-		if (threadEnabled_) {
-			lock_guard guard(eventsLock_);
-			eventsDrain_.notify_one();
-		}
 	}
 
 	Event GetNextEvent() {
-		if (threadEnabled_) {
-			lock_guard guard(eventsLock_);
-			if (events_.empty()) {
-				NotifyDrain();
+			if (events_.empty())
 				return EVENT_INVALID;
-			}
-
 			Event ev = events_.front();
 			events_.pop_front();
 			return ev;
-		} else {
-			if (events_.empty()) {
-				return EVENT_INVALID;
-			}
-			Event ev = events_.front();
-			events_.pop_front();
-			return ev;
-		}
 	}
 
 	void RunEventsUntil(u64 globalticks) {
-		if (!threadEnabled_) {
-			do {
-				for (Event ev = GetNextEvent(); EventType(ev) != EVENT_INVALID; ev = GetNextEvent()) {
-					ProcessEventIfApplicable(ev, globalticks);
-				}
-			} while (CoreTiming::GetTicks() < globalticks);
-			return;
-		}
-
 		lock_guard guard(eventsLock_);
 		eventsRunning_ = true;
 		eventsHaveRun_ = true;
@@ -125,12 +81,7 @@ struct ThreadEventQueue : public B {
 	}
 
 	void SyncBeginFrame() {
-		if (threadEnabled_) {
-			lock_guard guard(eventsLock_);
 			eventsHaveRun_ = false;
-		} else {
-			eventsHaveRun_ = false;
-		}
 	}
 
 	inline bool ShouldSyncThread(bool force) {
@@ -151,29 +102,9 @@ struct ThreadEventQueue : public B {
 
 	// Force ignores coreState.
 	void SyncThread(bool force = false) {
-		if (!threadEnabled_) {
-			return;
-		}
-
-		lock_guard guard(eventsLock_);
-		// While processing the last event, HasEvents() will be false even while not done.
-		// So we schedule a nothing event and wait for that to finish.
-		ScheduleEvent(EVENT_SYNC);
-		while (ShouldSyncThread(force)) {
-			eventsDrain_.wait(eventsLock_);
-		}
 	}
 
 	void FinishEventLoop() {
-		if (!threadEnabled_) {
-			return;
-		}
-
-		lock_guard guard(eventsLock_);
-		// Don't schedule a finish if it's not even running.
-		if (eventsRunning_) {
-			ScheduleEvent(EVENT_FINISH);
-		}
 	}
 
 protected:
@@ -204,5 +135,3 @@ private:
 	condition_variable eventsWait_;
 	condition_variable eventsDrain_;
 };
-
-#endif

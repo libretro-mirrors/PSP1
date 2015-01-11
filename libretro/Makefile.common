@@ -341,7 +341,6 @@ SOURCES_CXX += $(NATIVEDIR)/file/chunk_file.cpp \
 				$(COREDIR)/MemMap.cpp \
 				$(COREDIR)/MemMapFunctions.cpp \
 				$(COREDIR)/PSPLoaders.cpp \
-				$(COREDIR)/PSPMixer.cpp \
 				$(COREDIR)/Reporting.cpp \
 				$(COREDIR)/SaveState.cpp \
 				$(COREDIR)/Screenshot.cpp \

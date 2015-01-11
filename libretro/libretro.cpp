@@ -50,7 +50,6 @@ static retro_input_poll_t input_poll_cb;
 static retro_input_state_t input_state_cb;
 static retro_environment_t environ_cb;
 static bool _initialized;
-static PMixer *libretro_mixer;
 static FBO *libretro_framebuffer;
 static bool gpu_refresh = false;
 static bool threaded_input = false;
@@ -112,18 +111,18 @@ public:
 	bool InitGraphics(std::string *error_message) override { return true; }
 	void ShutdownGraphics() override {}
 
-	void InitSound(PMixer *mixer) override { libretro_mixer = mixer; };
+	void InitSound() override { };
 	void UpdateSound() override
    {
       static int16_t audio[SAMPLERATE];
-      int samples = __AudioMix(audio, SAMPLERATE / 2);
+      int samples = __AudioMix(audio, SAMPLERATE / 2, SAMPLERATE);
 #if 0
       if (log_cb)
          log_cb(RETRO_LOG_INFO, "samples: %d\n", samples);
 #endif
       audio_batch_cb(audio, samples);
    }
-	void ShutdownSound() override { libretro_mixer = nullptr; };
+	void ShutdownSound() override {};
 
 	void BootDone() override {}
 

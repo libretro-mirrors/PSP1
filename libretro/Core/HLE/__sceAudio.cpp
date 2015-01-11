@@ -409,7 +409,7 @@ void __AudioUpdate()
 
 // numFrames is number of stereo frames.
 // This is called from *outside* the emulator thread.
-int __AudioMix(short *outstereo, int numFrames)
+int __AudioMix(short *outstereo, int numFrames, int samplerate)
 {
 	// TODO: if mixFrequency != the actual output frequency, resample!
 	int underrun = -1;

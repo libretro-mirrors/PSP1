@@ -14,8 +14,8 @@ INCFLAGS := \
 	-I$(EXTDIR)/xbrz \
 	-I$(EXTDIR)/xxhash
 
-ifeq (,$(findstring android,$(platform)))
-SOURCES_C   += $(LIBRETRODIR)/ext/glew/glew.c
+ifeq (,$(filter $(platform), armv android))
+SOURCES_C += $(LIBRETRODIR)/ext/glew/glew.c
 INCFLAGS += -I$(LIBRETRODIR)/ext/glew
 endif
 

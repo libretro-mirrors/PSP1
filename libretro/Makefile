@@ -211,6 +211,7 @@ else ifneq (,$(findstring armv,$(platform)))
 	ifneq (,$(findstring gles,$(platform)))
 		GLES := 1
 		GL_LIB := -lGLESv2 -lEGL
+		LDFLAGS += -lGLESv2 -lEGL
 	else
 		GL_LIB := -lGL
 	endif
@@ -221,7 +222,7 @@ else ifneq (,$(findstring armv,$(platform)))
 	endif
 		CPUFLAGS += -marm
 	ifneq (,$(findstring neon,$(platform)))
-		CPUFLAGS += -mfpu=neon
+		CPUFLAGS += -mfpu=neon -D__NEON_OPT
 		HAVE_NEON = 1
 	endif
 	ifneq (,$(findstring softfloat,$(platform)))
@@ -229,6 +230,7 @@ else ifneq (,$(findstring armv,$(platform)))
 	else ifneq (,$(findstring hardfloat,$(platform)))
 		CPUFLAGS += -mfloat-abi=hard
 	endif
+	CPUFLAGS += -D__arm__ -DARM_ASM
 	PLATCFLAGS += -DARM
 
 # emscripten

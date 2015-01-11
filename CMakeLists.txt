@@ -1299,6 +1299,8 @@ add_library(${CoreLibName} ${CoreLinkType}
 	Core/HW/MemoryStick.h
 	Core/HW/SasAudio.cpp
 	Core/HW/SasAudio.h
+	Core/HW/StereoResampler.cpp
+	Core/HW/StereoResampler.h
 	Core/Host.cpp
 	Core/Host.h
 	Core/Loaders.cpp
@@ -1337,8 +1339,6 @@ add_library(${CoreLibName} ${CoreLinkType}
 	Core/MemMapFunctions.cpp
 	Core/PSPLoaders.cpp
 	Core/PSPLoaders.h
-	Core/PSPMixer.cpp
-	Core/PSPMixer.h
 	Core/Reporting.cpp
 	Core/Reporting.h
 	Core/SaveState.cpp

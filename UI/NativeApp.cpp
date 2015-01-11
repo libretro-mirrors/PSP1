@@ -71,10 +71,10 @@
 #include "Core/Config.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
-#include "Core/PSPMixer.h"
 #include "Core/SaveState.h"
 #include "Core/Screenshot.h"
 #include "Core/System.h"
+#include "Core/HLE/__sceAudio.h"
 #include "Core/HLE/sceCtrl.h"
 #include "Core/Util/GameManager.h"
 
@@ -142,6 +142,10 @@ static std::vector<PendingMessage> pendingMessages;
 static Thin3DContext *thin3d;
 static UIContext *uiContext;
 
+#ifdef _WIN32
+WindowsAudioBackend *winAudioBackend;
+#endif
+
 Thin3DContext *GetThin3D() {
 	return thin3d;
 }
@@ -178,15 +182,13 @@ int Win32Mix(short *buffer, int numSamples, int bits, int rate, int channels) {
 #endif
 
 // globals
-PMixer *g_mixer = 0;
 #ifndef _WIN32
 static AndroidLogger *logger = 0;
 #endif
 
 std::string boot_filename = "";
 
-void NativeHost::InitSound(PMixer *mixer) {
-	g_mixer = mixer;
+void NativeHost::InitSound() {
 #ifdef IOS
 	iOSCoreAudioInit();
 #endif
@@ -196,12 +198,11 @@ void NativeHost::ShutdownSound() {
 #ifdef IOS
 	iOSCoreAudioShutdown();
 #endif
-	g_mixer = 0;
 }
 
 #if !defined(MOBILE_DEVICE) && defined(USING_QT_UI)
-void QtHost::InitSound(PMixer *mixer) { g_mixer = mixer; }
-void QtHost::ShutdownSound() { g_mixer = 0; }
+void QtHost::InitSound() { }
+void QtHost::ShutdownSound() { }
 #endif
 
 std::string NativeQueryConfig(std::string query) {
@@ -222,21 +223,23 @@ std::string NativeQueryConfig(std::string query) {
 
 		sprintf(temp, "%i", scale);
 		return std::string(temp);
+	} else if (query == "force44khz") {
+		return std::string("0");
 	} else {
-		return std::string("");
+		return "";
 	}
 }
 
 int NativeMix(short *audio, int num_samples) {
-	if (g_mixer && GetUIState() == UISTATE_INGAME) {
-		num_samples = g_mixer->Mix(audio, num_samples);
+	if (GetUIState() == UISTATE_INGAME) {
+		int sample_rate = System_GetPropertyInt(SYSPROP_AUDIO_SAMPLE_RATE);
+		num_samples = __AudioMix(audio, num_samples, sample_rate > 0 ? sample_rate : 44100);
 	}	else {
 		MixBackgroundAudio(audio, num_samples);
-		// memset(audio, 0, num_samples * 2 * sizeof(short));
 	}
 
 #ifdef _WIN32
-	DSound::DSound_UpdateSound();
+	winAudioBackend->Update();
 #endif
 
 	return num_samples;
@@ -572,13 +575,15 @@ void NativeInitGraphics() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 #ifdef _WIN32
-	DSound::DSound_StartSound(MainWindow::GetHWND(), &Win32Mix);
+	winAudioBackend = CreateAudioBackend(AUDIO_BACKEND_AUTO);
+	winAudioBackend->Init(MainWindow::GetHWND(), &Win32Mix, 44100);
 #endif
 }
 
 void NativeShutdownGraphics() {
 #ifdef _WIN32
-	DSound::DSound_StopSound();
+	delete winAudioBackend;
+	winAudioBackend = NULL;
 #endif
 
 	screenManager->deviceLost();

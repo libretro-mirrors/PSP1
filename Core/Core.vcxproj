@@ -274,6 +274,7 @@
     <ClCompile Include="HW\SasAudio.cpp" />
     <ClCompile Include="HW\AsyncIOManager.cpp" />
     <ClCompile Include="HW\SimpleAudioDec.cpp" />
+    <ClCompile Include="HW\StereoResampler.cpp" />
     <ClCompile Include="Loaders.cpp" />
     <ClCompile Include="MemMap.cpp" />
     <ClCompile Include="MemmapFunctions.cpp" />
@@ -369,7 +370,6 @@
     <ClCompile Include="MIPS\x86\Jit.cpp" />
     <ClCompile Include="MIPS\x86\RegCache.cpp" />
     <ClCompile Include="PSPLoaders.cpp" />
-    <ClCompile Include="PSPMixer.cpp" />
     <ClCompile Include="Reporting.cpp" />
     <ClCompile Include="SaveState.cpp" />
     <ClCompile Include="MIPS\MIPSStackWalk.cpp" />
@@ -513,6 +513,7 @@
     <ClInclude Include="HW\MemoryStick.h" />
     <ClInclude Include="HW\AsyncIOManager.h" />
     <ClInclude Include="HW\SimpleAudioDec.h" />
+    <ClInclude Include="HW\StereoResampler.h" />
     <ClInclude Include="Loaders.h" />
     <ClInclude Include="MemMap.h" />
     <ClInclude Include="MIPS\ARM\ArmAsm.h">
@@ -562,7 +563,6 @@
     <ClInclude Include="MIPS\x86\RegCache.h" />
     <ClInclude Include="Opcode.h" />
     <ClInclude Include="PSPLoaders.h" />
-    <ClInclude Include="PSPMixer.h" />
     <ClInclude Include="Reporting.h" />
     <ClInclude Include="SaveState.h" />
     <ClInclude Include="MIPS\MIPSStackWalk.h" />

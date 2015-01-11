@@ -119,7 +119,6 @@ public:
 	bool bSeparateCPUThread;
 	int iIOTimingMethod;
 	bool bSeparateIOThread;
-	bool bAtomicAudioLocks;
 	int iLockedCPUSpeed;
 	bool bAutoSaveSymbolMap;
 	bool bCacheFullIsoInRam;

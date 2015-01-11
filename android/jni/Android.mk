@@ -187,6 +187,7 @@ EXEC_AND_LIB_FILES := \
   $(SRC)/Core/HW/MpegDemux.cpp.arm \
   $(SRC)/Core/HW/MediaEngine.cpp.arm \
   $(SRC)/Core/HW/SasAudio.cpp.arm \
+  $(SRC)/Core/HW/StereoResampler.cpp.arm \
   $(SRC)/Core/Core.cpp \
   $(SRC)/Core/Config.cpp \
   $(SRC)/Core/CoreTiming.cpp \
@@ -201,7 +202,6 @@ EXEC_AND_LIB_FILES := \
   $(SRC)/Core/SaveState.cpp \
   $(SRC)/Core/Screenshot.cpp \
   $(SRC)/Core/System.cpp \
-  $(SRC)/Core/PSPMixer.cpp \
   $(SRC)/Core/Debugger/Breakpoints.cpp \
   $(SRC)/Core/Debugger/SymbolMap.cpp \
   $(SRC)/Core/Dialog/PSPDialog.cpp \

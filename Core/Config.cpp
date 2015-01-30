@@ -293,6 +293,8 @@ static ConfigSetting generalSettings[] = {
 	ReportedConfigSetting("NumWorkerThreads", &g_Config.iNumWorkerThreads, &DefaultNumWorkers, true, true),
 	ConfigSetting("EnableAutoLoad", &g_Config.bEnableAutoLoad, false, true, true),
 	ReportedConfigSetting("EnableCheats", &g_Config.bEnableCheats, false, true, true),
+	ConfigSetting("CwCheatRefreshRate", &g_Config.iCwCheatRefreshRate, 77, true, true),
+
 	ConfigSetting("ScreenshotsAsPNG", &g_Config.bScreenshotsAsPNG, false, true, true),
 	ConfigSetting("StateSlot", &g_Config.iCurrentStateSlot, 0, true, true),
 	ConfigSetting("RewindFlipFrequency", &g_Config.iRewindFlipFrequency, 0, true, true),
@@ -401,6 +403,10 @@ static int DefaultAndroidHwScale() {
 }
 
 static ConfigSetting graphicsSettings[] = {
+	ConfigSetting("EnableCardboard", &g_Config.bEnableCardboard, false, true, true),
+	ConfigSetting("CardboardScreenSize", &g_Config.iCardboardScreenSize, 50, true, true),
+	ConfigSetting("CardboardXShift", &g_Config.iCardboardXShift, 0, true, true),
+	ConfigSetting("CardboardYShift", &g_Config.iCardboardXShift, 0, true, true),
 	ConfigSetting("ShowFPSCounter", &g_Config.iShowFPSCounter, 0, true, true),
 	ReportedConfigSetting("GPUBackend", &g_Config.iGPUBackend, 0),
 	ReportedConfigSetting("RenderingMode", &g_Config.iRenderingMode, &DefaultRenderingMode, true, true),
@@ -411,8 +417,13 @@ static ConfigSetting graphicsSettings[] = {
 	ReportedConfigSetting("BufferFiltering", &g_Config.iBufFilter, 1, true, true),
 	ReportedConfigSetting("InternalResolution", &g_Config.iInternalResolution, &DefaultInternalResolution, true, true),
 	ReportedConfigSetting("AndroidHwScale", &g_Config.iAndroidHwScale, &DefaultAndroidHwScale),
+#ifdef ANDROID
+	ReportedConfigSetting("FrameSkip", &g_Config.iFrameSkip, 2, true, true),
+	ReportedConfigSetting("AutoFrameSkip", &g_Config.bAutoFrameSkip, true, true, true),
+#else
 	ReportedConfigSetting("FrameSkip", &g_Config.iFrameSkip, 0, true, true),
 	ReportedConfigSetting("AutoFrameSkip", &g_Config.bAutoFrameSkip, false, true, true),
+#endif
 	ReportedConfigSetting("FrameRate", &g_Config.iFpsLimit, 0, true, true),
 #if defined(_WIN32) && !defined(__LIBRETRO__)
 	ConfigSetting("FrameSkipUnthrottle", &g_Config.bFrameSkipUnthrottle, false, true, true),
@@ -453,6 +464,7 @@ static ConfigSetting graphicsSettings[] = {
 	ReportedConfigSetting("DisableStencilTest", &g_Config.bDisableStencilTest, false, true, true),
 	ReportedConfigSetting("AlwaysDepthWrite", &g_Config.bAlwaysDepthWrite, false, true, true),
 	ReportedConfigSetting("DepthRangeHack", &g_Config.bDepthRangeHack, false, true, true),
+	ReportedConfigSetting("BloomHack", &g_Config.iBloomHack, 0, true, true),
 
 	// Not really a graphics setting...
 	ReportedConfigSetting("TimerHack", &g_Config.bTimerHack, &DefaultTimerHack, true, true),
@@ -469,6 +481,7 @@ static ConfigSetting graphicsSettings[] = {
 
 static ConfigSetting soundSettings[] = {
 	ConfigSetting("Enable", &g_Config.bEnableSound, true, true, true),
+	ConfigSetting("AudioBackend", &g_Config.iAudioBackend, 0, true, true),
 	ConfigSetting("AudioLatency", &g_Config.iAudioLatency, 1, true, true),
 	ConfigSetting("SoundSpeedHack", &g_Config.bSoundSpeedHack, false, true, true),
 
@@ -598,7 +611,7 @@ static ConfigSetting systemParamSettings[] = {
 	ReportedConfigSetting("PSPModel", &g_Config.iPSPModel, &DefaultPSPModel, true, true),
 	ReportedConfigSetting("PSPFirmwareVersion", &g_Config.iFirmwareVersion, PSP_DEFAULT_FIRMWARE, true, true),
 	ConfigSetting("NickName", &g_Config.sNickName, "PPSSPP", true, true),
-	ConfigSetting("proAdhocServer", &g_Config.proAdhocServer, "localhost", true, true),
+	ConfigSetting("proAdhocServer", &g_Config.proAdhocServer, "coldbird.net", true, true),
 	ConfigSetting("MacAddress", &g_Config.sMACAddress, &CreateRandMAC, true, true),
 	ReportedConfigSetting("Language", &g_Config.iLanguage, &DefaultSystemParamLanguage, true, true),
 	ConfigSetting("TimeFormat", &g_Config.iTimeFormat, PSP_SYSTEMPARAM_TIME_FORMAT_24HR, true, true),

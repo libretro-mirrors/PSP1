@@ -50,6 +50,12 @@ enum {
 	GPU_BACKEND_DIRECT3D9 = 1,
 };
 
+enum AudioBackendType {
+	AUDIO_BACKEND_AUTO,
+	AUDIO_BACKEND_DSOUND,
+	AUDIO_BACKEND_WASAPI,
+};
+
 // For iIOTimingMethod.
 enum IOTimingMethods {
 	IOTIMING_FAST = 0,
@@ -147,6 +153,11 @@ public:
 	bool bAutoFrameSkip;
 	bool bFrameSkipUnthrottle;
 
+	bool bEnableCardboard; // Cardboard Master Switch
+	int iCardboardScreenSize; // Screen Size (in %)
+	int iCardboardXShift; // X-Shift of Screen (in %)
+	int iCardboardYShift; // Y-Shift of Screen (in %)
+
 	int iWindowX;
 	int iWindowY;
 	int iWindowWidth;  // Windows and other windowed environments
@@ -172,9 +183,11 @@ public:
 	bool bEnableAutoLoad;
 	bool bEnableCheats;
 	bool bReloadCheats;
+	int iCwCheatRefreshRate;
 	bool bDisableStencilTest;
 	bool bAlwaysDepthWrite;
 	bool bDepthRangeHack;
+	int iBloomHack; //0 = off, 1 = safe, 2 = balanced, 3 = aggressive
 	bool bTimerHack;
 	bool bAlphaMaskHack;
 	bool bBlockTransferGPU;
@@ -186,6 +199,7 @@ public:
 	// Sound
 	bool bEnableSound;
 	int iAudioLatency; // 0 = low , 1 = medium(default) , 2 = high
+	int iAudioBackend;
 
 	// Audio Hack
 	bool bSoundSpeedHack;
@@ -193,7 +207,9 @@ public:
 	// UI
 	bool bShowDebuggerOnLoad;
 	int iShowFPSCounter;
+
 	bool bShowDebugStats;
+	bool bShowAudioDebug;
 
 	//Analog stick tilting
 	//the base x and y tilt. this inclination is treated as (0,0) and the tilt input

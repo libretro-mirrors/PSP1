@@ -34,9 +34,7 @@ namespace W32Util
 		wchar_t temp[MAX_PATH];
 		SHGetPathFromIDList(idList, temp);
 		if (wcslen(temp))
-		{
 			return ConvertWStringToUTF8(temp);
-		}
 		else
 			return "";
 	}
@@ -66,8 +64,8 @@ namespace W32Util
 		ofn.hwndOwner		= _hParent;
 		ofn.Flags			= OFN_NOCHANGEDIR | OFN_EXPLORER | OFN_HIDEREADONLY;
 
-		if (_strFileName.size () != 0)
-			wcscpy(ofn.lpstrFile, ConvertUTF8ToWString(_strFileName).c_str());
+		if (!_strFileName.empty())
+			wcsncpy(ofn.lpstrFile, ConvertUTF8ToWString(_strFileName).c_str(), MAX_PATH);
 
 		if (((_bLoad) ? GetOpenFileName(&ofn) : GetSaveFileName (&ofn)))
 		{
@@ -127,13 +125,13 @@ namespace W32Util
 	}
 
 	AsyncBrowseDialog::AsyncBrowseDialog(HWND parent, UINT completeMsg, std::wstring title)
-		: type_(DIR), parent_(parent), completeMsg_(completeMsg), title_(title), complete_(false) {
+		: type_(DIR), parent_(parent), completeMsg_(completeMsg), title_(title), complete_(false), result_(false) {
 		thread_ = new std::thread(std::bind(&AsyncBrowseDialog::Execute, this));
 		thread_->detach();
 	}
 
 	AsyncBrowseDialog::AsyncBrowseDialog(Type type, HWND parent, UINT completeMsg, std::wstring title, std::wstring initialFolder, std::wstring filter, std::wstring extension)
-		: type_(type), parent_(parent), completeMsg_(completeMsg), title_(title), initialFolder_(initialFolder), filter_(filter), extension_(extension), complete_(false) {
+		: type_(type), parent_(parent), completeMsg_(completeMsg), title_(title), initialFolder_(initialFolder), filter_(filter), extension_(extension), complete_(false), result_(false) {
 		thread_ = new std::thread(std::bind(&AsyncBrowseDialog::Execute, this));
 		thread_->detach();
 	}

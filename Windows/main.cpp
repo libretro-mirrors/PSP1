@@ -185,6 +185,7 @@ std::string GetVideoCardDriverVersion() {
 	hr = pIWbemLocator->ConnectServer(bstrServer, NULL, NULL, 0L, 0L, NULL,	NULL, &pIWbemServices);
 	if (FAILED(hr)) {
 		pIWbemLocator->Release();
+		SysFreeString(bstrServer);
 		CoUninitialize();
 		return retvalue;
 	}
@@ -263,6 +264,8 @@ int System_GetPropertyInt(SystemProperty prop) {
 	switch (prop) {
 	case SYSPROP_AUDIO_SAMPLE_RATE:
 		return winAudioBackend ? winAudioBackend->GetSampleRate() : -1;
+	case SYSPROP_DISPLAY_REFRESH_RATE:
+		return 60000;
 	default:
 		return -1;
 	}
@@ -285,25 +288,24 @@ void System_SendMessage(const char *command, const char *parameter) {
 	}
 }
 
-void EnableCrashingOnCrashes() { 
-  typedef BOOL (WINAPI *tGetPolicy)(LPDWORD lpFlags); 
-  typedef BOOL (WINAPI *tSetPolicy)(DWORD dwFlags); 
-  const DWORD EXCEPTION_SWALLOWING = 0x1;
+void EnableCrashingOnCrashes() {
+	typedef BOOL (WINAPI *tGetPolicy)(LPDWORD lpFlags);
+	typedef BOOL (WINAPI *tSetPolicy)(DWORD dwFlags);
+	const DWORD EXCEPTION_SWALLOWING = 0x1;
 
-  HMODULE kernel32 = LoadLibrary(L"kernel32.dll");
-  tGetPolicy pGetPolicy = (tGetPolicy)GetProcAddress(kernel32, 
-    "GetProcessUserModeExceptionPolicy"); 
-  tSetPolicy pSetPolicy = (tSetPolicy)GetProcAddress(kernel32, 
-    "SetProcessUserModeExceptionPolicy"); 
-  if (pGetPolicy && pSetPolicy) 
-  { 
-    DWORD dwFlags; 
-    if (pGetPolicy(&dwFlags)) 
-    { 
-      // Turn off the filter 
-      pSetPolicy(dwFlags & ~EXCEPTION_SWALLOWING); 
-    } 
-  } 
+	HMODULE kernel32 = LoadLibrary(L"kernel32.dll");
+	tGetPolicy pGetPolicy = (tGetPolicy)GetProcAddress(kernel32,
+		"GetProcessUserModeExceptionPolicy");
+	tSetPolicy pSetPolicy = (tSetPolicy)GetProcAddress(kernel32,
+		"SetProcessUserModeExceptionPolicy");
+	if (pGetPolicy && pSetPolicy) {
+		DWORD dwFlags;
+		if (pGetPolicy(&dwFlags)) {
+			// Turn off the filter.
+			pSetPolicy(dwFlags & ~EXCEPTION_SWALLOWING);
+		}
+	}
+	FreeLibrary(kernel32);
 }
 
 bool System_InputBoxGetString(const char *title, const char *defaultValue, char *outValue, size_t outLength)
@@ -356,6 +358,8 @@ std::vector<std::wstring> GetWideCmdLine() {
 int WINAPI WinMain(HINSTANCE _hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine, int iCmdShow)
 {
 	setCurrentThreadName("Main");
+
+	CoInitializeEx(NULL, COINIT_MULTITHREADED);
 
 	// Windows Vista and above: alert Windows that PPSSPP is DPI aware,
 	// so that we don't flicker in fullscreen on some PCs.
@@ -614,5 +618,6 @@ int WINAPI WinMain(HINSTANCE _hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLin
 	if (g_Config.bRestartRequired) {
 		W32Util::ExitAndRestart();
 	}
+	CoUninitialize();
 	return 0;
 }

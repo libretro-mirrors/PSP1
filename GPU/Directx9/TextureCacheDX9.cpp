@@ -95,6 +95,7 @@ TextureCacheDX9::TextureCacheDX9() : cacheSizeEstimate_(0), secondCacheSizeEstim
 }
 
 TextureCacheDX9::~TextureCacheDX9() {
+	Clear(true);
 	FreeAlignedMemory(clutBufConverted_);
 	FreeAlignedMemory(clutBufRaw_);
 }
@@ -362,7 +363,7 @@ bool TextureCacheDX9::AttachFramebuffer(TexCacheEntry *entry, u32 address, Virtu
 		const u32 bitOffset = (texaddr - addr) * 8;
 		const u32 pixelOffset = bitOffset / std::max(1U, (u32)textureBitsPerPixel[entry->format]);
 		fbInfo.yOffset = pixelOffset / entry->bufw;
-		fbInfo.xOffset = pixelOffset % entry->bufw;
+		fbInfo.xOffset = entry->bufw == 0 ? 0 : pixelOffset % entry->bufw;
 
 		if (framebuffer->fb_stride != entry->bufw) {
 			if (noOffset) {
@@ -1738,7 +1739,7 @@ void TextureCacheDX9::LoadTextureLevel(TexCacheEntry &entry, int level, int maxL
 	entry.texture->UnlockRect(level);
 }
 
-bool TextureCacheDX9::DecodeTexture(u8* output, GPUgstate state)
+bool TextureCacheDX9::DecodeTexture(u8 *output, const GPUgstate &state)
 {
 	OutputDebugStringA("TextureCache::DecodeTexture : FixMe\r\n");
 	return true;

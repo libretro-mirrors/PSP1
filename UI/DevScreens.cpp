@@ -63,12 +63,19 @@ void DevMenu::CreatePopupContents(UI::ViewGroup *parent) {
 	parent->Add(new Choice(de->T("Jit Compare")))->OnClick.Handle(this, &DevMenu::OnJitCompare);
 	parent->Add(new Choice(de->T("Toggle Freeze")))->OnClick.Handle(this, &DevMenu::OnFreezeFrame);
 	parent->Add(new Choice(de->T("Dump Frame GPU Commands")))->OnClick.Handle(this, &DevMenu::OnDumpFrame);
+	parent->Add(new Choice(de->T("Toggle Audio Debug")))->OnClick.Handle(this, &DevMenu::OnToggleAudioDebug);
 
 	RingbufferLogListener *ring = LogManager::GetInstance()->GetRingbufferListener();
 	if (ring) {
 		ring->SetEnable(true);
 	}
 }
+
+UI::EventReturn DevMenu::OnToggleAudioDebug(UI::EventParams &e) {
+	g_Config.bShowAudioDebug = !g_Config.bShowAudioDebug;
+	return UI::EVENT_DONE;
+}
+
 
 UI::EventReturn DevMenu::OnLogView(UI::EventParams &e) {
 	UpdateUIState(UISTATE_PAUSEMENU);
@@ -109,6 +116,7 @@ UI::EventReturn DevMenu::OnDumpFrame(UI::EventParams &e) {
 }
 
 void DevMenu::dialogFinished(const Screen *dialog, DialogResult result) {
+	UpdateUIState(UISTATE_INGAME);
 	// Close when a subscreen got closed.
 	// TODO: a bug in screenmanager causes this not to work here.
 	// screenManager()->finishDialog(this, DR_OK);
@@ -330,7 +338,14 @@ void SystemInfoScreen::CreateViews() {
 	deviceSpecs->Add(new InfoItem("Frames per buffer", StringFromFormat("%d", System_GetPropertyInt(SYSPROP_AUDIO_FRAMES_PER_BUFFER))));
 	deviceSpecs->Add(new InfoItem("Optimal sample rate", StringFromFormat("%d Hz", System_GetPropertyInt(SYSPROP_AUDIO_OPTIMAL_SAMPLE_RATE))));
 	deviceSpecs->Add(new InfoItem("Optimal frames per buffer", StringFromFormat("%d", System_GetPropertyInt(SYSPROP_AUDIO_OPTIMAL_FRAMES_PER_BUFFER))));
+
+	deviceSpecs->Add(new ItemHeader("Display Information"));
+	deviceSpecs->Add(new InfoItem("Native Resolution", StringFromFormat("%dx%d",
+		System_GetPropertyInt(SYSPROP_DISPLAY_XRES),
+		System_GetPropertyInt(SYSPROP_DISPLAY_YRES))));
+	deviceSpecs->Add(new InfoItem("Refresh rate", StringFromFormat("%0.3f Hz", (float)System_GetPropertyInt(SYSPROP_DISPLAY_REFRESH_RATE) / 1000.0f)));
 #endif
+
 
 	deviceSpecs->Add(new ItemHeader("Version Information"));
 	std::string apiVersion = thin3d->GetInfoString(T3DInfo::APIVERSION);

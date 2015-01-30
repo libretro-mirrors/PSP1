@@ -611,7 +611,7 @@ void FramebufferManagerCommon::FindTransferFramebuffers(VirtualFramebuffer *&dst
 			}
 			if (match) {
 				srcYOffset = yOffset;
-				srcXOffset = (byteOffset / bpp) % srcStride;
+				srcXOffset = srcStride == 0 ? 0 : (byteOffset / bpp) % srcStride;
 				srcBuffer = vfb;
 			}
 		}
@@ -735,5 +735,31 @@ void FramebufferManagerCommon::NotifyBlockTransferAfter(u32 dstBasePtr, int dstS
 				RebindFramebuffer();
 			}
 		}
+	}
+}
+
+void FramebufferManagerCommon::SetRenderSize(VirtualFramebuffer *vfb) {
+	float renderWidthFactor = (float)PSP_CoreParameter().renderWidth / 480.0f;
+	float renderHeightFactor = (float)PSP_CoreParameter().renderHeight / 272.0f;
+	bool force1x = false;
+	switch (g_Config.iBloomHack) {
+	case 1:
+		force1x = vfb->bufferWidth <= 128 || vfb->bufferHeight <= 64;
+		break;
+	case 2:
+		force1x = vfb->bufferWidth <= 256 || vfb->bufferHeight <= 128;
+		break;
+	case 3:
+		force1x = vfb->bufferWidth < 480 || vfb->bufferHeight < 272;
+		break;
+	}
+
+	if (force1x && g_Config.iInternalResolution != 1) {
+		vfb->renderWidth = vfb->bufferWidth;
+		vfb->renderHeight = vfb->bufferHeight;
+	}
+	else {
+		vfb->renderWidth = (u16)(vfb->bufferWidth * renderWidthFactor);
+		vfb->renderHeight = (u16)(vfb->bufferHeight * renderHeightFactor);
 	}
 }

@@ -96,6 +96,8 @@ private:
 	UI::EventReturn OnScreenRotation(UI::EventParams &e);
 	UI::EventReturn OnImmersiveModeChange(UI::EventParams &e);
 
+	UI::EventReturn OnAdhocGuides(UI::EventParams &e);
+
 	// Temporaries to convert bools to int settings
 	bool cap60FPS_;
 	int iAlternateSpeedPercent_;
@@ -105,6 +107,7 @@ private:
 	bool vtxCacheEnable_;
 	bool postProcEnable_;
 	bool resolutionEnable_;
+	bool bloomHackEnable_;
 };
 
 class DeveloperToolsScreen : public UIDialogScreenWithBackground {

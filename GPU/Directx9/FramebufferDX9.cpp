@@ -361,8 +361,6 @@ namespace DX9 {
 	}
 
 	void FramebufferManagerDX9::ResizeFramebufFBO(VirtualFramebuffer *vfb, u16 w, u16 h, bool force) {
-		float renderWidthFactor = (float)vfb->renderWidth / (float)vfb->bufferWidth;
-		float renderHeightFactor = (float)vfb->renderHeight / (float)vfb->bufferHeight;
 		VirtualFramebuffer old = *vfb;
 
 		if (force) {
@@ -378,8 +376,7 @@ namespace DX9 {
 			vfb->bufferHeight = std::max(vfb->bufferHeight, h);
 		}
 
-		vfb->renderWidth = vfb->bufferWidth * renderWidthFactor;
-		vfb->renderHeight = vfb->bufferHeight * renderHeightFactor;
+		SetRenderSize(vfb);
 
 		bool trueColor = g_Config.bTrueColor;
 		if (hackForce04154000Download_ && vfb->fb_address == 0x00154000) {
@@ -588,7 +585,7 @@ namespace DX9 {
 	}
 
 	FBO *FramebufferManagerDX9::GetTempFBO(u16 w, u16 h, FBOColorDepth depth) {
-		u64 key = ((u64)depth << 32) | (w << 16) | h;
+		u64 key = ((u64)depth << 32) | ((u32)w << 16) | h;
 		auto it = tempFBOs_.find(key);
 		if (it != tempFBOs_.end()) {
 			it->second.last_frame_used = gpuStats.numFlips;
@@ -877,6 +874,7 @@ namespace DX9 {
 				nvfb->fbo = fbo_create(nvfb->width, nvfb->height, 1, true, (FBOColorDepth)nvfb->colorDepth);
 				if (!(nvfb->fbo)) {
 					ERROR_LOG(SCEGE, "Error creating FBO! %i x %i", nvfb->renderWidth, nvfb->renderHeight);
+					delete nvfb;
 					return;
 				}
 

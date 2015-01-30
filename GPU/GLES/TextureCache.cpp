@@ -88,6 +88,7 @@ TextureCache::TextureCache() : cacheSizeEstimate_(0), secondCacheSizeEstimate_(0
 }
 
 TextureCache::~TextureCache() {
+	Clear(true);
 	FreeAlignedMemory(clutBufConverted_);
 	FreeAlignedMemory(clutBufRaw_);
 }
@@ -334,7 +335,7 @@ bool TextureCache::AttachFramebuffer(TexCacheEntry *entry, u32 address, VirtualF
 		if (framebuffer->fb_stride != entry->bufw) {
 			WARN_LOG_REPORT_ONCE(diffStrides1, G3D, "Render to texture with different strides %d != %d", entry->bufw, framebuffer->fb_stride);
 		}
-		if (entry->format != framebuffer->format) {
+		if (entry->format != (GETextureFormat)framebuffer->format) {
 			WARN_LOG_REPORT_ONCE(diffFormat1, G3D, "Render to texture with different formats %d != %d", entry->format, framebuffer->format);
 			// Let's avoid using it when we know the format is wrong.  May be a video/etc. updating memory.
 			// However, some games use a different format to clear the buffer.
@@ -357,7 +358,7 @@ bool TextureCache::AttachFramebuffer(TexCacheEntry *entry, u32 address, VirtualF
 		const u32 bitOffset = (texaddr - addr) * 8;
 		const u32 pixelOffset = bitOffset / std::max(1U, (u32)textureBitsPerPixel[entry->format]);
 		fbInfo.yOffset = pixelOffset / entry->bufw;
-		fbInfo.xOffset = pixelOffset % entry->bufw;
+		fbInfo.xOffset = entry->bufw == 0 ? 0 : pixelOffset % entry->bufw;
 
 		if (framebuffer->fb_stride != entry->bufw) {
 			if (noOffset) {
@@ -2037,7 +2038,7 @@ void TextureCache::LoadTextureLevel(TexCacheEntry &entry, int level, bool replac
 }
 
 // Only used by Qt UI?
-bool TextureCache::DecodeTexture(u8* output, GPUgstate state) {
+bool TextureCache::DecodeTexture(u8* output, const GPUgstate &state) {
 	GPUgstate oldState = gstate;
 	gstate = state;
 

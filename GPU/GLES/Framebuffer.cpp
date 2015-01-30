@@ -36,6 +36,7 @@
 
 #include "GPU/Common/PostShader.h"
 #include "GPU/Common/TextureDecoder.h"
+#include "GPU/Common/FramebufferCommon.h"
 #include "GPU/Debugger/Stepping.h"
 #include "GPU/GLES/Framebuffer.h"
 #include "GPU/GLES/TextureCache.h"
@@ -361,9 +362,7 @@ void FramebufferManager::Init() {
 FramebufferManager::~FramebufferManager() {
 	if (drawPixelsTex_)
 		glDeleteTextures(1, &drawPixelsTex_);
-	if (draw2dprogram_) {
-		glsl_destroy(draw2dprogram_);
-	}
+	DestroyDraw2DProgram();
 	if (stencilUploadProgram_) {
 		glsl_destroy(stencilUploadProgram_);
 	}
@@ -496,15 +495,38 @@ void FramebufferManager::DrawFramebuffer(const u8 *srcPixels, GEBufferFormat src
 
 	DisableState();
 
+	struct CardboardSettings cardboardSettings;
+	GetCardboardSettings(&cardboardSettings);
+
 	// This might draw directly at the backbuffer (if so, applyPostShader is set) so if there's a post shader, we need to apply it here.
 	// Should try to unify this path with the regular path somehow, but this simple solution works for most of the post shaders 
 	// (it always runs at output resolution so FXAA may look odd).
 	float x, y, w, h;
 	CenterRect(&x, &y, &w, &h, 480.0f, 272.0f, (float)PSP_CoreParameter().pixelWidth, (float)PSP_CoreParameter().pixelHeight);
-	if (applyPostShader && usePostShader_ && useBufferedRendering_) {
-		DrawActiveTexture(0, x, y, w, h, (float)PSP_CoreParameter().pixelWidth, (float)PSP_CoreParameter().pixelHeight, false, 0.0f, 0.0f, 480.0f / 512.0f, 1.0f, postShaderProgram_);
+	if (cardboardSettings.enabled) {
+		// Left Eye Image
+		glstate.viewport.set(cardboardSettings.leftEyeXPosition, cardboardSettings.screenYPosition, cardboardSettings.screenWidth, cardboardSettings.screenHeight);
+		if (applyPostShader && usePostShader_ && useBufferedRendering_) {
+			DrawActiveTexture(0, x, y, w, h, (float)PSP_CoreParameter().pixelWidth, (float)PSP_CoreParameter().pixelHeight, false, 0.0f, 0.0f, 480.0f / 512.0f, 1.0f, postShaderProgram_);
+		} else {
+			DrawActiveTexture(0, x, y, w, h, (float)PSP_CoreParameter().pixelWidth, (float)PSP_CoreParameter().pixelHeight, false, 0.0f, 0.0f, 480.0f / 512.0f);
+		}
+
+		// Right Eye Image
+		glstate.viewport.set(cardboardSettings.rightEyeXPosition, cardboardSettings.screenYPosition, cardboardSettings.screenWidth, cardboardSettings.screenHeight);
+		if (applyPostShader && usePostShader_ && useBufferedRendering_) {
+			DrawActiveTexture(0, x, y, w, h, (float)PSP_CoreParameter().pixelWidth, (float)PSP_CoreParameter().pixelHeight, false, 0.0f, 0.0f, 480.0f / 512.0f, 1.0f, postShaderProgram_);
+		} else {
+			DrawActiveTexture(0, x, y, w, h, (float)PSP_CoreParameter().pixelWidth, (float)PSP_CoreParameter().pixelHeight, false, 0.0f, 0.0f, 480.0f / 512.0f);
+		}
 	} else {
-		DrawActiveTexture(0, x, y, w, h, (float)PSP_CoreParameter().pixelWidth, (float)PSP_CoreParameter().pixelHeight, false, 0.0f, 0.0f, 480.0f / 512.0f);
+		// Fullscreen Image
+		glstate.viewport.set(0, 0, PSP_CoreParameter().pixelWidth, PSP_CoreParameter().pixelHeight);
+		if (applyPostShader && usePostShader_ && useBufferedRendering_) {
+			DrawActiveTexture(0, x, y, w, h, (float)PSP_CoreParameter().pixelWidth, (float)PSP_CoreParameter().pixelHeight, false, 0.0f, 0.0f, 480.0f / 512.0f, 1.0f, postShaderProgram_);
+		} else {
+			DrawActiveTexture(0, x, y, w, h, (float)PSP_CoreParameter().pixelWidth, (float)PSP_CoreParameter().pixelHeight, false, 0.0f, 0.0f, 480.0f / 512.0f);
+		}
 	}
 }
 
@@ -650,8 +672,6 @@ void FramebufferManager::RebindFramebuffer() {
 }
 
 void FramebufferManager::ResizeFramebufFBO(VirtualFramebuffer *vfb, u16 w, u16 h, bool force) {
-	float renderWidthFactor = (float)vfb->renderWidth / (float)vfb->bufferWidth;
-	float renderHeightFactor = (float)vfb->renderHeight / (float)vfb->bufferHeight;
 	VirtualFramebuffer old = *vfb;
 
 	if (force) {
@@ -667,8 +687,7 @@ void FramebufferManager::ResizeFramebufFBO(VirtualFramebuffer *vfb, u16 w, u16 h
 		vfb->bufferHeight = std::max(vfb->bufferHeight, h);
 	}
 
-	vfb->renderWidth = vfb->bufferWidth * renderWidthFactor;
-	vfb->renderHeight = vfb->bufferHeight * renderHeightFactor;
+	SetRenderSize(vfb);
 
 	bool trueColor = g_Config.bTrueColor;
 	if (hackForce04154000Download_ && vfb->fb_address == 0x00154000) {
@@ -902,7 +921,7 @@ void FramebufferManager::BlitFramebufferDepth(VirtualFramebuffer *src, VirtualFr
 }
 
 FBO *FramebufferManager::GetTempFBO(u16 w, u16 h, FBOColorDepth depth) {
-	u64 key = ((u64)depth << 32) | (w << 16) | h;
+	u64 key = ((u64)depth << 32) | ((u32)w << 16) | h;
 	auto it = tempFBOs_.find(key);
 	if (it != tempFBOs_.end()) {
 		it->second.last_frame_used = gpuStats.numFlips;
@@ -963,6 +982,32 @@ void FramebufferManager::BindFramebufferColor(int stage, VirtualFramebuffer *fra
 	}
 }
 
+struct CardboardSettings * FramebufferManager::GetCardboardSettings(struct CardboardSettings * cardboardSettings) {
+	if (cardboardSettings) {
+		// Calculate Cardboard Settings
+		float cardboardScreenScale = g_Config.iCardboardScreenSize / 100.0f;
+		float cardboardScreenWidth = PSP_CoreParameter().pixelWidth / 2.0f * cardboardScreenScale;
+		float cardboardScreenHeight = PSP_CoreParameter().pixelHeight / 2.0f * cardboardScreenScale;
+		float cardboardMaxXShift = (PSP_CoreParameter().pixelWidth / 2.0f - cardboardScreenWidth) / 2.0f;
+		float cardboardUserXShift = g_Config.iCardboardXShift / 100.0f * cardboardMaxXShift;
+		float cardboardLeftEyeX = cardboardMaxXShift + cardboardUserXShift;
+		float cardboardRightEyeX = PSP_CoreParameter().pixelWidth / 2.0f + cardboardMaxXShift - cardboardUserXShift;
+		float cardboardMaxYShift = PSP_CoreParameter().pixelHeight / 2.0f - cardboardScreenHeight / 2.0f;
+		float cardboardUserYShift = g_Config.iCardboardYShift / 100.0f * cardboardMaxYShift;
+		float cardboardScreenY = cardboardMaxYShift + cardboardUserYShift;
+
+		// Copy current Settings into Structure
+		cardboardSettings->enabled = g_Config.bEnableCardboard;
+		cardboardSettings->leftEyeXPosition = cardboardLeftEyeX;
+		cardboardSettings->rightEyeXPosition = cardboardRightEyeX;
+		cardboardSettings->screenYPosition = cardboardScreenY;
+		cardboardSettings->screenWidth = cardboardScreenWidth;
+		cardboardSettings->screenHeight = cardboardScreenHeight;
+	}
+
+	return cardboardSettings;
+}
+
 void FramebufferManager::CopyDisplayToOutput() {
 	fbo_unbind();
 	glstate.viewport.set(0, 0, PSP_CoreParameter().pixelWidth, PSP_CoreParameter().pixelHeight);
@@ -970,6 +1015,9 @@ void FramebufferManager::CopyDisplayToOutput() {
 
 	u32 offsetX = 0;
 	u32 offsetY = 0;
+
+	struct CardboardSettings cardboardSettings;
+	GetCardboardSettings(&cardboardSettings);
 
 	VirtualFramebuffer *vfb = GetVFBAt(displayFramebufPtr_);
 	if (!vfb) {
@@ -1072,9 +1120,19 @@ void FramebufferManager::CopyDisplayToOutput() {
 		const float v1 = (272.0f + offsetY) / (float)vfb->bufferHeight;
 
 		if (!usePostShader_) {
-			glstate.viewport.set(0, 0, PSP_CoreParameter().pixelWidth, PSP_CoreParameter().pixelHeight);
-			// These are in the output display coordinates
-			DrawActiveTexture(colorTexture, x, y, w, h, (float)PSP_CoreParameter().pixelWidth, (float)PSP_CoreParameter().pixelHeight, true, u0, v0, u1, v1);
+			if (cardboardSettings.enabled) {
+				// Left Eye Image
+				glstate.viewport.set(cardboardSettings.leftEyeXPosition, cardboardSettings.screenYPosition, cardboardSettings.screenWidth, cardboardSettings.screenHeight);
+				DrawActiveTexture(colorTexture, x, y, w, h, (float)PSP_CoreParameter().pixelWidth, (float)PSP_CoreParameter().pixelHeight, true, u0, v0, u1, v1);
+
+				// Right Eye Image
+				glstate.viewport.set(cardboardSettings.rightEyeXPosition, cardboardSettings.screenYPosition, cardboardSettings.screenWidth, cardboardSettings.screenHeight);
+				DrawActiveTexture(colorTexture, x, y, w, h, (float)PSP_CoreParameter().pixelWidth, (float)PSP_CoreParameter().pixelHeight, true, u0, v0, u1, v1);
+			} else {
+				// Fullscreen Image
+				glstate.viewport.set(0, 0, PSP_CoreParameter().pixelWidth, PSP_CoreParameter().pixelHeight);
+				DrawActiveTexture(colorTexture, x, y, w, h, (float)PSP_CoreParameter().pixelWidth, (float)PSP_CoreParameter().pixelHeight, true, u0, v0, u1, v1);
+			}
 		} else if (usePostShader_ && extraFBOs_.size() == 1 && !postShaderAtOutputResolution_) {
 			// An additional pass, post-processing shader to the extra FBO.
 			fbo_bind_as_render_target(extraFBOs_[0]);
@@ -1092,14 +1150,34 @@ void FramebufferManager::CopyDisplayToOutput() {
 				return;
 			}
 			colorTexture = fbo_get_color_texture(extraFBOs_[0]);
-			glstate.viewport.set(0, 0, PSP_CoreParameter().pixelWidth, PSP_CoreParameter().pixelHeight);
-			// These are in the output display coordinates
-			DrawActiveTexture(colorTexture, x, y, w, h, (float)PSP_CoreParameter().pixelWidth, (float)PSP_CoreParameter().pixelHeight, true, u0, v0, u1, v1);
+
+			if (g_Config.bEnableCardboard) {
+				// Left Eye Image
+				glstate.viewport.set(cardboardSettings.leftEyeXPosition, cardboardSettings.screenYPosition, cardboardSettings.screenWidth, cardboardSettings.screenHeight);
+				DrawActiveTexture(colorTexture, x, y, w, h, (float)PSP_CoreParameter().pixelWidth, (float)PSP_CoreParameter().pixelHeight, true, u0, v0, u1, v1);
+
+				// Right Eye Image
+				glstate.viewport.set(cardboardSettings.rightEyeXPosition, cardboardSettings.screenYPosition, cardboardSettings.screenWidth, cardboardSettings.screenHeight);
+				DrawActiveTexture(colorTexture, x, y, w, h, (float)PSP_CoreParameter().pixelWidth, (float)PSP_CoreParameter().pixelHeight, true, u0, v0, u1, v1);
+			} else {
+				// Fullscreen Image
+				glstate.viewport.set(0, 0, PSP_CoreParameter().pixelWidth, PSP_CoreParameter().pixelHeight);
+				DrawActiveTexture(colorTexture, x, y, w, h, (float)PSP_CoreParameter().pixelWidth, (float)PSP_CoreParameter().pixelHeight, true, u0, v0, u1, v1);
+			}
 		} else {
-			// Use post-shader, but run shader at output resolution.
-			glstate.viewport.set(0, 0, PSP_CoreParameter().pixelWidth, PSP_CoreParameter().pixelHeight);
-			// These are in the output display coordinates
-			DrawActiveTexture(colorTexture, x, y, w, h, (float)PSP_CoreParameter().pixelWidth, (float)PSP_CoreParameter().pixelHeight, true, u0, v0, u1, v1, postShaderProgram_);
+			if (g_Config.bEnableCardboard) {
+				// Left Eye Image
+				glstate.viewport.set(cardboardSettings.leftEyeXPosition, cardboardSettings.screenYPosition, cardboardSettings.screenWidth, cardboardSettings.screenHeight);
+				DrawActiveTexture(colorTexture, x, y, w, h, (float)PSP_CoreParameter().pixelWidth, (float)PSP_CoreParameter().pixelHeight, true, u0, v0, u1, v1);
+
+				// Right Eye Image
+				glstate.viewport.set(cardboardSettings.rightEyeXPosition, cardboardSettings.screenYPosition, cardboardSettings.screenWidth, cardboardSettings.screenHeight);
+				DrawActiveTexture(colorTexture, x, y, w, h, (float)PSP_CoreParameter().pixelWidth, (float)PSP_CoreParameter().pixelHeight, true, u0, v0, u1, v1);
+			} else {
+				// Fullscreen Image
+				glstate.viewport.set(0, 0, PSP_CoreParameter().pixelWidth, PSP_CoreParameter().pixelHeight);
+				DrawActiveTexture(colorTexture, x, y, w, h, (float)PSP_CoreParameter().pixelWidth, (float)PSP_CoreParameter().pixelHeight, true, u0, v0, u1, v1, postShaderProgram_);
+			}
 		}
 
 		glBindTexture(GL_TEXTURE_2D, 0);
@@ -1196,6 +1274,7 @@ void FramebufferManager::ReadFramebufferToMemory(VirtualFramebuffer *vfb, bool s
 			nvfb->fbo = fbo_create(nvfb->width, nvfb->height, 1, false, (FBOColorDepth)nvfb->colorDepth);
 			if (!(nvfb->fbo)) {
 				ERROR_LOG(SCEGE, "Error creating FBO! %i x %i", nvfb->renderWidth, nvfb->renderHeight);
+				delete nvfb;
 				return;
 			}
 

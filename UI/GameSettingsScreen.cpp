@@ -136,7 +136,6 @@ void GameSettingsScreen::CreateViews() {
 	PopupMultiChoice *renderingModeChoice = graphicsSettings->Add(new PopupMultiChoice(&g_Config.iRenderingMode, gs->T("Mode"), renderingMode, 0, ARRAY_SIZE(renderingMode), gs, screenManager()));
 	renderingModeChoice->OnChoice.Handle(this, &GameSettingsScreen::OnRenderingMode);
 	renderingModeChoice->SetDisabledPtr(&g_Config.bSoftwareRendering);
-
 	CheckBox *blockTransfer = graphicsSettings->Add(new CheckBox(&g_Config.bBlockTransferGPU, gs->T("Simulate Block Transfer", "Simulate Block Transfer (unfinished)")));
 	blockTransfer->SetDisabledPtr(&g_Config.bSoftwareRendering);
 
@@ -185,7 +184,9 @@ void GameSettingsScreen::CreateViews() {
 
 #ifdef ANDROID
 	static const char *deviceResolutions[] = { "Native device resolution", "Auto (same as Rendering)", "1x PSP", "2x PSP", "3x PSP", "4x PSP", "5x PSP" };
-	UI::PopupMultiChoice *hwscale = graphicsSettings->Add(new PopupMultiChoice(&g_Config.iAndroidHwScale, gs->T("Display Resolution (HW scaler)"), deviceResolutions, 0, ARRAY_SIZE(deviceResolutions), gs, screenManager()));
+	int max_res_temp = std::max(System_GetPropertyInt(SYSPROP_DISPLAY_XRES), System_GetPropertyInt(SYSPROP_DISPLAY_YRES)) / 480 + 2;
+	int max_res = std::min(max_res_temp, (int)ARRAY_SIZE(deviceResolutions));
+	UI::PopupMultiChoice *hwscale = graphicsSettings->Add(new PopupMultiChoice(&g_Config.iAndroidHwScale, gs->T("Display Resolution (HW scaler)"), deviceResolutions, 0, max_res, gs, screenManager()));
 	hwscale->OnChoice.Handle(this, &GameSettingsScreen::OnHwScaleChange);  // To refresh the display mode
 #endif
 
@@ -269,6 +270,18 @@ void GameSettingsScreen::CreateViews() {
 	PopupMultiChoice *bufFilter = graphicsSettings->Add(new PopupMultiChoice(&g_Config.iBufFilter, gs->T("Screen Scaling Filter"), bufFilters, 1, ARRAY_SIZE(bufFilters), gs, screenManager()));
 	bufFilter->SetDisabledPtr(&g_Config.bSoftwareRendering);
 
+#ifdef ANDROID
+	graphicsSettings->Add(new ItemHeader(gs->T("Cardboard Settings", "Cardboard Settings")));
+	CheckBox *cardboardMode = graphicsSettings->Add(new CheckBox(&g_Config.bEnableCardboard, gs->T("Enable Cardboard", "Enable Cardboard")));
+	cardboardMode->SetDisabledPtr(&g_Config.bSoftwareRendering);
+	PopupSliderChoice * cardboardScreenSize = graphicsSettings->Add(new PopupSliderChoice(&g_Config.iCardboardScreenSize, 30, 100, gs->T("Cardboard Screen Size", "Screen Size (in % of the viewport)"), 1, screenManager()));
+	cardboardScreenSize->SetDisabledPtr(&g_Config.bSoftwareRendering);
+	PopupSliderChoice *cardboardXShift = graphicsSettings->Add(new PopupSliderChoice(&g_Config.iCardboardXShift, -100, 100, gs->T("Cardboard Screen X Shift", "X Shift (in % of the void)"), 1, screenManager()));
+	cardboardXShift->SetDisabledPtr(&g_Config.bSoftwareRendering);
+	PopupSliderChoice *cardboardYShift = graphicsSettings->Add(new PopupSliderChoice(&g_Config.iCardboardYShift, -100, 100, gs->T("Cardboard Screen Y Shift", "Y Shift (in % of the void)"), 1, screenManager()));
+	cardboardYShift->SetDisabledPtr(&g_Config.bSoftwareRendering);
+#endif
+
 	graphicsSettings->Add(new ItemHeader(gs->T("Hack Settings", "Hack Settings (these WILL cause glitches)")));
 	graphicsSettings->Add(new CheckBox(&g_Config.bTimerHack, gs->T("Timer Hack")));
 	CheckBox *alphaHack = graphicsSettings->Add(new CheckBox(&g_Config.bDisableAlphaTest, gs->T("Disable Alpha Test (PowerVR speedup)")));
@@ -286,6 +299,11 @@ void GameSettingsScreen::CreateViews() {
 
 	CheckBox *depthRange = graphicsSettings->Add(new CheckBox(&g_Config.bDepthRangeHack, gs->T("Depth Range Hack (Phantasy Star Portable 2)")));
 	depthRange->SetDisabledPtr(&g_Config.bSoftwareRendering);
+
+	static const char *bloomHackOptions[] = { "Off", "Safe", "Balanced", "Aggressive" };
+	PopupMultiChoice *bloomHack = graphicsSettings->Add(new PopupMultiChoice(&g_Config.iBloomHack, gs->T("Lower resolution for effects (reduces artifacts)"), bloomHackOptions, 0, ARRAY_SIZE(bloomHackOptions), gs, screenManager()));
+	bloomHackEnable_ = !g_Config.bSoftwareRendering && (g_Config.iInternalResolution != 1);
+	bloomHack->SetEnabledPtr(&bloomHackEnable_);
 
 	graphicsSettings->Add(new ItemHeader(gs->T("Overlay Information")));
 	static const char *fpsChoices[] = {
@@ -307,6 +325,7 @@ void GameSettingsScreen::CreateViews() {
 	// We normally use software rendering to debug so put it in debugging.
 	CheckBox *softwareGPU = graphicsSettings->Add(new CheckBox(&g_Config.bSoftwareRendering, gs->T("Software Rendering", "Software Rendering (experimental)")));
 	softwareGPU->OnClick.Handle(this, &GameSettingsScreen::OnSoftwareRendering);
+
 	if (PSP_IsInited() || g_Config.iGPUBackend != GPU_BACKEND_OPENGL)
 		softwareGPU->SetEnabled(false);
 
@@ -320,6 +339,13 @@ void GameSettingsScreen::CreateViews() {
 	audioSettings->Add(new ItemHeader(ms->T("Audio")));
 
 	audioSettings->Add(new CheckBox(&g_Config.bEnableSound, a->T("Enable Sound")));
+
+#ifdef _WIN32
+	static const char *backend[] = { "Auto", "WASAPI (fast)", "DirectSound (compatible)" };
+	PopupMultiChoice *audioBackend = audioSettings->Add(new PopupMultiChoice(&g_Config.iAudioBackend, a->T("Audio backend"), backend, 0, ARRAY_SIZE(backend), a, screenManager()));
+	audioBackend->SetEnabledPtr(&g_Config.bEnableSound);
+#endif
+
 	static const char *latency[] = { "Low", "Medium", "High" };
 	PopupMultiChoice *lowAudio = audioSettings->Add(new PopupMultiChoice(&g_Config.iAudioLatency, a->T("Audio Latency"), latency, 0, ARRAY_SIZE(latency), gs, screenManager()));
 	lowAudio->SetEnabledPtr(&g_Config.bEnableSound);
@@ -385,6 +411,8 @@ void GameSettingsScreen::CreateViews() {
 	tabHolder->AddTab(ms->T("Networking"), networkingSettingsScroll);
 
 	networkingSettings->Add(new ItemHeader(ms->T("Networking")));
+
+	networkingSettings->Add(new Choice(n->T("Adhoc Multiplayer forum")))->OnClick.Handle(this, &GameSettingsScreen::OnAdhocGuides);
 
 	networkingSettings->Add(new CheckBox(&g_Config.bEnableWlan, n->T("Enable networking", "Enable networking/wlan (beta)")));
 
@@ -557,6 +585,11 @@ static void RecreateActivity() {
 		I18NCategory *gs = GetI18NCategory("Graphics");
 		System_SendMessage("toast", gs->T("Must Restart", "You must restart PPSSPP for this change to take effect"));
 	}
+}
+
+UI::EventReturn GameSettingsScreen::OnAdhocGuides(UI::EventParams &e) {
+	LaunchBrowser("http://forums.ppsspp.org/forumdisplay.php?fid=34");
+	return UI::EVENT_DONE;
 }
 
 UI::EventReturn GameSettingsScreen::OnImmersiveModeChange(UI::EventParams &e) {

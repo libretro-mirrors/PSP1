@@ -259,7 +259,6 @@ SOURCES_CXX += $(NATIVEDIR)/file/chunk_file.cpp \
 				$(COREDIR)/HLE/ReplaceTables.cpp \
 				$(COREDIR)/HLE/HLEHelperThread.cpp \
 				$(COREDIR)/HLE/HLETables.cpp \
-				$(LIBRETRODIR)/Core/HLE/__sceAudio.cpp \
 				$(COREDIR)/HLE/sceAtrac.cpp \
 				$(COREDIR)/HLE/sceAudio.cpp \
 				$(COREDIR)/HLE/sceAudiocodec.cpp \
@@ -349,8 +348,14 @@ SOURCES_CXX += $(NATIVEDIR)/file/chunk_file.cpp \
 				$(COREDIR)/Util/BlockAllocator.cpp \
 				$(COREDIR)/Util/PPGeDraw.cpp \
 				$(COREDIR)/Util/ppge_atlas.cpp \
+				$(COREDIR)/Util/AudioFormat.cpp \
 				$(LIBRETRODIR)/libretro.cpp \
 				$(LIBRETRODIR)/libretro_osm.cpp
+
+
+#SOURCES_CXX += $(LIBRETRODIR)/Core/HLE/__sceAudio.cpp
+SOURCES_CXX += $(LIBRETRODIR)/Core/HLE/StereoResampler.cpp
+SOURCES_CXX += $(COREDIR)/HLE/__sceAudio.cpp
 
 
 ### DYNAREC ###

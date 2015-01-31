@@ -115,7 +115,7 @@ public:
 	void UpdateSound() override
    {
       static int16_t audio[SAMPLERATE];
-#if 1
+#if 0
       int samples = __AudioMix(audio, SAMPLERATE / 2, SAMPLERATE);
 #else
       int samples = __AudioMix(audio, 256, SAMPLERATE);

@@ -22,7 +22,6 @@
 #include "base/logging.h"
 #include "Common/ChunkFile.h"
 #include "Common/MathUtil.h"
-#include "Common/Atomics.h"
 #include "Core/HW/StereoResampler.h"
 #include "Globals.h"
 
@@ -46,14 +45,10 @@ inline void ClampBufferToS16(s16 *out, const s32 *in, size_t size) {
 		in += 8;
 		size -= 8;
 	}
-	for (size_t i = 0; i < size; i++) {
-		out[i] = clamp_s16(in[i]);
-	}
-#else
-	for (size_t i = 0; i < size; i++) {
-		out[i] = clamp_s16(in[i]);
-	}
 #endif
+	for (size_t i = 0; i < size; i++) {
+		out[i] = clamp_s16(in[i]);
+	}
 }
 
 void StereoResampler::MixerFifo::Clear() {
@@ -71,8 +66,8 @@ unsigned int StereoResampler::MixerFifo::Mix(short* samples, unsigned int numSam
 	// so we will just ignore new written data while interpolating.
 	// Without this cache, the compiler wouldn't be allowed to optimize the
 	// interpolation loop.
-	u32 indexR = Common::AtomicLoad(m_indexR);
-	u32 indexW = Common::AtomicLoad(m_indexW);
+	u32 indexR = m_indexR;
+	u32 indexW = m_indexW;
 
 	// We force on the audio resampler if the output sample rate doesn't match the input.
    for (; currentSample < numSamples * 2 && ((indexW - indexR) & INDEX_MASK) > 2; currentSample += 2) {
@@ -100,7 +95,7 @@ unsigned int StereoResampler::MixerFifo::Mix(short* samples, unsigned int numSam
 	}
 
    // Flush cached variable
-   Common::AtomicStore(m_indexR, indexR);
+   m_indexR = indexR;
 
 	//if (realSamples != numSamples * 2) {
 	//	ILOG("Underrun! %i / %i", realSamples / 2, numSamples);
@@ -121,11 +116,11 @@ void StereoResampler::MixerFifo::PushSamples(const s32 *samples, unsigned int nu
 	// Cache access in non-volatile variable
 	// indexR isn't allowed to cache in the audio throttling loop as it
 	// needs to get updates to not deadlock.
-	u32 indexW = Common::AtomicLoad(m_indexW);
+	u32 indexW = m_indexW;
 
 	// Check if we have enough free space
 	// indexW == m_indexR results in empty buffer, so indexR must always be smaller than indexW
-	if (num_samples * 2 + ((indexW - Common::AtomicLoad(m_indexR)) & INDEX_MASK) >= MAX_SAMPLES * 2)
+	if (num_samples * 2 + ((indexW - m_indexR) & INDEX_MASK) >= MAX_SAMPLES * 2)
 		return;
 
 	// AyuanX: Actual re-sampling work has been moved to sound thread
@@ -139,7 +134,7 @@ void StereoResampler::MixerFifo::PushSamples(const s32 *samples, unsigned int nu
 		ClampBufferToS16(&m_buffer[indexW & INDEX_MASK], samples, num_samples * 2);
 	}
 
-	Common::AtomicAdd(m_indexW, num_samples * 2);
+	m_indexW += num_samples * 2;
 }
 
 void StereoResampler::PushSamples(const int *samples, unsigned int num_samples) {

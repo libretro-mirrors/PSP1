@@ -1,7 +1,7 @@
-#pragma once
+#ifndef _LIBRETRO_HOST_H
+#define _LIBRETRO_HOST_H
 
 #include "libretro.h"
-#include "gfx/gl_common.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -12,4 +12,6 @@ extern retro_hw_get_proc_address_t libretro_get_proc_address;
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif

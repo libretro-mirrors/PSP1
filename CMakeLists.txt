@@ -31,15 +31,6 @@ endif()
 # Remove soon?
 set(USE_FFMPEG ON)
 
-if(LIBRETRO)
-	add_definitions(-D__LIBRETRO__)
-	set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--version-script=${CMAKE_SOURCE_DIR}/libretro/link.T")
-	set(X11_LIBRARIES, "")
-	if(NOT WIN32)
-		add_definitions(-fPIC)
-	endif()
-endif()
-
 if(ARM OR SIMULATOR)
 	set(USING_EGL ON)
 endif()
@@ -147,7 +138,7 @@ if(MAEMO)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
 endif()
 
-if (NOT BLACKBERRY AND NOT ANDROID AND NOT IOS AND NOT LIBRETRO)
+if (NOT BLACKBERRY AND NOT ANDROID AND NOT IOS)
 	include(FindSDL2)
 endif()
 include(FindThreads)
@@ -373,20 +364,13 @@ if(NOT USING_GLES2)
 	include_directories(${OPENGL_INCLUDE_DIR})
 
 	add_definitions(-DGLEW_STATIC)
-	if(LIBRETRO)
-		add_library(glew STATIC
-			libretro/ext/glew/GL/glew.h
-			libretro/ext/glew/glew.c)
-		include_directories(libretro/ext/glew)
-	else()
-		add_library(glew STATIC
-			native/ext/glew/GL/glew.h
-			native/ext/glew/GL/glxew.h
-			native/ext/glew/GL/wglew.h
-			native/ext/glew/glew.c)
-		include_directories(native/ext/glew)
-	endif()
+	add_library(glew STATIC
+		native/ext/glew/GL/glew.h
+		native/ext/glew/GL/glxew.h
+		native/ext/glew/GL/wglew.h
+		native/ext/glew/glew.c)
 	target_link_libraries(glew ${OPENGL_LIBRARIES})
+	include_directories(native/ext/glew)
 	set(GLEW_LIBRARIES glew)
 endif()
 
@@ -703,7 +687,7 @@ else()
 	set(PNG_LIBRARY png17)
 	include_directories(native/ext)
 endif()
-	
+
 set(nativeExtra)
 set(nativeExtraLibs)
 
@@ -776,14 +760,12 @@ elseif(BLACKBERRY)
 	set(nativeExtra ${nativeExtra} native/base/BlackberryMain.cpp native/base/BlackberryDisplay.cpp)
 	set(nativeExtraLibs ${nativeExtraLibs} OpenAL bps screen socket EGL)
 	set(TargetBin PPSSPPBlackberry)
-elseif(LIBRETRO)
-	set(TargetBin PPSSPPLibretro)
 elseif(SDL2_FOUND)
 	set(TargetBin PPSSPPSDL)
 	# Require SDL
 	include_directories(${SDL2_INCLUDE_DIR})
 	add_definitions(-DSDL)
-	set(nativeExtra ${nativeExtra} 
+	set(nativeExtra ${nativeExtra}
 		SDL/SDLJoystick.h
 		SDL/SDLJoystick.cpp
 		native/base/PCMain.cpp)
@@ -799,40 +781,35 @@ else()
 	message(FATAL_ERROR "Could not find SDL2. Failing.")
 endif()
 
-if(LIBRETRO)
-	set(NativeAppSource
-		libretro/libretro.cpp
-		libretro/libretro_osm.cpp)
-else()
-	set(NativeAppSource
-		android/jni/TestRunner.cpp
-		UI/NativeApp.cpp
-		UI/BackgroundAudio.cpp
-		UI/DevScreens.cpp
-		UI/EmuScreen.cpp
-		UI/GameInfoCache.cpp
-		UI/MainScreen.cpp
-		UI/MiscScreens.cpp
-		UI/GameScreen.cpp
-		UI/GameSettingsScreen.cpp
-		UI/TiltAnalogSettingsScreen.cpp
-		UI/TiltEventProcessor.cpp
-		UI/TouchControlLayoutScreen.cpp
-		UI/TouchControlVisibilityScreen.cpp
-		UI/GamepadEmu.cpp
-		UI/OnScreenDisplay.cpp
-		UI/ControlMappingScreen.cpp
-		UI/ReportScreen.cpp
-		UI/Store.cpp
-		UI/CwCheatScreen.cpp
-		UI/InstallZipScreen.cpp
-		UI/ui_atlas.cpp)
-	if(ANDROID)
-		if (ARM)
-			set(NativeAppSource ${NativeAppSource} android/jni/ArmEmitterTest.cpp)
-		endif()
-		set(nativeExtra ${nativeExtra} ${NativeAppSource})
+set(NativeAppSource
+	android/jni/TestRunner.cpp
+	UI/NativeApp.cpp
+	UI/BackgroundAudio.cpp
+	UI/DevScreens.cpp
+	UI/EmuScreen.cpp
+	UI/GameInfoCache.cpp
+	UI/MainScreen.cpp
+	UI/MiscScreens.cpp
+	UI/PauseScreen.cpp
+	UI/GameScreen.cpp
+	UI/GameSettingsScreen.cpp
+	UI/TiltAnalogSettingsScreen.cpp
+	UI/TiltEventProcessor.cpp
+	UI/TouchControlLayoutScreen.cpp
+	UI/TouchControlVisibilityScreen.cpp
+	UI/GamepadEmu.cpp
+	UI/OnScreenDisplay.cpp
+	UI/ControlMappingScreen.cpp
+	UI/ReportScreen.cpp
+	UI/Store.cpp
+	UI/CwCheatScreen.cpp
+	UI/InstallZipScreen.cpp
+	UI/ui_atlas.cpp)
+if(ANDROID)
+	if (ARM)
+		set(NativeAppSource ${NativeAppSource} android/jni/ArmEmitterTest.cpp)
 	endif()
+	set(nativeExtra ${nativeExtra} ${NativeAppSource})
 endif()
 
 add_library(native STATIC
@@ -1564,11 +1541,9 @@ if(UNITTEST)
 endif()
 
 if (TargetBin)
-   if (LIBRETRO)
-		add_library(${TargetBin} SHARED ${NativeAppSource})
-	elseif (IOS OR APPLE)
-		set(ICON_PATH_ABS ${CMAKE_CURRENT_SOURCE_DIR}/assets/icon-114.icns)
-		set( MACOSX_BUNDLE_ICON_FILE icon-114.icns )
+	if (IOS OR APPLE)
+		set(ICON_PATH_ABS ${CMAKE_CURRENT_SOURCE_DIR}/assets/ppsspp.icns)
+		set( MACOSX_BUNDLE_ICON_FILE ppsspp.icns )
 		set_source_files_properties(${ICON_PATH_ABS} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
 
 		# TODO: there must a native way to copy these.
@@ -1581,7 +1556,7 @@ if (TargetBin)
 		set_source_files_properties(${FLASH0_FILES} PROPERTIES MACOSX_PACKAGE_LOCATION "MacOS/assets/flash0/font")
 		set_source_files_properties(${LANG_FILES} PROPERTIES MACOSX_PACKAGE_LOCATION "MacOS/assets/lang")
 		set_source_files_properties(${SHADER_FILES} PROPERTIES MACOSX_PACKAGE_LOCATION "MacOS/assets/shaders")
-		
+
 		add_executable(${TargetBin} MACOSX_BUNDLE ${ICON_PATH_ABS} ${NativeAssets} ${SHADER_FILES} ${FLASH0_FILES} ${LANG_FILES} ${NativeAppSource})
 	else()
 		add_executable(${TargetBin} ${NativeAppSource})

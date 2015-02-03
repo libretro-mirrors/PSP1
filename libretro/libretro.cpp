@@ -89,6 +89,7 @@ void NativeRender()
       fbo_unbind();
 }
 void NativeResized() { }
+void NativeMessageReceived(const char *message, const char *value) {}
 InputState input_state;
 
 extern "C"

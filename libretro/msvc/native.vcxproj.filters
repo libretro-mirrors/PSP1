@@ -142,9 +142,6 @@
     <ClInclude Include="..\..\native\util\text\utf8.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="base\BlackberryMain.cpp">
-      <Filter>base</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\native\android\app-android.cpp" />
     <ClCompile Include="..\..\native\android\native-audio-so.cpp" />
     <ClCompile Include="..\..\native\android\native_audio.cpp" />

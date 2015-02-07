@@ -580,9 +580,11 @@ namespace SaveState
 				break;
 
 			case SAVESTATE_SAVE_SCREENSHOT:
+#ifndef __LIBRETRO__
 				if (!TakeGameScreenshot(op.filename.c_str(), SCREENSHOT_JPG, SCREENSHOT_RENDER)) {
 					ERROR_LOG(COMMON, "Failed to take a screenshot for the savestate! %s", op.filename.c_str());
 				}
+#endif
 				break;
 
 			default:

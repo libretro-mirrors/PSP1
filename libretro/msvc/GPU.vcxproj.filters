@@ -1,0 +1,111 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="GLES">
+      <UniqueIdentifier>{f7563dba-8146-4c21-a092-e864ff145d79}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Software">
+      <UniqueIdentifier>{4f6d1284-2c23-4ebc-842c-666a1305bfed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common">
+      <UniqueIdentifier>{21783292-4dd7-447b-af93-356cd2eaa4d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Null">
+      <UniqueIdentifier>{b31aa5a1-da08-47e6-9467-ab1d547b6ff3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DirectX9">
+      <UniqueIdentifier>{88629970-4774-4122-b031-2128244b795c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DirectX9\helper">
+      <UniqueIdentifier>{ba434472-5d5e-4b08-ab16-bfb7ec8e7068}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Debugger">
+      <UniqueIdentifier>{0cbddc00-4aa3-41d0-bed2-a454d37f838e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\ext\xbrz\xbrz.h" />
+    <ClInclude Include="..\..\GPU\Common\DrawEngineCommon.h" />
+    <ClInclude Include="..\..\GPU\Common\FramebufferCommon.h" />
+    <ClInclude Include="..\..\GPU\Common\GPUDebugInterface.h" />
+    <ClInclude Include="..\..\GPU\Common\IndexGenerator.h" />
+    <ClInclude Include="..\..\GPU\Common\PostShader.h" />
+    <ClInclude Include="..\..\GPU\Common\SoftwareTransformCommon.h" />
+    <ClInclude Include="..\..\GPU\Common\SplineCommon.h" />
+    <ClInclude Include="..\..\GPU\Common\TextureDecoderNEON.h" />
+    <ClInclude Include="..\..\GPU\Common\TextureCacheCommon.h" />
+    <ClInclude Include="..\..\GPU\Common\TransformCommon.h" />
+    <ClInclude Include="..\..\GPU\Common\VertexDecoderCommon.h" />
+    <ClInclude Include="..\..\GPU\Debugger\Breakpoints.h" />
+    <ClInclude Include="..\..\GPU\Debugger\Stepping.h" />
+    <ClInclude Include="..\..\GPU\ge_constants.h" />
+    <ClInclude Include="..\..\GPU\GeDisasm.h" />
+    <ClInclude Include="..\..\GPU\GLES\DepalettizeShader.h" />
+    <ClInclude Include="..\..\GPU\GLES\FragmentShaderGenerator.h" />
+    <ClInclude Include="..\..\GPU\GLES\FragmentTestCache.h" />
+    <ClInclude Include="..\..\GPU\GLES\Framebuffer.h" />
+    <ClInclude Include="..\..\GPU\GLES\GLES_GPU.h" />
+    <ClInclude Include="..\..\GPU\GLES\ShaderManager.h" />
+    <ClInclude Include="..\..\GPU\GLES\StateMapping.h" />
+    <ClInclude Include="..\..\GPU\GLES\TextureCache.h" />
+    <ClInclude Include="..\..\GPU\GLES\TextureScaler.h" />
+    <ClInclude Include="..\..\GPU\GLES\TransformPipeline.h" />
+    <ClInclude Include="..\..\GPU\GLES\VertexShaderGenerator.h" />
+    <ClInclude Include="..\..\GPU\GPUCommon.h" />
+    <ClInclude Include="..\..\GPU\GPUInterface.h" />
+    <ClInclude Include="..\..\GPU\GPUState.h" />
+    <ClInclude Include="..\..\GPU\Math3D.h" />
+    <ClInclude Include="..\..\GPU\Null\NullGpu.h" />
+    <ClInclude Include="..\..\GPU\Software\Clipper.h" />
+    <ClInclude Include="..\..\GPU\Software\Colors.h" />
+    <ClInclude Include="..\..\GPU\Software\Lighting.h" />
+    <ClInclude Include="..\..\GPU\Software\Rasterizer.h" />
+    <ClInclude Include="..\..\GPU\Software\SoftGpu.h" />
+    <ClInclude Include="..\..\GPU\Software\TransformUnit.h" />
+    <ClInclude Include="..\..\GPU\Common\TextureDecoder.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\ext\xbrz\xbrz.cpp" />
+    <ClCompile Include="..\..\GPU\Common\DrawEngineCommon.cpp" />
+    <ClCompile Include="..\..\GPU\Common\FramebufferCommon.cpp" />
+    <ClCompile Include="..\..\GPU\Common\IndexGenerator.cpp" />
+    <ClCompile Include="..\..\GPU\Common\PostShader.cpp" />
+    <ClCompile Include="..\..\GPU\Common\SplineCommon.cpp" />
+    <ClCompile Include="..\..\GPU\Common\TextureDecoderNEON.cpp" />
+    <ClCompile Include="..\..\GPU\Common\TextureCacheCommon.cpp" />
+    <ClCompile Include="..\..\GPU\Common\TransformCommon.cpp" />
+    <ClCompile Include="..\..\GPU\Common\SoftwareTransformCommon.cpp" />
+    <ClCompile Include="..\..\GPU\Common\VertexDecoderArm.cpp" />
+    <ClCompile Include="..\..\GPU\Common\VertexDecoderCommon.cpp" />
+    <ClCompile Include="..\..\GPU\Common\VertexDecoderX86.cpp" />
+    <ClCompile Include="..\..\GPU\Debugger\Breakpoints.cpp" />
+    <ClCompile Include="..\..\GPU\Debugger\Stepping.cpp" />
+    <ClCompile Include="..\..\GPU\GeDisasm.cpp" />
+    <ClCompile Include="..\..\GPU\GLES\DepalettizeShader.cpp" />
+    <ClCompile Include="..\..\GPU\GLES\FragmentShaderGenerator.cpp" />
+    <ClCompile Include="..\..\GPU\GLES\FragmentTestCache.cpp" />
+    <ClCompile Include="..\..\GPU\GLES\Framebuffer.cpp" />
+    <ClCompile Include="..\..\GPU\GLES\GLES_GPU.cpp" />
+    <ClCompile Include="..\..\GPU\GLES\ShaderManager.cpp" />
+    <ClCompile Include="..\..\GPU\GLES\Spline.cpp" />
+    <ClCompile Include="..\..\GPU\GLES\StateMapping.cpp" />
+    <ClCompile Include="..\..\GPU\GLES\StencilBuffer.cpp" />
+    <ClCompile Include="..\..\GPU\GLES\TextureCache.cpp" />
+    <ClCompile Include="..\..\GPU\GLES\TextureScaler.cpp" />
+    <ClCompile Include="..\..\GPU\GLES\TransformPipeline.cpp" />
+    <ClCompile Include="..\..\GPU\GLES\VertexShaderGenerator.cpp" />
+    <ClCompile Include="..\..\GPU\GPUCommon.cpp" />
+    <ClCompile Include="..\..\GPU\GPUState.cpp" />
+    <ClCompile Include="..\..\GPU\Math3D.cpp" />
+    <ClCompile Include="..\..\GPU\Null\NullGpu.cpp" />
+    <ClCompile Include="..\..\GPU\Software\Clipper.cpp" />
+    <ClCompile Include="..\..\GPU\Software\Lighting.cpp" />
+    <ClCompile Include="..\..\GPU\Software\Rasterizer.cpp" />
+    <ClCompile Include="..\..\GPU\Software\SoftGpu.cpp" />
+    <ClCompile Include="..\..\GPU\Software\TransformUnit.cpp" />
+    <ClCompile Include="..\..\GPU\Common\TextureDecoder.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="CMakeLists.txt" />
+  </ItemGroup>
+</Project>

@@ -238,7 +238,7 @@ void CWCheatEngine::SkipCodes(int count) {
 }
 
 void CWCheatEngine::SkipAllCodes() {
-	currentCode = codes.size();
+	currentCode = codes.size() - 1;
 }
 
 int CWCheatEngine::GetAddress(int value) { //Returns static address used by ppsspp. Some games may not like this, and causes cheats to not work without offset
@@ -392,11 +392,11 @@ void CWCheatEngine::Run() {
 					int data = code[0];
 					int dataAdd = code[1];
 
-					int maxAddr = (arg >> 16) & 0xFFFF;
+					int count = (arg >> 16) & 0xFFFF;
 					int stepAddr = (arg & 0xFFFF) * 4;
 
-					InvalidateICache(addr, maxAddr - addr);
-					for (int a  = 0; a < maxAddr; a++) {
+					InvalidateICache(addr, count * stepAddr);
+					for (int a  = 0; a < count; a++) {
 						if (Memory::IsValidAddress(addr)) {
 							Memory::Write_U32((u32) data, addr);
 						}
@@ -418,7 +418,7 @@ void CWCheatEngine::Run() {
 				break;
 			case 0x6: // Pointer commands
 				code = GetNextCode();
-				if (true) {
+				if (code.size() >= 2) {
 					int arg2 = code[0];
 					int offset = code[1];
 					int baseOffset = (arg2 >> 20) * 4;
@@ -429,6 +429,10 @@ void CWCheatEngine::Run() {
 					for (int i = 1; i < count; i ++ ) {
 						if (i+1 < count) {
 							code = GetNextCode();
+							if (code.size() < 2) {
+								// Code broken. Should warn but would be very spammy...
+								break;
+							}
 							int arg3 = code[0];
 							int arg4 = code[1];
 							int comm3 = arg3 >> 28;
@@ -471,7 +475,6 @@ void CWCheatEngine::Run() {
 						}
 					}
 
-					InvalidateICache((base + offset) & ~3, 4);
 					switch (type) {
 					case 0: // 8 bit write
 						Memory::Write_U8((u8) arg, base + offset);
@@ -550,15 +553,15 @@ void CWCheatEngine::Run() {
 				break;
 			case 0x8: // 8-bit and 16-bit patch code
 				code = GetNextCode();
-				if (true) {
+				if (code.size() >= 2) {
 					int data = code[0];
 					int dataAdd = code[1];
 
 					bool is8Bit = (data >> 16) == 0x0000;
-					int maxAddr = (arg >> 16) & 0xFFFF;
+					int count = (arg >> 16) & 0xFFFF;
 					int stepAddr = (arg & 0xFFFF) * (is8Bit ? 1 : 2);
-					InvalidateICache(addr, maxAddr - addr);
-					for (int a = 0; a < maxAddr; a++) {
+					InvalidateICache(addr, count * stepAddr);
+					for (int a = 0; a < count; a++) {
 						if (Memory::IsValidAddress(addr)) {
 							if (is8Bit) {
 								Memory::Write_U8((u8) (data & 0xFF), addr);
@@ -584,7 +587,7 @@ void CWCheatEngine::Run() {
 				}
 				break;
 			case 0xD: // Test commands & Jocker codes
-				if (arg >> 28 == 0x0 || arg >> 28 == 0x2) { // 8Bit & 16Bit ignore next line cheat code
+				if ((arg >> 28) == 0x0 || (arg >> 28) == 0x2) { // 8Bit & 16Bit ignore next line cheat code
 					bool is8Bit = (arg >> 28) == 0x2;
 					addr = GetAddress(comm & 0x0FFFFFFF);
 					if (Memory::IsValidAddress(addr)) {
@@ -612,7 +615,7 @@ void CWCheatEngine::Run() {
 					}
 					break;
 				}
-				else if (arg >> 28 == 0x1 || arg >> 28 == 0x3) { // Buttons dependent ignore cheat code
+				else if ((arg >> 28) == 0x1 || (arg >> 28) == 0x3) { // Buttons dependent ignore cheat code
 					// Button	Code
 					// SELECT	0x00000001
 					// START	0x00000008
@@ -636,23 +639,26 @@ void CWCheatEngine::Run() {
 					// NOTE		0x00800000
 					u32 buttonStatus = __CtrlPeekButtons();
 					int skip = (comm & 0xFF) + 1;
-					if (arg >> 28 == 0x1)
-						if (buttonStatus == (arg & 0x0FFFFFFF))	// cheat code likes: 0xD00000nn 0x1bbbbbbb;
+					u32 mask = arg & 0x0FFFFFFF;
+					if ((arg >> 28) == 0x1)
+						// Old, too specific check: if (buttonStatus == (arg & 0x0FFFFFFF))	// cheat code likes: 0xD00000nn 0x1bbbbbbb;
+						if ((buttonStatus & mask) == mask)	// cheat code likes: 0xD00000nn 0x1bbbbbbb;
 							break;
 						else
 							SkipCodes(skip);
-					else
-						if (buttonStatus != (arg & 0x0FFFFFFF))	// cheat code likes: 0xD00000nn 0x3bbbbbbb;
-							break;
-						else
+					else // (arg >> 28) == 2?
+						// Old, too specific check: if (buttonStatus != (arg & 0x0FFFFFFF))	// cheat code likes: 0xD00000nn 0x3bbbbbbb;
+						if ((buttonStatus & mask) == mask)	// cheat code likes: 0xD00000nn 0x3bbbbbbb;
 							SkipCodes(skip);
+						else
+							break;
 					break;
 				}
-				else if (arg >> 28 == 0x4 || arg >> 28 == 0x5 || arg >> 28 == 0x6 || arg >> 28 == 0x7) {
+				else if ((arg >> 28) == 0x4 || (arg >> 28) == 0x5 || (arg >> 28) == 0x6 || (arg >> 28) == 0x7) {
 					int addr1 = GetAddress(comm & 0x0FFFFFFF);
 					int addr2 = GetAddress(arg & 0x0FFFFFFF);
 					code = GetNextCode();
-					if (true)
+					if (code.size() >= 2)
 						if (Memory::IsValidAddress(addr1) && Memory::IsValidAddress(addr2)) {
 							int comm2 = code[0];
 							int arg2 = code[1];

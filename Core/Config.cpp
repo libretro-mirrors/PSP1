@@ -35,6 +35,7 @@
 #include "Common/StringUtils.h"
 #include "Core/Config.h"
 #include "Core/Loaders.h"
+#include "GPU/Common/FramebufferCommon.h"
 #include "HLE/sceUtility.h"
 
 #ifndef USING_QT_UI
@@ -417,13 +418,8 @@ static ConfigSetting graphicsSettings[] = {
 	ReportedConfigSetting("BufferFiltering", &g_Config.iBufFilter, 1, true, true),
 	ReportedConfigSetting("InternalResolution", &g_Config.iInternalResolution, &DefaultInternalResolution, true, true),
 	ReportedConfigSetting("AndroidHwScale", &g_Config.iAndroidHwScale, &DefaultAndroidHwScale),
-#ifdef ANDROID
-	ReportedConfigSetting("FrameSkip", &g_Config.iFrameSkip, 2, true, true),
-	ReportedConfigSetting("AutoFrameSkip", &g_Config.bAutoFrameSkip, true, true, true),
-#else
 	ReportedConfigSetting("FrameSkip", &g_Config.iFrameSkip, 0, true, true),
 	ReportedConfigSetting("AutoFrameSkip", &g_Config.bAutoFrameSkip, false, true, true),
-#endif
 	ReportedConfigSetting("FrameRate", &g_Config.iFpsLimit, 0, true, true),
 #if defined(_WIN32) && !defined(__LIBRETRO__)
 	ConfigSetting("FrameSkipUnthrottle", &g_Config.bFrameSkipUnthrottle, false, true, true),
@@ -873,6 +869,10 @@ void Config::Load(const char *iniFileName, const char *controllerIniFilename) {
 	// Fix Wrong MAC address by old version by "Change MAC address"
 	if (sMACAddress.length() != 17)
 		sMACAddress = CreateRandMAC();
+
+	if (g_Config.bAutoFrameSkip && g_Config.iRenderingMode == FB_NON_BUFFERED_MODE) {
+		g_Config.iRenderingMode = FB_BUFFERED_MODE;
+	}
 }
 
 void Config::Save() {

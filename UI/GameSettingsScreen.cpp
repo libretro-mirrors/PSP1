@@ -565,6 +565,9 @@ UI::EventReturn GameSettingsScreen::OnAutoFrameskip(UI::EventParams &e) {
 	if (g_Config.bAutoFrameSkip && g_Config.iFrameSkip == 0) {
 		g_Config.iFrameSkip = 1;
 	}
+	if (g_Config.bAutoFrameSkip && g_Config.iRenderingMode == FB_NON_BUFFERED_MODE) {
+		g_Config.iRenderingMode = FB_BUFFERED_MODE;
+	}
 	return UI::EVENT_DONE;
 }
 
@@ -619,6 +622,10 @@ UI::EventReturn GameSettingsScreen::OnRenderingMode(UI::EventParams &e) {
 
 	postProcEnable_ = !g_Config.bSoftwareRendering && (g_Config.iRenderingMode != FB_NON_BUFFERED_MODE);
 	resolutionEnable_ = !g_Config.bSoftwareRendering && (g_Config.iRenderingMode != FB_NON_BUFFERED_MODE);
+
+	if (g_Config.iRenderingMode == FB_NON_BUFFERED_MODE) {
+		g_Config.bAutoFrameSkip = false;
+	}
 	return UI::EVENT_DONE;
 }
 
@@ -671,11 +678,14 @@ UI::EventReturn GameSettingsScreen::OnSavePathOther(UI::EventParams &e) {
 		I18NCategory *di = GetI18NCategory("Dialog");
 		std::string folder = W32Util::BrowseForFolder(MainWindow::GetHWND(), di->T("Choose PPSSPP save folder"));
 		if (folder.size()) {
-			ofstream myfile;
 			g_Config.memStickDirectory = folder;
-			myfile.open(PPSSPPpath + "installed.txt");
-			myfile << "\xEF\xBB\xBF" + folder;
-			myfile.close();
+			FILE *f = File::OpenCFile(PPSSPPpath + "installed.txt", "wb");
+			if (f) {
+				std::string utfstring("\xEF\xBB\xBF");
+				utfstring.append(folder);
+				fwrite(utfstring.c_str(), 1, utfstring.length(), f);
+				fclose(f);
+			}
 			installed_ = false;
 		}
 		else

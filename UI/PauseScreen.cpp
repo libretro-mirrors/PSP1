@@ -159,11 +159,11 @@ public:
 		saveStateButton_ = buttons->Add(new Button(i->T("Save State"), new LinearLayoutParams(0.0, G_VCENTER)));
 		saveStateButton_->OnClick.Handle(this, &SaveSlotView::OnSaveState);
 
+		fv->OnClick.Handle(this, &SaveSlotView::OnScreenshotClick);
+
 		if (SaveState::HasSaveInSlot(slot)) {
 			loadStateButton_ = buttons->Add(new Button(i->T("Load State"), new LinearLayoutParams(0.0, G_VCENTER)));
 			loadStateButton_->OnClick.Handle(this, &SaveSlotView::OnLoadState);
-
-			fv->OnClick.Handle(this, &SaveSlotView::OnScreenshotClick);
 
 			std::string dateStr = SaveState::GetSlotDateAsString(slot_);
 			std::vector<std::string> dateStrs;
@@ -172,7 +172,7 @@ public:
 				LinearLayout *strs = new LinearLayout(ORIENT_VERTICAL, new LinearLayoutParams(WRAP_CONTENT, WRAP_CONTENT));
 				Add(strs);
 				for (size_t i = 0; i < dateStrs.size(); i++) {
-					strs->Add(new TextView(dateStrs[i], new LinearLayoutParams(0.0, G_VCENTER)));
+					strs->Add(new TextView(dateStrs[i], new LinearLayoutParams(0.0, G_VCENTER)))->SetShadow(true);
 				}
 			}
 		} else {
@@ -186,6 +186,7 @@ public:
 
 	void Draw(UIContext &dc) {
 		if (g_Config.iCurrentStateSlot == slot_) {
+			dc.FillRect(UI::Drawable(0x70000000), GetBounds().Expand(3));
 			dc.FillRect(UI::Drawable(0x70FFFFFF), GetBounds().Expand(3));
 		}
 		UI::LinearLayout::Draw(dc);
@@ -273,15 +274,18 @@ void GamePauseScreen::CreateViews() {
 	ViewGroup *leftColumn = new ScrollView(ORIENT_VERTICAL, new LinearLayoutParams(1.0, scrollMargins));
 	root_->Add(leftColumn);
 
-	ViewGroup *leftColumnItems = new LinearLayout(ORIENT_VERTICAL, new LayoutParams(FILL_PARENT, WRAP_CONTENT));
+	LinearLayout *leftColumnItems = new LinearLayout(ORIENT_VERTICAL, new LayoutParams(FILL_PARENT, WRAP_CONTENT));
 	leftColumn->Add(leftColumnItems);
 
+	leftColumnItems->Add(new Spacer(0.0));
+	leftColumnItems->SetSpacing(10.0);
 	for (int i = 0; i < NUM_SAVESLOTS; i++) {
 		SaveSlotView *slot = leftColumnItems->Add(new SaveSlotView(i, new LayoutParams(FILL_PARENT, WRAP_CONTENT)));
 		slot->OnStateLoaded.Handle(this, &GamePauseScreen::OnState);
 		slot->OnStateSaved.Handle(this, &GamePauseScreen::OnState);
 		slot->OnScreenshotClicked.Handle(this, &GamePauseScreen::OnScreenshotClicked);
 	}
+	leftColumnItems->Add(new Spacer(0.0));
 
 	if (g_Config.iRewindFlipFrequency > 0) {
 		UI::Choice *rewindButton = leftColumnItems->Add(new Choice(i->T("Rewind")));
@@ -355,12 +359,16 @@ void GamePauseScreen::dialogFinished(const Screen *dialog, DialogResult dr) {
 }
 
 UI::EventReturn GamePauseScreen::OnScreenshotClicked(UI::EventParams &e) {
-	SaveSlotView *v = (SaveSlotView *)e.v;
-	std::string fn = v->GetScreenshotFilename();
-	std::string title = v->GetScreenshotTitle();
-	I18NCategory *p = GetI18NCategory("Pause");
-	Screen *screen = new ScreenshotViewScreen(fn, title, v->GetSlot(), p);
-	screenManager()->push(screen);
+	SaveSlotView *v = static_cast<SaveSlotView *>(e.v);
+	int slot = v->GetSlot();
+	g_Config.iCurrentStateSlot = v->GetSlot();
+	if (SaveState::HasSaveInSlot(slot)) {
+		std::string fn = v->GetScreenshotFilename();
+		std::string title = v->GetScreenshotTitle();
+		I18NCategory *p = GetI18NCategory("Pause");
+		Screen *screen = new ScreenshotViewScreen(fn, title, v->GetSlot(), p);
+		screenManager()->push(screen);
+	}
 	return UI::EVENT_DONE;
 }
 
@@ -395,8 +403,8 @@ void GamePauseScreen::CallbackDeleteConfig(bool yes)
 {
 	if (yes) {
 		GameInfo *info = g_gameInfoCache.GetInfo(NULL, gamePath_, 0);
-		g_Config.deleteGameConfig(info->id);
 		g_Config.unloadGameConfig();
+		g_Config.deleteGameConfig(info->id);
 		screenManager()->RecreateAllViews();
 	}
 }

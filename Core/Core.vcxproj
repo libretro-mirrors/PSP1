@@ -169,6 +169,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\ext\disarm.cpp" />
+    <ClCompile Include="..\ext\sfmt19937\SFMT.c" />
     <ClCompile Include="..\ext\snappy\snappy-c.cpp" />
     <ClCompile Include="..\ext\snappy\snappy.cpp" />
     <ClCompile Include="..\git-version.cpp" />
@@ -263,6 +264,7 @@
     <ClCompile Include="HLE\sceGameUpdate.cpp" />
     <ClCompile Include="HLE\sceRtc.cpp" />
     <ClCompile Include="HLE\sceSas.cpp" />
+    <ClCompile Include="HLE\sceSfmt19937.cpp" />
     <ClCompile Include="HLE\sceSha256.cpp" />
     <ClCompile Include="HLE\sceSsl.cpp" />
     <ClCompile Include="HLE\sceUmd.cpp" />
@@ -408,6 +410,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\ext\disarm.h" />
+    <ClInclude Include="..\ext\sfmt19937\SFMT-common.h" />
+    <ClInclude Include="..\ext\sfmt19937\SFMT-params.h" />
+    <ClInclude Include="..\ext\sfmt19937\SFMT-params19937.h" />
+    <ClInclude Include="..\ext\sfmt19937\SFMT.h" />
     <ClInclude Include="..\ext\snappy\snappy-internal.h" />
     <ClInclude Include="..\ext\snappy\snappy-sinksource.h" />
     <ClInclude Include="..\ext\snappy\snappy-stubs-internal.h" />
@@ -508,6 +514,7 @@
     <ClInclude Include="HLE\sceGameUpdate.h" />
     <ClInclude Include="HLE\sceRtc.h" />
     <ClInclude Include="HLE\sceSas.h" />
+    <ClInclude Include="HLE\sceSfmt19937.h" />
     <ClInclude Include="HLE\sceSha256.h" />
     <ClInclude Include="HLE\sceSsl.h" />
     <ClInclude Include="HLE\sceUmd.h" />

@@ -9,6 +9,7 @@
 #include "Core/HLE/__sceAudio.h"
 #include "Common/FixedSizeQueue.h"
 #include "GameInfoCache.h"
+#include "Core/Config.h"
 
 // Really simple looping in-memory AT3 player that also takes care of reading the file format.
 // Turns out that AT3 files used for this are modified WAVE files so fairly easy to parse.
@@ -176,6 +177,10 @@ void SetBackgroundAudioGame(const std::string &path) {
 		return;
 	}
 
+	if (!g_Config.bEnableSound) {
+		return;
+	}
+
 	gameLastChanged = time_now_d();
 	if (at3Reader) {
 		at3Reader->Shutdown();
@@ -208,7 +213,7 @@ int PlayBackgroundAudio() {
 	double now = time_now();
 	if (at3Reader) {
 		const int sz = (now - lastPlaybackTime) * 44100;
-		if (sz >= 16 && sz < ARRAY_SIZE(buffer)/2) {
+		if (sz >= 16 && sz < (int)ARRAY_SIZE(buffer) / 2) {
 			if (at3Reader->Read(buffer, sz))
 				__PushExternalAudio(buffer, sz);
 		}

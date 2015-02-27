@@ -38,7 +38,7 @@
 #define SAMPLERATE 44100
 
 #ifdef BAKE_IN_GIT
-const char *PPSSPP_GIT_VERSION = "v1.0.0-git";
+const char *PPSSPP_GIT_VERSION = "v1.0.1-git";
 #endif
 
 static CoreParameter coreParam;

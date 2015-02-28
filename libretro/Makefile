@@ -134,7 +134,7 @@ else ifneq (,$(findstring ios,$(platform)))
 	FFMPEGLDFLAGS += -L$(FFMPEGLIBDIR) -lavformat -lavcodec -lavutil -lswresample -lswscale
 
 	ifeq ($(IOSSDK),)
-		IOSSDK := $(shell xcrun -sdk iphoneos -show-sdk-path)
+		IOSSDK := $(shell xcodebuild -version -sdk iphoneos Path)
 	endif
 
 	CC = clang -arch armv7 -isysroot $(IOSSDK)

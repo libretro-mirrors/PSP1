@@ -130,7 +130,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\ffmpeg\WindowsInclude;..\..\ffmpeg\Windows\x86\include;../../common;../..;../../native;../../native/ext/glew;../../ext/zlib;../../native/ext</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\ffmpeg\WindowsInclude;..\..\ffmpeg\Windows\x86\include;../../common;../..;../../native;../../native/ext/glew;../../ext/zlib;../../native/ext;</AdditionalIncludeDirectories>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
@@ -183,7 +183,10 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Core\HLE\sceAdler.cpp" />
+    <ClCompile Include="..\..\Core\HLE\sceSfmt19937.cpp" />
     <ClCompile Include="..\..\ext\disarm.cpp" />
+    <ClCompile Include="..\..\ext\sfmt19937\SFMT.c" />
     <ClCompile Include="..\..\ext\snappy\snappy-c.cpp" />
     <ClCompile Include="..\..\ext\snappy\snappy.cpp" />
     <ClCompile Include="..\..\git-version.cpp" />
@@ -420,6 +423,8 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Core\HLE\sceAdler.h" />
+    <ClInclude Include="..\..\Core\HLE\sceSfmt19937.h" />
     <ClInclude Include="..\..\ext\disarm.h" />
     <ClInclude Include="..\..\ext\snappy\snappy-internal.h" />
     <ClInclude Include="..\..\ext\snappy\snappy-sinksource.h" />

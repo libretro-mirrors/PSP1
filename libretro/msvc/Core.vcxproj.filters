@@ -218,6 +218,9 @@
     <ClCompile Include="..\..\Core\Util\PPGeDraw.cpp" />
     <ClCompile Include="..\..\Core\Util\ppge_atlas.cpp" />
     <ClCompile Include="..\..\ext\xxhash.c" />
+    <ClCompile Include="..\..\Core\HLE\sceAdler.cpp" />
+    <ClCompile Include="..\..\Core\HLE\sceSfmt19937.cpp" />
+    <ClCompile Include="..\..\ext\sfmt19937\SFMT.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\ext\disarm.h" />
@@ -379,6 +382,8 @@
     <ClInclude Include="..\..\Core\Util\PPGeDraw.h" />
     <ClInclude Include="..\..\Core\Util\ppge_atlas.h" />
     <ClInclude Include="..\..\ext\xxhash.h" />
+    <ClInclude Include="..\..\Core\HLE\sceAdler.h" />
+    <ClInclude Include="..\..\Core\HLE\sceSfmt19937.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CMakeLists.txt" />

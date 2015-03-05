@@ -108,7 +108,8 @@ SOURCES_C   += $(NATIVEDIR)/ext/libzip/zip_get_archive_comment.c \
 SOURCES_CXX += $(GPUCOMMONDIR)/VertexDecoderCommon.cpp \
 				$(GPUCOMMONDIR)/DrawEngineCommon.cpp \
 				$(GPUCOMMONDIR)/SplineCommon.cpp \
-				$(GPUCOMMONDIR)/FramebufferCommon.cpp
+				$(GPUCOMMONDIR)/FramebufferCommon.cpp \
+				$(GPUCOMMONDIR)/DepalettizeShaderCommon.cpp
 SOURCES_C   += $(NATIVEDIR)/ext/libzip/zip_source_function.c \
 				$(NATIVEDIR)/ext/libzip/zip_source_zip.c \
 				$(NATIVEDIR)/ext/libzip/zip_stat.c \

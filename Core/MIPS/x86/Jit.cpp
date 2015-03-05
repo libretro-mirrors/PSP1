@@ -185,7 +185,7 @@ void Jit::GetStateAndFlushAll(RegCacheState &state)
 	FlushAll();
 }
 
-void Jit::RestoreState(const RegCacheState state)
+void Jit::RestoreState(const RegCacheState& state)
 {
 	gpr.RestoreState(state.gpr);
 	fpr.RestoreState(state.fpr);

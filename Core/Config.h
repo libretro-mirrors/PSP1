@@ -240,6 +240,9 @@ public:
 	int iTouchButtonStyle;
 	// Control Positions
 	int iTouchButtonOpacity;
+	// Floating analog stick (recenters on thumb on press).
+	bool bAutoCenterTouchAnalog;
+
 	//space between PSP buttons
 	//the PSP button's center (triangle, circle, square, cross)
 	float fActionButtonCenterX, fActionButtonCenterY;
@@ -294,6 +297,16 @@ public:
 #endif
 
 	bool bHapticFeedback;
+
+	float fDInputAnalogDeadzone;
+	int iDInputAnalogInverseMode;
+	float fDInputAnalogInverseDeadzone;
+	float fDInputAnalogSensitivity;
+
+	float fXInputAnalogDeadzone;
+	int iXInputAnalogInverseMode;
+	float fXInputAnalogInverseDeadzone;
+	float fXInputAnalogSensitivity;
 
 	float fAnalogLimiterDeadzone;
 	// GLES backend-specific hacks. Not saved to the ini file, do not add checkboxes. Will be made into

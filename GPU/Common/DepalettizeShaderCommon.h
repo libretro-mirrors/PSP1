@@ -1,4 +1,4 @@
-// Copyright (c) 2012- PPSSPP Project.
+// Copyright (c) 2014- PPSSPP Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,6 +17,12 @@
 
 #pragma once
 
-#include "Core/MIPS/MIPS.h"
+#include "GPU/ge_constants.h"
 
-// Runtime generated assembly routines, like the Dispatcher.
+enum ShaderLanguage {
+	GLSL_140,
+	GLSL_300,
+	HLSL_DX9,
+};
+
+void GenerateDepalShader(char *buffer, GEBufferFormat pixelFormat, ShaderLanguage language);

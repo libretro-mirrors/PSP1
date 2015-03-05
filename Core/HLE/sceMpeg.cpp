@@ -72,6 +72,7 @@ static const int MPEG_AVC_DECODE_SUCCESS = 1;       // Internal value.
 
 static const int atracDecodeDelayMs = 3000;
 static const int avcFirstDelayMs = 3600;
+static const int avcCscDelayMs = 4000;
 static const int avcDecodeDelayMs = 5400;         // Varies between 4700 and 6000.
 static const int avcEmptyDelayMs = 320;
 static const int mpegDecodeErrorDelayMs = 100;
@@ -740,7 +741,7 @@ static void SaveFrame(AVFrame *pFrame, int width, int height)
 
 // check the existence of pmp media context 
 static bool isContextExist(u32 ctxAddr){
-	for (std::list<u32>::iterator it = pmp_ContextList.begin(); it != pmp_ContextList.end(); it++){
+	for (auto it = pmp_ContextList.begin(); it != pmp_ContextList.end(); ++it){
 		if (*it == ctxAddr){
 			return true;
 		}
@@ -1016,7 +1017,7 @@ void __VideoPmpInit() {
 void __VideoPmpShutdown() {
 #ifdef USE_FFMPEG
 	// We need to empty pmp_queue to not leak memory.
-	for (std::list<AVFrame *>::iterator it = pmp_queue.begin(); it != pmp_queue.end(); it++){
+	for (auto it = pmp_queue.begin(); it != pmp_queue.end(); ++it){
 		av_free(*it);
 	}
 	pmp_queue.clear();
@@ -1633,7 +1634,7 @@ static int sceMpegQueryPcmEsSize(u32 mpeg, u32 esSizeAddr, u32 outSizeAddr)
 		return -1;
 	}
 
-	ERROR_LOG(ME, "sceMpegQueryPcmEsSize - bad pointers(%08x, %08x, %08x)", mpeg, esSizeAddr, outSizeAddr);
+	ERROR_LOG(ME, "sceMpegQueryPcmEsSize(%08x, %08x, %08x)", mpeg, esSizeAddr, outSizeAddr);
 
 	Memory::Write_U32(MPEG_PCM_ES_SIZE, esSizeAddr);
 	Memory::Write_U32(MPEG_PCM_ES_OUTPUT_SIZE, outSizeAddr);
@@ -1646,13 +1647,20 @@ static u32 sceMpegChangeGetAuMode(u32 mpeg, int streamUid, int mode)
 	MpegContext *ctx = getMpegCtx(mpeg);
 	if (!ctx) {
 		WARN_LOG(ME, "sceMpegChangeGetAuMode(%08x, %i, %i): bad mpeg handle", mpeg, streamUid, mode);
-		return -1;
+		return ERROR_MPEG_INVALID_VALUE;
+	}
+	if (mode != MPEG_AU_MODE_DECODE && mode != MPEG_AU_MODE_SKIP) {
+		ERROR_LOG(ME, "UNIMPL sceMpegChangeGetAuMode(%08x, %i, %i): bad mode", mpeg, streamUid, mode);
+		return ERROR_MPEG_INVALID_VALUE;
 	}
 
-	// NOTE: Where is the info supposed to come from?
-	StreamInfo info = {0};
-	info.sid = streamUid;
-	if (info.sid) {
+	auto stream = ctx->streamMap.find(streamUid);
+	if (stream == ctx->streamMap.end()) {
+		ERROR_LOG(ME, "UNIMPL sceMpegChangeGetAuMode(%08x, %i, %i): unknown streamID", mpeg, streamUid, mode);
+		return ERROR_MPEG_INVALID_VALUE;
+	} else {
+		StreamInfo &info = stream->second;
+		DEBUG_LOG(ME, "UNIMPL sceMpegChangeGetAuMode(%08x, %i, %i): changing type=%d", mpeg, streamUid, mode, info.type);
 		switch (info.type) {
 		case MPEG_AVC_STREAM:
 			if (mode == MPEG_AU_MODE_DECODE) {
@@ -1677,11 +1685,9 @@ static u32 sceMpegChangeGetAuMode(u32 mpeg, int streamUid, int mode)
 			}
 			break;
 		default:
-			ERROR_LOG(ME, "UNIMPL sceMpegChangeGetAuMode(%08x, %i): unknown streamID", mpeg, streamUid);
+			ERROR_LOG(ME, "UNIMPL sceMpegChangeGetAuMode(%08x, %i, %i): unknown streamID", mpeg, streamUid, mode);
 			break;
 		}
-	} else {
-		ERROR_LOG(ME, "UNIMPL sceMpegChangeGetAuMode(%08x, %i): unknown streamID", mpeg, streamUid);
 	}
 	return 0;
 }
@@ -1855,10 +1861,13 @@ static u32 sceMpegAvcCsc(u32 mpeg, u32 sourceAddr, u32 rangeAddr, int frameWidth
 	int destSize = ctx->mediaengine->writeVideoImageWithRange(destAddr, frameWidth, ctx->videoPixelMode, x, y, width, height);
 
 	gpu->InvalidateCache(destAddr, destSize, GPU_INVALIDATE_SAFE);
-	// Do not hleDelayResult
+	// Do not use avcDecodeDelayMs 's value
 	// Will cause video 's screen dislocation in Bleach heat of soul 6
 	// https://github.com/hrydgard/ppsspp/issues/5535
-	return 0;
+	// If do not use DelayResult,Wil cause flickering in Dengeki no Pilot: Tenkuu no Kizuna
+	// https://github.com/hrydgard/ppsspp/issues/7549
+
+	return hleDelayResult(0, "mpeg avc csc", avcCscDelayMs);
 }
 
 static u32 sceMpegRingbufferDestruct(u32 ringbufferAddr)

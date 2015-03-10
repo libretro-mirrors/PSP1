@@ -72,6 +72,7 @@ ifneq (,$(findstring unix,$(platform)))
 		GL_LIB := -lGL
 	endif
 	PLATFORM_EXT := unix
+	LDFLAGS += -lrt
 
 # Raspberry Pi
 else ifneq (,$(findstring rpi,$(platform)))
@@ -84,6 +85,7 @@ else ifneq (,$(findstring rpi,$(platform)))
 	CPUFLAGS += -DARMv5_ONLY 
 	PLATFORM_EXT := unix
 	WITH_DYNAREC=arm
+	LDFLAGS += -lrt
 
 # i.MX6
 else ifneq (,$(findstring imx6,$(platform)))
@@ -99,6 +101,7 @@ else ifneq (,$(findstring imx6,$(platform)))
 	FFMPEGINCFLAGS += -I$(FFMPEGDIR)/linux/armv7/include
 	FFMPEGLIBDIR := $(FFMPEGDIR)/linux/armv7/lib
 	FFMPEGLDFLAGS += -L$(FFMPEGLIBDIR) -lavformat -lavcodec -lavutil -lswresample -lswscale
+	LDFLAGS += -lrt
 
 # OS X
 else ifneq (,$(findstring osx,$(platform)))

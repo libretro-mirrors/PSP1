@@ -63,6 +63,7 @@
     <ClInclude Include="..\..\GPU\Software\SoftGpu.h" />
     <ClInclude Include="..\..\GPU\Software\TransformUnit.h" />
     <ClInclude Include="..\..\GPU\Common\TextureDecoder.h" />
+    <ClInclude Include="..\..\GPU\Common\DepalettizeShaderCommon.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\ext\xbrz\xbrz.cpp" />
@@ -104,6 +105,7 @@
     <ClCompile Include="..\..\GPU\Software\SoftGpu.cpp" />
     <ClCompile Include="..\..\GPU\Software\TransformUnit.cpp" />
     <ClCompile Include="..\..\GPU\Common\TextureDecoder.cpp" />
+    <ClCompile Include="..\..\GPU\Common\DepalettizeShaderCommon.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CMakeLists.txt" />

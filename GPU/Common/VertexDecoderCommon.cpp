@@ -21,6 +21,7 @@
 #include "base/logging.h"
 
 #include "Common/CPUDetect.h"
+#include "Common/ColorConv.h"
 #include "Core/Config.h"
 #include "Core/MemMap.h"
 #include "Core/HDRemaster.h"
@@ -362,6 +363,11 @@ void VertexDecoder::Step_TcFloatPrescale() const {
 	const float *uvdata = (const float*)(ptr_ + tcoff);
 	uv[0] = uvdata[0] * gstate_c.uv.uScale + gstate_c.uv.uOff;
 	uv[1] = uvdata[1] * gstate_c.uv.vScale + gstate_c.uv.vOff;
+}
+
+void VertexDecoder::Step_ColorInvalid() const
+{
+	// Do nothing.  This is only here to prevent crashes.
 }
 
 void VertexDecoder::Step_Color565() const
@@ -761,7 +767,10 @@ static const StepFunction tcstep_through_RemasterToFloat[4] = {
 // TODO: Tc Morph
 
 static const StepFunction colstep[8] = {
-	0, 0, 0, 0,
+	0,
+	&VertexDecoder::Step_ColorInvalid,
+	&VertexDecoder::Step_ColorInvalid,
+	&VertexDecoder::Step_ColorInvalid,
 	&VertexDecoder::Step_Color565,
 	&VertexDecoder::Step_Color5551,
 	&VertexDecoder::Step_Color4444,
@@ -769,7 +778,10 @@ static const StepFunction colstep[8] = {
 };
 
 static const StepFunction colstep_morph[8] = {
-	0, 0, 0, 0,
+	0,
+	&VertexDecoder::Step_ColorInvalid,
+	&VertexDecoder::Step_ColorInvalid,
+	&VertexDecoder::Step_ColorInvalid,
 	&VertexDecoder::Step_Color565Morph,
 	&VertexDecoder::Step_Color5551Morph,
 	&VertexDecoder::Step_Color4444Morph,
@@ -1071,19 +1083,26 @@ void VertexDecoder::DecodeVerts(u8 *decodedptr, const void *verts, int indexLowe
 	}
 }
 
+static const char *posnames[4] = { "?", "s8", "s16", "f" };
+static const char *nrmnames[4] = { "", "s8", "s16", "f" };
+static const char *tcnames[4] = { "", "u8", "u16", "f" };
+static const char *idxnames[4] = { "-", "u8", "u16", "?" };
+static const char *weightnames[4] = { "-", "u8", "u16", "f" };
+static const char *colnames[8] = { "", "?", "?", "?", "565", "5551", "4444", "8888" };
+
 int VertexDecoder::ToString(char *output) const {
 	char * start = output;
-	output += sprintf(output, "P: %i ", pos);
+	output += sprintf(output, "P: %s ", posnames[pos]);
 	if (nrm)
-		output += sprintf(output, "N: %i ", nrm);
+		output += sprintf(output, "N: %s ", nrmnames[nrm]);
 	if (col)
-		output += sprintf(output, "C: %i ", col);
+		output += sprintf(output, "C: %s ", colnames[col]);
 	if (tc)
-		output += sprintf(output, "T: %i ", tc);
+		output += sprintf(output, "T: %s ", tcnames[tc]);
 	if (weighttype)
-		output += sprintf(output, "W: %i ", weighttype);
+		output += sprintf(output, "W: %s (%ix)", weightnames[weighttype], nweights);
 	if (idx)
-		output += sprintf(output, "I: %i ", idx);
+		output += sprintf(output, "I: %s ", idxnames[idx]);
 	if (morphcount > 1)
 		output += sprintf(output, "Morph: %i ", morphcount);
 	if (throughmode)
@@ -1093,7 +1112,11 @@ int VertexDecoder::ToString(char *output) const {
 	return output - start;
 }
 
-VertexDecoderJitCache::VertexDecoderJitCache() {
+VertexDecoderJitCache::VertexDecoderJitCache()
+#ifdef ARM64
+ : fp(this)
+#endif
+{
 	// 256k should be enough.
 	AllocCodeSpace(1024 * 64 * 4);
 

@@ -51,8 +51,9 @@ JitSafeMem::JitSafeMem(Jit *jit, MIPSGPReg raddr, s32 offset, u32 alignMask)
 {
 	// This makes it more instructions, so let's play it safe and say we need a far jump.
 	far_ = !g_Config.bIgnoreBadMemAccess || !CBreakPoints::GetMemChecks().empty();
+	// Mask out the kernel RAM bit, because we'll end up with a negative offset to MEMBASEREG.
 	if (jit_->gpr.IsImm(raddr_))
-		iaddr_ = jit_->gpr.GetImm(raddr_) + offset_;
+		iaddr_ = (jit_->gpr.GetImm(raddr_) + offset_) & 0x7FFFFFFF;
 	else
 		iaddr_ = (u32) -1;
 
@@ -61,7 +62,7 @@ JitSafeMem::JitSafeMem(Jit *jit, MIPSGPReg raddr, s32 offset, u32 alignMask)
 	// If raddr_ is going to get loaded soon, load it now for more optimal code.
 	// We assume that it was already locked.
 	const int LOOKAHEAD_OPS = 3;
-	if (!jit_->gpr.R(raddr_).IsImm() && MIPSAnalyst::IsRegisterUsed(raddr_, js.compilerPC + 4, LOOKAHEAD_OPS))
+	if (!jit_->gpr.R(raddr_).IsImm() && MIPSAnalyst::IsRegisterUsed(raddr_, jit_->GetCompilerPC() + 4, LOOKAHEAD_OPS))
 		jit_->gpr.MapReg(raddr_, true, false);
 }
 
@@ -123,9 +124,9 @@ bool JitSafeMem::PrepareRead(OpArg &src, int size)
 
 OpArg JitSafeMem::NextFastAddress(int suboffset)
 {
-	if (jit_->gpr.IsImm(raddr_))
+	if (iaddr_ != (u32) -1)
 	{
-		u32 addr = (jit_->gpr.GetImm(raddr_) + offset_ + suboffset) & alignMask_;
+		u32 addr = (iaddr_ + suboffset) & alignMask_;
 
 #ifdef _M_IX86
 		return M(Memory::base + (addr & Memory::MEMVIEW32_MASK));
@@ -252,7 +253,7 @@ void JitSafeMem::DoSlowWrite(const void *safeFunc, const OpArg& src, int suboffs
 		jit_->MOV(32, R(EDX), src);
 	}
 	if (!g_Config.bIgnoreBadMemAccess) {
-		jit_->MOV(32, M(&jit_->mips_->pc), Imm32(js.compilerPC));
+		jit_->MOV(32, M(&jit_->mips_->pc), Imm32(jit_->GetCompilerPC()));
 	}
 	// This is a special jit-ABI'd function.
 	jit_->CALL(safeFunc);
@@ -282,7 +283,7 @@ bool JitSafeMem::PrepareSlowRead(const void *safeFunc)
 		}
 
 		if (!g_Config.bIgnoreBadMemAccess) {
-			jit_->MOV(32, M(&jit_->mips_->pc), Imm32(js.compilerPC));
+			jit_->MOV(32, M(&jit_->mips_->pc), Imm32(jit_->GetCompilerPC()));
 		}
 		// This is a special jit-ABI'd function.
 		jit_->CALL(safeFunc);
@@ -316,7 +317,7 @@ void JitSafeMem::NextSlowRead(const void *safeFunc, int suboffset)
 	}
 
 	if (!g_Config.bIgnoreBadMemAccess) {
-		jit_->MOV(32, M(&jit_->mips_->pc), Imm32(js.compilerPC));
+		jit_->MOV(32, M(&jit_->mips_->pc), Imm32(jit_->GetCompilerPC()));
 	}
 	// This is a special jit-ABI'd function.
 	jit_->CALL(safeFunc);
@@ -331,7 +332,7 @@ void JitSafeMem::Finish()
 {
 	// Memory::Read_U32/etc. may have tripped coreState.
 	if (needsCheck_ && !g_Config.bIgnoreBadMemAccess)
-		js.afterOp |= JitState::AFTER_CORE_STATE;
+		jit_->js.afterOp |= JitState::AFTER_CORE_STATE;
 	if (needsSkip_)
 		jit_->SetJumpTarget(skip_);
 	for (auto it = skipChecks_.begin(), end = skipChecks_.end(); it != end; ++it)
@@ -348,13 +349,13 @@ void JitSafeMem::MemCheckImm(MemoryOpType type)
 		if (!(check->cond & MEMCHECK_WRITE) && type == MEM_WRITE)
 			return;
 
-		jit_->MOV(32, M(&jit_->mips_->pc), Imm32(js.compilerPC));
+		jit_->MOV(32, M(&jit_->mips_->pc), Imm32(jit_->GetCompilerPC()));
 		jit_->CallProtectedFunction(&JitMemCheck, iaddr_, size_, type == MEM_WRITE ? 1 : 0);
 
 		// CORE_RUNNING is <= CORE_NEXTFRAME.
 		jit_->CMP(32, M(&coreState), Imm32(CORE_NEXTFRAME));
 		skipChecks_.push_back(jit_->J_CC(CC_G, true));
-		js.afterOp |= JitState::AFTER_CORE_STATE | JitState::AFTER_REWIND_PC_BAD_STATE | JitState::AFTER_MEMCHECK_CLEANUP;
+		jit_->js.afterOp |= JitState::AFTER_CORE_STATE | JitState::AFTER_REWIND_PC_BAD_STATE | JitState::AFTER_MEMCHECK_CLEANUP;
 	}
 }
 
@@ -388,7 +389,7 @@ void JitSafeMem::MemCheckAsm(MemoryOpType type)
 		// Keep the stack 16-byte aligned, just PUSH/POP 4 times.
 		for (int i = 0; i < 4; ++i)
 			jit_->PUSH(xaddr_);
-		jit_->MOV(32, M(&jit_->mips_->pc), Imm32(js.compilerPC));
+		jit_->MOV(32, M(&jit_->mips_->pc), Imm32(jit_->GetCompilerPC()));
 		jit_->ADD(32, R(xaddr_), Imm32(offset_));
 		jit_->CallProtectedFunction(&JitMemCheck, R(xaddr_), size_, type == MEM_WRITE ? 1 : 0);
 		for (int i = 0; i < 4; ++i)
@@ -404,7 +405,7 @@ void JitSafeMem::MemCheckAsm(MemoryOpType type)
 		// CORE_RUNNING is <= CORE_NEXTFRAME.
 		jit_->CMP(32, M(&coreState), Imm32(CORE_NEXTFRAME));
 		skipChecks_.push_back(jit_->J_CC(CC_G, true));
-		js.afterOp |= JitState::AFTER_CORE_STATE | JitState::AFTER_REWIND_PC_BAD_STATE | JitState::AFTER_MEMCHECK_CLEANUP;
+		jit_->js.afterOp |= JitState::AFTER_CORE_STATE | JitState::AFTER_REWIND_PC_BAD_STATE | JitState::AFTER_MEMCHECK_CLEANUP;
 	}
 }
 

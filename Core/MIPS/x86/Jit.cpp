@@ -61,8 +61,6 @@ static u64 saved_flags;
 const bool USE_JIT_MISSMAP = false;
 static std::map<std::string, u32> notJitOps;
 
-JitState js;
-
 template<typename A, typename B>
 std::pair<B,A> flip_pair(const std::pair<A,B> &p) {
 	return std::pair<B, A>(p.second, p.first);
@@ -114,18 +112,6 @@ static void JitLogMiss(MIPSOpcode op)
 
 	MIPSInterpretFunc func = MIPSGetInterpretFunc(op);
 	func(op);
-}
-
-JitOptions::JitOptions()
-{
-	enableBlocklink = true;
-	immBranches = false;
-	continueBranches = false;
-	continueJumps = false;
-	continueMaxInstructions = 300;
-	enableVFPUSIMD = true;
-	// Set by Asm if needed.
-	reserveR15ForAsm = false;
 }
 
 #ifdef _MSC_VER
@@ -321,16 +307,14 @@ void Jit::InvalidateCache()
 
 void Jit::CompileDelaySlot(int flags, RegCacheState *state)
 {
-	const u32 addr = js.compilerPC + 4;
-
 	// Need to offset the downcount which was already incremented for the branch + delay slot.
-	CheckJitBreakpoint(addr, -2);
+	CheckJitBreakpoint(GetCompilerPC() + 4, -2);
 
 	if (flags & DELAYSLOT_SAFE)
 		SAVE_FLAGS; // preserve flag around the delay slot!
 
 	js.inDelaySlot = true;
-	MIPSOpcode op = Memory::Read_Opcode_JIT(addr);
+	MIPSOpcode op = GetOffsetInstruction(1);
 	MIPSCompileOp(op);
 	js.inDelaySlot = false;
 
@@ -355,7 +339,7 @@ void Jit::EatInstruction(MIPSOpcode op)
 		ERROR_LOG_REPORT_ONCE(ateInDelaySlot, JIT, "Ate an instruction inside a delay slot.");
 	}
 
-	CheckJitBreakpoint(js.compilerPC + 4, 0);
+	CheckJitBreakpoint(GetCompilerPC() + 4, 0);
 	js.numInstructions++;
 	js.compilerPC += 4;
 	js.downcountAmount += MIPSGetInstructionCycleEstimate(op);
@@ -384,7 +368,7 @@ void Jit::Compile(u32 em_address)
 
 	// Drat.  The VFPU hit an uneaten prefix at the end of a block.
 	if (js.startDefaultPrefix && js.MayHavePrefix()) {
-		WARN_LOG(JIT, "An uneaten prefix at end of block: %08x", js.compilerPC - 4);
+		WARN_LOG(JIT, "An uneaten prefix at end of block: %08x", GetCompilerPC() - 4);
 		js.LogPrefix();
 
 		// Let's try that one more time.  We won't get back here because we toggled the value.
@@ -402,6 +386,14 @@ void Jit::Compile(u32 em_address)
 void Jit::RunLoopUntil(u64 globalticks)
 {
 	((void (*)())asm_.enterCode)();
+}
+
+u32 Jit::GetCompilerPC() {
+	return js.compilerPC;
+}
+
+MIPSOpcode Jit::GetOffsetInstruction(int offset) {
+	return Memory::Read_Instruction(GetCompilerPC() + 4 * offset);
 }
 
 const u8 *Jit::DoJit(u32 em_address, JitBlock *b)
@@ -436,9 +428,9 @@ const u8 *Jit::DoJit(u32 em_address, JitBlock *b)
 	js.numInstructions = 0;
 	while (js.compiling) {
 		// Jit breakpoints are quite fast, so let's do them in release too.
-		CheckJitBreakpoint(js.compilerPC, 0);
+		CheckJitBreakpoint(GetCompilerPC(), 0);
 
-		MIPSOpcode inst = Memory::Read_Opcode_JIT(js.compilerPC);
+		MIPSOpcode inst = Memory::Read_Opcode_JIT(GetCompilerPC());
 		js.downcountAmount += MIPSGetInstructionCycleEstimate(inst);
 
 		MIPSCompileOp(inst);
@@ -453,9 +445,9 @@ const u8 *Jit::DoJit(u32 em_address, JitBlock *b)
 			CMP(32, M(&coreState), Imm32(CORE_NEXTFRAME));
 			FixupBranch skipCheck = J_CC(CC_LE);
 			if (js.afterOp & JitState::AFTER_REWIND_PC_BAD_STATE)
-				MOV(32, M(&mips_->pc), Imm32(js.compilerPC));
+				MOV(32, M(&mips_->pc), Imm32(GetCompilerPC()));
 			else
-				MOV(32, M(&mips_->pc), Imm32(js.compilerPC + 4));
+				MOV(32, M(&mips_->pc), Imm32(GetCompilerPC() + 4));
 			WriteSyscallExit();
 			SetJumpTarget(skipCheck);
 
@@ -472,7 +464,7 @@ const u8 *Jit::DoJit(u32 em_address, JitBlock *b)
 		if (GetSpaceLeft() < 0x800 || js.numInstructions >= JitBlockCache::MAX_BLOCK_INSTRUCTIONS)
 		{
 			FlushAll();
-			WriteExit(js.compilerPC, js.nextExit++);
+			WriteExit(GetCompilerPC(), js.nextExit++);
 			js.compiling = false;
 		}
 	}
@@ -485,7 +477,7 @@ const u8 *Jit::DoJit(u32 em_address, JitBlock *b)
 	else
 	{
 		// We continued at least once.  Add the last proxy and set the originalSize correctly.
-		blocks.ProxyBlock(js.blockStart, js.lastContinuedPC, (js.compilerPC - js.lastContinuedPC) / sizeof(u32), GetCodePtr());
+		blocks.ProxyBlock(js.blockStart, js.lastContinuedPC, (GetCompilerPC() - js.lastContinuedPC) / sizeof(u32), GetCodePtr());
 		b->originalSize = js.initialBlockSize;
 	}
 	return b->normalEntry;
@@ -497,7 +489,7 @@ void Jit::AddContinuedBlock(u32 dest)
 	if (js.lastContinuedPC == 0)
 		js.initialBlockSize = js.numInstructions;
 	else
-		blocks.ProxyBlock(js.blockStart, js.lastContinuedPC, (js.compilerPC - js.lastContinuedPC) / sizeof(u32), GetCodePtr());
+		blocks.ProxyBlock(js.blockStart, js.lastContinuedPC, (GetCompilerPC() - js.lastContinuedPC) / sizeof(u32), GetCodePtr());
 	js.lastContinuedPC = dest;
 }
 
@@ -541,34 +533,10 @@ void Jit::Comp_RunBlock(MIPSOpcode op)
 }
 
 bool Jit::ReplaceJalTo(u32 dest) {
-	MIPSOpcode op(Memory::Read_Opcode_JIT(dest));
-	if (!MIPS_IS_REPLACEMENT(op.encoding))
+	const ReplacementTableEntry *entry = nullptr;
+	u32 funcSize = 0;
+	if (!CanReplaceJalTo(dest, &entry, &funcSize)) {
 		return false;
-
-	// Make sure we don't replace if there are any breakpoints inside.
-	u32 funcSize = symbolMap.GetFunctionSize(dest);
-	if (funcSize == SymbolMap::INVALID_ADDRESS) {
-		if (CBreakPoints::IsAddressBreakPoint(dest)) {
-			return false;
-		}
-		funcSize = (u32)sizeof(u32);
-	} else {
-		if (CBreakPoints::RangeContainsBreakPoint(dest, funcSize)) {
-			return false;
-		}
-	}
-
-	int index = op.encoding & MIPS_EMUHACK_VALUE_MASK;
-	const ReplacementTableEntry *entry = GetReplacementFunc(index);
-	if (!entry) {
-		ERROR_LOG(HLE, "ReplaceJalTo: Invalid replacement op %08x at %08x", op.encoding, dest);
-		return false;
-	}
-
-	if (entry->flags & (REPFLAG_HOOKENTER | REPFLAG_HOOKEXIT | REPFLAG_DISABLED)) {
-      if ((entry->flags & (REPFLAG_DISABLED)) && !g_Config.bUnsafeFuncReplacements)
-		// If it's a hook, we can't replace the jal, we have to go inside the func.
-         return false;
 	}
 
 	// Warning - this might be bad if the code at the destination changes...
@@ -582,10 +550,10 @@ bool Jit::ReplaceJalTo(u32 dest) {
 		int cycles = (this->*repl)();
 		js.downcountAmount += cycles;
 	} else {
-		gpr.SetImm(MIPS_REG_RA, js.compilerPC + 8);
+		gpr.SetImm(MIPS_REG_RA, GetCompilerPC() + 8);
 		CompileDelaySlot(DELAYSLOT_NICE);
 		FlushAll();
-		MOV(32, M(&mips_->pc), Imm32(js.compilerPC));
+		MOV(32, M(&mips_->pc), Imm32(GetCompilerPC()));
 		RestoreRoundingMode();
 		ABI_CallFunction(entry->replaceFunc);
 		SUB(32, M(&mips_->downcount), R(EAX));
@@ -615,26 +583,26 @@ void Jit::Comp_ReplacementFunc(MIPSOpcode op)
 		return;
 	}
 
-	u32 funcSize = symbolMap.GetFunctionSize(js.compilerPC);
+	u32 funcSize = symbolMap.GetFunctionSize(GetCompilerPC());
 	bool disabled = (entry->flags & REPFLAG_DISABLED) != 0;
 	if (!disabled && funcSize != SymbolMap::INVALID_ADDRESS && funcSize > sizeof(u32)) {
 		// We don't need to disable hooks, the code will still run.
 		if ((entry->flags & (REPFLAG_HOOKENTER | REPFLAG_HOOKEXIT)) == 0) {
 			// Any breakpoint at the func entry was already tripped, so we can still run the replacement.
 			// That's a common case - just to see how often the replacement hits.
-			disabled = CBreakPoints::RangeContainsBreakPoint(js.compilerPC + sizeof(u32), funcSize - sizeof(u32));
+			disabled = CBreakPoints::RangeContainsBreakPoint(GetCompilerPC() + sizeof(u32), funcSize - sizeof(u32));
 		}
 	}
 
 	if (disabled) {
-		MIPSCompileOp(Memory::Read_Instruction(js.compilerPC, true));
+		MIPSCompileOp(Memory::Read_Instruction(GetCompilerPC(), true));
 	} else if (entry->jitReplaceFunc) {
 		MIPSReplaceFunc repl = entry->jitReplaceFunc;
 		int cycles = (this->*repl)();
 
 		if (entry->flags & (REPFLAG_HOOKENTER | REPFLAG_HOOKEXIT)) {
 			// Compile the original instruction at this address.  We ignore cycles for hooks.
-			MIPSCompileOp(Memory::Read_Instruction(js.compilerPC, true));
+			MIPSCompileOp(Memory::Read_Instruction(GetCompilerPC(), true));
 		} else {
 			FlushAll();
 			MOV(32, R(ECX), M(&mips_->r[MIPS_REG_RA]));
@@ -647,14 +615,14 @@ void Jit::Comp_ReplacementFunc(MIPSOpcode op)
 
 		// Standard function call, nothing fancy.
 		// The function returns the number of cycles it took in EAX.
-		MOV(32, M(&mips_->pc), Imm32(js.compilerPC));
+		MOV(32, M(&mips_->pc), Imm32(GetCompilerPC()));
 		RestoreRoundingMode();
 		ABI_CallFunction(entry->replaceFunc);
 
 		if (entry->flags & (REPFLAG_HOOKENTER | REPFLAG_HOOKEXIT)) {
 			// Compile the original instruction at this address.  We ignore cycles for hooks.
 			ApplyRoundingMode();
-			MIPSCompileOp(Memory::Read_Instruction(js.compilerPC, true));
+			MIPSCompileOp(Memory::Read_Instruction(GetCompilerPC(), true));
 		} else {
 			MOV(32, R(ECX), M(&mips_->r[MIPS_REG_RA]));
 			SUB(32, M(&mips_->downcount), R(EAX));
@@ -679,7 +647,7 @@ void Jit::Comp_Generic(MIPSOpcode op)
 	{
 		// TODO: Maybe we'd be better off keeping the rounding mode within interp?
 		RestoreRoundingMode();
-		MOV(32, M(&mips_->pc), Imm32(js.compilerPC));
+		MOV(32, M(&mips_->pc), Imm32(GetCompilerPC()));
 		if (USE_JIT_MISSMAP)
 			ABI_CallFunctionC(&JitLogMiss, op.encoding);
 		else
@@ -711,7 +679,7 @@ void Jit::WriteExit(u32 destination, int exit_num)
 		// CORE_RUNNING is <= CORE_NEXTFRAME.
 		CMP(32, M(&coreState), Imm32(CORE_NEXTFRAME));
 		FixupBranch skipCheck = J_CC(CC_LE);
-		MOV(32, M(&mips_->pc), Imm32(js.compilerPC));
+		MOV(32, M(&mips_->pc), Imm32(GetCompilerPC()));
 		WriteSyscallExit();
 		SetJumpTarget(skipCheck);
 	}
@@ -752,7 +720,7 @@ void Jit::WriteExitDestInReg(X64Reg reg)
 		// CORE_RUNNING is <= CORE_NEXTFRAME.
 		CMP(32, M(&coreState), Imm32(CORE_NEXTFRAME));
 		FixupBranch skipCheck = J_CC(CC_LE);
-		MOV(32, M(&mips_->pc), Imm32(js.compilerPC));
+		MOV(32, M(&mips_->pc), Imm32(GetCompilerPC()));
 		WriteSyscallExit();
 		SetJumpTarget(skipCheck);
 	}
@@ -817,7 +785,7 @@ bool Jit::CheckJitBreakpoint(u32 addr, int downcountOffset)
 	{
 		SAVE_FLAGS;
 		FlushAll();
-		MOV(32, M(&mips_->pc), Imm32(js.compilerPC));
+		MOV(32, M(&mips_->pc), Imm32(GetCompilerPC()));
 		RestoreRoundingMode();
 		ABI_CallFunction(&JitBreakpoint);
 

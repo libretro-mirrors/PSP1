@@ -30,6 +30,10 @@
 #include "Common/ArmEmitter.h"
 namespace ArmGen { class ARMXEmitter; }
 typedef ArmGen::ARMXCodeBlock NativeCodeBlock;
+#elif defined(ARM64)
+#include "Common/Arm64Emitter.h"
+namespace Arm64Gen { class ARM64XEmitter; }
+typedef Arm64Gen::ARM64CodeBlock NativeCodeBlock;
 #elif defined(_M_IX86) || defined(_M_X64)
 #include "Common/x64Emitter.h"
 namespace Gen { class XEmitter; }
@@ -44,11 +48,21 @@ namespace FakeGen { class FakeXEmitter; }
 typedef FakeGen::FakeXCodeBlock NativeCodeBlock;
 #endif
 
-#if defined(ARM)
+#if defined(ARM) || defined(ARM64)
 const int MAX_JIT_BLOCK_EXITS = 2;
 #else
 const int MAX_JIT_BLOCK_EXITS = 8;
 #endif
+
+struct BlockCacheStats {
+	int numBlocks;
+	float avgBloat;  // In code bytes, not instructions!
+	float minBloat;
+	u32 minBloatBlock;
+	float maxBloat;
+	u32 maxBloatBlock;
+	std::map<float, u32> bloatMap;
+};
 
 // Define this in order to get VTune profile support for the Jit generated code.
 // Add the VTune include/lib directories to the project directories to get this to build.
@@ -110,6 +124,7 @@ public:
 	void Reset();
 
 	bool IsFull() const;
+	void ComputeStats(BlockCacheStats &bcStats);
 
 	// Code Cache
 	JitBlock *GetBlock(int block_num);

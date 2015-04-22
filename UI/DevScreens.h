@@ -120,13 +120,17 @@ public:
 private:
 	void UpdateDisasm();
 	UI::EventReturn OnRandomBlock(UI::EventParams &e);
+	UI::EventReturn OnRandomFPUBlock(UI::EventParams &e);
 	UI::EventReturn OnRandomVFPUBlock(UI::EventParams &e);
+	void OnRandomBlock(int flag);
+
 	UI::EventReturn OnCurrentBlock(UI::EventParams &e);
 	UI::EventReturn OnSelectBlock(UI::EventParams &e);
 	UI::EventReturn OnPrevBlock(UI::EventParams &e);
 	UI::EventReturn OnNextBlock(UI::EventParams &e);
 	UI::EventReturn OnBlockAddress(UI::EventParams &e);
 	UI::EventReturn OnAddressChange(UI::EventParams &e);
+	UI::EventReturn OnShowStats(UI::EventParams &e);
 
 	int currentBlock_;
 

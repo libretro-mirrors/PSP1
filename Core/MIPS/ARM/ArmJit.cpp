@@ -183,7 +183,7 @@ void ArmJit::CompileDelaySlot(int flags)
 		MRS(R8);  // Save flags register. R8 is preserved through function calls and is not allocated.
 
 	js.inDelaySlot = true;
-	MIPSOpcode op = Memory::Read_Opcode_JIT(js.compilerPC + 4);
+	MIPSOpcode op = GetOffsetInstruction(1);
 	MIPSCompileOp(op);
 	js.inDelaySlot = false;
 
@@ -215,7 +215,7 @@ void ArmJit::Compile(u32 em_address) {
 
 	// Drat.  The VFPU hit an uneaten prefix at the end of a block.
 	if (js.startDefaultPrefix && js.MayHavePrefix()) {
-		WARN_LOG(JIT, "An uneaten prefix at end of block: %08x", js.compilerPC - 4);
+		WARN_LOG(JIT, "An uneaten prefix at end of block: %08x", GetCompilerPC() - 4);
 		js.LogPrefix();
 
 		// Let's try that one more time.  We won't get back here because we toggled the value.
@@ -233,6 +233,14 @@ void ArmJit::Compile(u32 em_address) {
 void ArmJit::RunLoopUntil(u64 globalticks)
 {
 	((void (*)())enterCode)();
+}
+
+u32 ArmJit::GetCompilerPC() {
+	return js.compilerPC;
+}
+
+MIPSOpcode ArmJit::GetOffsetInstruction(int offset) {
+	return Memory::Read_Instruction(GetCompilerPC() + 4 * offset);
 }
 
 const u8 *ArmJit::DoJit(u32 em_address, JitBlock *b)
@@ -290,8 +298,8 @@ const u8 *ArmJit::DoJit(u32 em_address, JitBlock *b)
 	js.numInstructions = 0;
 	while (js.compiling)
 	{
-		gpr.SetCompilerPC(js.compilerPC);  // Let it know for log messages
-		MIPSOpcode inst = Memory::Read_Opcode_JIT(js.compilerPC);
+		gpr.SetCompilerPC(GetCompilerPC());  // Let it know for log messages
+		MIPSOpcode inst = Memory::Read_Opcode_JIT(GetCompilerPC());
 		//MIPSInfo info = MIPSGetInfo(inst);
 		//if (info & IS_VFPU) {
 		//	logBlocks = 1;
@@ -318,7 +326,7 @@ const u8 *ArmJit::DoJit(u32 em_address, JitBlock *b)
 		if (GetSpaceLeft() < 0x800 || js.numInstructions >= JitBlockCache::MAX_BLOCK_INSTRUCTIONS)
 		{
 			FlushAll();
-			WriteExit(js.compilerPC, js.nextExit++);
+			WriteExit(GetCompilerPC(), js.nextExit++);
 			js.compiling = false;
 		}
 	}
@@ -334,7 +342,7 @@ const u8 *ArmJit::DoJit(u32 em_address, JitBlock *b)
 	char temp[256];
 	if (logBlocks > 0 && dontLogBlocks == 0) {
 		INFO_LOG(JIT, "=============== mips ===============");
-		for (u32 cpc = em_address; cpc != js.compilerPC + 4; cpc += 4) {
+		for (u32 cpc = em_address; cpc != GetCompilerPC() + 4; cpc += 4) {
 			MIPSDisAsm(Memory::Read_Opcode_JIT(cpc), cpc, temp, true);
 			INFO_LOG(JIT, "M: %08x   %s", cpc, temp);
 		}
@@ -359,7 +367,7 @@ const u8 *ArmJit::DoJit(u32 em_address, JitBlock *b)
 	else
 	{
 		// We continued at least once.  Add the last proxy and set the originalSize correctly.
-		blocks.ProxyBlock(js.blockStart, js.lastContinuedPC, (js.compilerPC - js.lastContinuedPC) / sizeof(u32), GetCodePtr());
+		blocks.ProxyBlock(js.blockStart, js.lastContinuedPC, (GetCompilerPC() - js.lastContinuedPC) / sizeof(u32), GetCodePtr());
 		b->originalSize = js.initialBlockSize;
 	}
 	return b->normalEntry;
@@ -371,7 +379,7 @@ void ArmJit::AddContinuedBlock(u32 dest)
 	if (js.lastContinuedPC == 0)
 		js.initialBlockSize = js.numInstructions;
 	else
-		blocks.ProxyBlock(js.blockStart, js.lastContinuedPC, (js.compilerPC - js.lastContinuedPC) / sizeof(u32), GetCodePtr());
+		blocks.ProxyBlock(js.blockStart, js.lastContinuedPC, (GetCompilerPC() - js.lastContinuedPC) / sizeof(u32), GetCodePtr());
 	js.lastContinuedPC = dest;
 }
 
@@ -389,21 +397,10 @@ void ArmJit::Comp_RunBlock(MIPSOpcode op)
 
 bool ArmJit::ReplaceJalTo(u32 dest) {
 #ifdef ARM
-	MIPSOpcode op(Memory::Read_Opcode_JIT(dest));
-	if (!MIPS_IS_REPLACEMENT(op.encoding))
+	const ReplacementTableEntry *entry = nullptr;
+	u32 funcSize = 0;
+	if (!CanReplaceJalTo(dest, &entry, &funcSize)) {
 		return false;
-
-	int index = op.encoding & MIPS_EMUHACK_VALUE_MASK;
-	const ReplacementTableEntry *entry = GetReplacementFunc(index);
-	if (!entry) {
-		ERROR_LOG(HLE, "ReplaceJalTo: Invalid replacement op %08x at %08x", op.encoding, dest);
-		return false;
-	}
-
-	if (entry->flags & (REPFLAG_HOOKENTER | REPFLAG_HOOKEXIT | REPFLAG_DISABLED)) {
-      if ((entry->flags & (REPFLAG_DISABLED)) && !g_Config.bUnsafeFuncReplacements)
-		// If it's a hook, we can't replace the jal, we have to go inside the func.
-         return false;
 	}
 
 	// Warning - this might be bad if the code at the destination changes...
@@ -417,14 +414,14 @@ bool ArmJit::ReplaceJalTo(u32 dest) {
 		int cycles = (this->*repl)();
 		js.downcountAmount += cycles;
 	} else {
-		gpr.SetImm(MIPS_REG_RA, js.compilerPC + 8);
+		gpr.SetImm(MIPS_REG_RA, GetCompilerPC() + 8);
 		CompileDelaySlot(DELAYSLOT_NICE);
 		FlushAll();
 		RestoreRoundingMode();
 		if (BLInRange((const void *)(entry->replaceFunc))) {
 			BL((const void *)(entry->replaceFunc));
 		} else {
-			MOVI2R(R0, (u32)entry->replaceFunc);
+			MOVI2R(R0, (uintptr_t)entry->replaceFunc);
 			BL(R0);
 		}
 		ApplyRoundingMode();
@@ -435,7 +432,7 @@ bool ArmJit::ReplaceJalTo(u32 dest) {
 	// No writing exits, keep going!
 
 	// Add a trigger so that if the inlined code changes, we invalidate this block.
-	blocks.ProxyBlock(js.blockStart, dest, symbolMap.GetFunctionSize(dest) / sizeof(u32), GetCodePtr());
+	blocks.ProxyBlock(js.blockStart, dest, funcSize / sizeof(u32), GetCodePtr());
 #endif
 	return true;
 }
@@ -455,15 +452,15 @@ void ArmJit::Comp_ReplacementFunc(MIPSOpcode op)
 		return;
 	}
 
-	if ((entry->flags & REPFLAG_DISABLED) && !g_Config.bUnsafeFuncReplacements) {
-		MIPSCompileOp(Memory::Read_Instruction(js.compilerPC, true));
+	if (entry->flags & REPFLAG_DISABLED) {
+		MIPSCompileOp(Memory::Read_Instruction(GetCompilerPC(), true));
 	} else if (entry->jitReplaceFunc) {
 		MIPSReplaceFunc repl = entry->jitReplaceFunc;
 		int cycles = (this->*repl)();
 
 		if (entry->flags & (REPFLAG_HOOKENTER | REPFLAG_HOOKEXIT)) {
 			// Compile the original instruction at this address.  We ignore cycles for hooks.
-			MIPSCompileOp(Memory::Read_Instruction(js.compilerPC, true));
+			MIPSCompileOp(Memory::Read_Instruction(GetCompilerPC(), true));
 		} else {
 			FlushAll();
 			// Flushed, so R1 is safe.
@@ -475,7 +472,7 @@ void ArmJit::Comp_ReplacementFunc(MIPSOpcode op)
 	} else if (entry->replaceFunc) {
 		FlushAll();
 		RestoreRoundingMode();
-		gpr.SetRegImm(SCRATCHREG1, js.compilerPC);
+		gpr.SetRegImm(SCRATCHREG1, GetCompilerPC());
 		MovToPC(SCRATCHREG1);
 
 		// Standard function call, nothing fancy.
@@ -483,14 +480,14 @@ void ArmJit::Comp_ReplacementFunc(MIPSOpcode op)
 		if (BLInRange((const void *)(entry->replaceFunc))) {
 			BL((const void *)(entry->replaceFunc));
 		} else {
-			MOVI2R(R0, (u32)entry->replaceFunc);
+			MOVI2R(R0, (uintptr_t)entry->replaceFunc);
 			BL(R0);
 		}
 
 		if (entry->flags & (REPFLAG_HOOKENTER | REPFLAG_HOOKEXIT)) {
 			// Compile the original instruction at this address.  We ignore cycles for hooks.
 			ApplyRoundingMode();
-			MIPSCompileOp(Memory::Read_Instruction(js.compilerPC, true));
+			MIPSCompileOp(Memory::Read_Instruction(GetCompilerPC(), true));
 		} else {
 			ApplyRoundingMode();
 			LDR(R1, CTXREG, MIPS_REG_RA * 4);
@@ -512,7 +509,7 @@ void ArmJit::Comp_Generic(MIPSOpcode op)
 		SaveDowncount();
 		// TODO: Perhaps keep the rounding mode for interp?
 		RestoreRoundingMode();
-		gpr.SetRegImm(SCRATCHREG1, js.compilerPC);
+		gpr.SetRegImm(SCRATCHREG1, GetCompilerPC());
 		MovToPC(SCRATCHREG1);
 		gpr.SetRegImm(R0, op.encoding);
 		QuickCallFunction(R1, (void *)func);
@@ -601,7 +598,7 @@ void ArmJit::RestoreRoundingMode(bool force) {
 }
 
 void ArmJit::ApplyRoundingMode(bool force) {
-	// NOTE: Must not destory R0.
+	// NOTE: Must not destroy R0.
 	// If the game has never set an interesting rounding mode, we can safely skip this.
 	if (g_Config.bSetRoundingMode && (force || !g_Config.bForceFlushToZero || js.hasSetRounding)) {
 		LDR(SCRATCHREG2, CTXREG, offsetof(MIPSState, fcr31));
@@ -716,24 +713,4 @@ void ArmJit::WriteSyscallExit()
 
 void ArmJit::Comp_DoNothing(MIPSOpcode op) { }
 
-#define _RS ((op>>21) & 0x1F)
-#define _RT ((op>>16) & 0x1F)
-#define _RD ((op>>11) & 0x1F)
-#define _FS ((op>>11) & 0x1F)
-#define _FT ((op>>16) & 0x1F)
-#define _FD ((op>>6) & 0x1F)
-#define _POS ((op>>6) & 0x1F)
-#define _SIZE ((op>>11) & 0x1F)
-
-//memory regions:
-//
-// 08-0A
-// 48-4A
-// 04-05
-// 44-45
-// mov eax, addrreg
-	// shr eax, 28
-// mov eax, [table+eax]
-// mov dreg, [eax+offreg]
-	
 }

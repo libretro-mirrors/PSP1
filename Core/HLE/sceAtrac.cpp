@@ -21,7 +21,7 @@
 #include "Core/HLE/FunctionWrappers.h"
 #include "Core/MIPS/MIPS.h"
 #include "Core/CoreTiming.h"
-#include "Core/MemMap.h"
+#include "Core/MemMapHelpers.h"
 #include "Core/Reporting.h"
 #include "Core/Config.h"
 #include "Core/Debugger/Breakpoints.h"
@@ -128,7 +128,8 @@ struct AtracLoopInfo {
 };
 
 struct Atrac {
-	Atrac() : atracID(-1), data_buf(0), decodePos(0), decodeEnd(0), atracChannels(0), atracOutputChannels(2),
+	Atrac() : atracID(-1), data_buf(0), decodePos(0), decodeEnd(0), bufferPos(0),
+		atracChannels(0),atracOutputChannels(2),
 		atracBitrate(64), atracBytesPerFrame(0), atracBufSize(0),
 		currentSample(0), endSample(0), firstSampleoffset(0), dataOff(0),
 		loopinfoNum(0), loopStartSample(-1), loopEndSample(-1), loopNum(0),
@@ -165,7 +166,7 @@ struct Atrac {
 	}
 
 	void DoState(PointerWrap &p) {
-		auto s = p.Section("Atrac", 1, 3);
+		auto s = p.Section("Atrac", 1, 4);
 		if (!s)
 			return;
 
@@ -203,6 +204,11 @@ struct Atrac {
 
 		p.Do(decodePos);
 		p.Do(decodeEnd);
+		if (s >= 4) {
+			p.Do(bufferPos);
+		} else {
+			bufferPos = decodePos;
+		}
 
 		p.Do(atracBitrate);
 		p.Do(atracBytesPerFrame);
@@ -250,6 +256,7 @@ struct Atrac {
 
 	u32 decodePos;
 	u32 decodeEnd;
+	u32 bufferPos;
 
 	u16 atracChannels;
 	u16 atracOutputChannels;
@@ -533,6 +540,7 @@ void Atrac::AnalyzeReset() {
 	loopStartSample = -1;
 	loopEndSample = -1;
 	decodePos = 0;
+	bufferPos = 0;
 	atracChannels = 2;
 }
 
@@ -795,7 +803,6 @@ u32 _AtracAddStreamData(int atracID, u32 bufPtr, u32 bytesToAdd) {
 		return 0;
 	int addbytes = std::min(bytesToAdd, atrac->first.filesize - atrac->first.fileoffset);
 	Memory::Memcpy(atrac->data_buf + atrac->first.fileoffset, bufPtr, addbytes);
-	CBreakPoints::ExecMemCheck(bufPtr, false, addbytes, currentMIPS->pc);
 	atrac->first.size += bytesToAdd;
 	if (atrac->first.size > atrac->first.filesize)
 		atrac->first.size = atrac->first.filesize;
@@ -817,21 +824,22 @@ u32 _AtracAddStreamData(int atracID, u32 bufPtr, u32 bytesToAdd) {
 static u32 sceAtracAddStreamData(int atracID, u32 bytesToAdd) {
 	Atrac *atrac = getAtrac(atracID);
 	if (!atrac) {
-		ERROR_LOG(ME, "sceAtracAddStreamData(%i, %08x): bad atrac ID", atracID, bytesToAdd);
-		return ATRAC_ERROR_BAD_ATRACID;
+		return hleLogError(ME, ATRAC_ERROR_BAD_ATRACID, "bad atrac ID");
 	} else if (!atrac->data_buf) {
-		ERROR_LOG(ME, "sceAtracAddStreamData(%i, %08x): no data", atracID, bytesToAdd);
-		return ATRAC_ERROR_NO_DATA;
+		return hleLogError(ME, ATRAC_ERROR_NO_DATA, "no data");
 	} else {
-		DEBUG_LOG(ME, "sceAtracAddStreamData(%i, %08x)", atracID, bytesToAdd);
-		// TODO
+		if (atrac->first.size >= atrac->first.filesize) {
+			// Let's avoid spurious warnings.  Some games call this with 0 which is pretty harmless.
+			if (bytesToAdd == 0)
+				return hleLogDebug(ME, ATRAC_ERROR_ALL_DATA_LOADED, "stream entirely loaded");
+			return hleLogWarning(ME, ATRAC_ERROR_ALL_DATA_LOADED, "stream entirely loaded");
+		}
 		if (bytesToAdd > atrac->first.writableBytes)
-			return ATRAC_ERROR_ADD_DATA_IS_TOO_BIG;
+			return hleLogWarning(ME, ATRAC_ERROR_ADD_DATA_IS_TOO_BIG, "too many bytes");
 
 		if (bytesToAdd > 0) {
 			int addbytes = std::min(bytesToAdd, atrac->first.filesize - atrac->first.fileoffset);
 			Memory::Memcpy(atrac->data_buf + atrac->first.fileoffset, atrac->first.addr + atrac->first.offset, addbytes);
-			CBreakPoints::ExecMemCheck(atrac->first.addr + atrac->first.offset, false, addbytes, currentMIPS->pc);
 		}
 		atrac->first.size += bytesToAdd;
 		if (atrac->first.size > atrac->first.filesize)
@@ -840,7 +848,7 @@ static u32 sceAtracAddStreamData(int atracID, u32 bytesToAdd) {
 		atrac->first.writableBytes -= bytesToAdd;
 		atrac->first.offset += bytesToAdd;
 	}
-	return 0;
+	return hleLogSuccessI(ME, 0);
 }
 
 u32 _AtracDecodeData(int atracID, u8 *outbuf, u32 outbufPtr, u32 *SamplesNum, u32 *finish, int *remains) {
@@ -884,7 +892,6 @@ u32 _AtracDecodeData(int atracID, u8 *outbuf, u32 outbufPtr, u32 *SamplesNum, u3
 				while (atrac->FillPacket()) {
 					res = atrac->DecodePacket();
 					if (res == ATDECODE_FAILED) {
-						// Avoid getting stuck in a loop (Virtua Tennis)
 						*SamplesNum = 0;
 						*finish = 1;
 						*remains = 0;
@@ -1363,13 +1370,13 @@ static u32 sceAtracResetPlayPosition(int atracID, int sample, int bytesWrittenFi
 #ifdef USE_FFMPEG
 static int _AtracReadbuffer(void *opaque, uint8_t *buf, int buf_size) {
 	Atrac *atrac = (Atrac *)opaque;
-	if (atrac->decodePos > atrac->first.filesize)
+	if (atrac->bufferPos > atrac->first.filesize)
 		return -1;
 	int size = std::min((int)atrac->atracBufSize, buf_size);
-	size = std::max(std::min(((int)atrac->first.size - (int)atrac->decodePos), size), 0);
+	size = std::max(std::min(((int)atrac->first.size - (int)atrac->bufferPos), size), 0);
 	if (size > 0)
-		memcpy(buf, atrac->data_buf + atrac->decodePos, size);
-	atrac->decodePos += size;
+		memcpy(buf, atrac->data_buf + atrac->bufferPos, size);
+	atrac->bufferPos += size;
 	return size;
 }
 
@@ -1380,20 +1387,20 @@ static int64_t _AtracSeekbuffer(void *opaque, int64_t offset, int whence) {
 
 	switch (whence) {
 	case SEEK_SET:
-		atrac->decodePos = (u32)offset;
+		atrac->bufferPos = (u32)offset;
 		break;
 	case SEEK_CUR:
-		atrac->decodePos += (u32)offset;
+		atrac->bufferPos += (u32)offset;
 		break;
 	case SEEK_END:
-		atrac->decodePos = atrac->first.filesize - (u32)offset;
+		atrac->bufferPos = atrac->first.filesize - (u32)offset;
 		break;
 #ifdef USE_FFMPEG
 	case AVSEEK_SIZE:
 		return atrac->first.filesize;
 #endif
 	}
-	return atrac->decodePos;
+	return atrac->bufferPos;
 }
 
 #endif // USE_FFMPEG
@@ -1525,7 +1532,6 @@ static int _AtracSetData(Atrac *atrac, u32 buffer, u32 bufferSize) {
 		atrac->data_buf = new u8[atrac->first.filesize];
 		u32 copybytes = std::min(bufferSize, atrac->first.filesize);
 		Memory::Memcpy(atrac->data_buf, buffer, copybytes);
-		CBreakPoints::ExecMemCheck(buffer, false, copybytes, currentMIPS->pc);
 		return __AtracSetContext(atrac);
 #endif // USE_FFMPEG
 
@@ -1538,7 +1544,6 @@ static int _AtracSetData(Atrac *atrac, u32 buffer, u32 bufferSize) {
 		atrac->data_buf = new u8[atrac->first.filesize];
 		u32 copybytes = std::min(bufferSize, atrac->first.filesize);
 		Memory::Memcpy(atrac->data_buf, buffer, copybytes);
-		CBreakPoints::ExecMemCheck(buffer, false, copybytes, currentMIPS->pc);
 		return __AtracSetContext(atrac);
 	}
 
@@ -2176,9 +2181,8 @@ static int sceAtracLowLevelDecode(int atracID, u32 sourceAddr, u32 sourceBytesCo
 		u32 sourcebytes = atrac->first.writableBytes;
 		if (sourcebytes > 0) {
 			Memory::Memcpy(atrac->data_buf + atrac->first.size, sourceAddr, sourcebytes);
-			CBreakPoints::ExecMemCheck(sourceAddr, false, sourcebytes, currentMIPS->pc);
-			if (atrac->decodePos >= atrac->first.size) {
-				atrac->decodePos = atrac->first.size;
+			if (atrac->bufferPos >= atrac->first.size) {
+				atrac->bufferPos = atrac->first.size;
 			}
 			atrac->first.size += sourcebytes;
 		}
@@ -2214,7 +2218,7 @@ static int sceAtracLowLevelDecode(int atracID, u32 sourceAddr, u32 sourceBytesCo
 		numSamples = (atrac->codecType == PSP_MODE_AT_3_PLUS ? ATRAC3PLUS_MAX_SAMPLES : ATRAC3_MAX_SAMPLES);
 		Memory::Write_U32(numSamples * sizeof(s16) * atrac->atracOutputChannels, sampleBytesAddr);
 
-		if (atrac->decodePos >= atrac->first.size) {
+		if (atrac->bufferPos >= atrac->first.size) {
 			atrac->first.writableBytes = atrac->atracBytesPerFrame;
 			atrac->first.size = atrac->firstSampleoffset;
 			atrac->ForceSeekToSample(0);

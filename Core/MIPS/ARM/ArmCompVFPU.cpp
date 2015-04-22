@@ -136,7 +136,7 @@ namespace MIPSComp
 				// Prefix may say "z, z, z, z" but if this is a pair, we force to x.
 				// TODO: But some ops seem to use const 0 instead?
 				if (regnum >= n) {
-					WARN_LOG(CPU, "JIT: Invalid VFPU swizzle: %08x : %d / %d at PC = %08x (%s)", prefix, regnum, n, js.compilerPC, MIPSDisasmAt(js.compilerPC));
+					WARN_LOG(CPU, "JIT: Invalid VFPU swizzle: %08x : %d / %d at PC = %08x (%s)", prefix, regnum, n, GetCompilerPC(), MIPSDisasmAt(js.compilerPC));
 					regnum = 0;
 				}
 				
@@ -678,7 +678,6 @@ namespace MIPSComp
 		}
 		ApplyPrefixD(dregs, V_Single);
 		fpr.ReleaseSpillLocksAndDiscardTemps();
-		// NOTICE_LOG(JIT, "vfad/vags at %08x, ", js.compilerPC);
 	}
 
 	void ArmJit::Comp_VDot(MIPSOpcode op) {
@@ -1251,8 +1250,8 @@ namespace MIPSComp
 	}
 
 	void ArmJit::Comp_Mftv(MIPSOpcode op) {
-		CONDITIONAL_DISABLE;
 		NEON_IF_AVAILABLE(CompNEON_Mftv);
+		CONDITIONAL_DISABLE;
 
 		int imm = op & 0xFF;
 		MIPSGPReg rt = _RT;
@@ -1969,15 +1968,13 @@ namespace MIPSComp
 		fpr.ReleaseSpillLocksAndDiscardTemps();
 	}
 
-	// sincosf is unavailable in the Android NDK:
-	// https://code.google.com/p/android/issues/detail?id=38423
-	double SinCos(float angle) {
+	static double SinCos(float angle) {
 		union { struct { float sin; float cos; }; double out; } sincos;
 		vfpu_sincos(angle, sincos.sin, sincos.cos);
 		return sincos.out;
 	}
 
-	double SinCosNegSin(float angle) {
+	static double SinCosNegSin(float angle) {
 		union { struct { float sin; float cos; }; double out; } sincos;
 		vfpu_sincos(angle, sincos.sin, sincos.cos);
 		sincos.sin = -sincos.sin;
@@ -2031,7 +2028,7 @@ namespace MIPSComp
 		u8 dregs[4];
 		u8 dregs2[4];
 
-		u32 nextOp = Memory::Read_Opcode_JIT(js.compilerPC + 4).encoding;
+		u32 nextOp = GetOffsetInstruction(1).encoding;
 		int vd2 = -1;
 		int imm2 = -1;
 		if ((nextOp >> 26) == 60 && ((nextOp >> 21) & 0x1F) == 29 && _VS == MIPS_GET_VS(nextOp)) {
@@ -2154,9 +2151,6 @@ namespace MIPSComp
 		MOVI2F(S0, 1.0f, SCRATCHREG1);
 		for (int i = 0; i < n; ++i) {
 			fpr.MapDirtyInV(tempregs[i], sregs[i]);
-			// Let's do it integer registers for now. NEON later.
-			// There's gotta be a shorter way, can't find one though that takes
-			// care of NaNs like the interpreter (ignores them and just operates on the bits).
 			VSUB(fpr.V(tempregs[i]), S0, fpr.V(sregs[i]));
 		}
 

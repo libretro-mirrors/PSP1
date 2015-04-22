@@ -51,6 +51,9 @@ do
 		--headless) echo "Headless mode enabled"
 			CMAKE_ARGS="-DHEADLESS=ON ${CMAKE_ARGS}"
 			;;
+		--unittest) echo "Build unittest"
+			CMAKE_ARGS="-DUNITTEST=ON ${CMAKE_ARGS}"
+			;;
 		--no-package) echo "Packaging disabled"
 			PACKAGE=0
 			;;

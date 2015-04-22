@@ -128,6 +128,7 @@ SOURCES_CXX += $(GPUCOMMONDIR)/IndexGenerator.cpp
 SOURCES_C   += $(NATIVEDIR)/ext/libpng17/pngwutil.c
 SOURCES_CXX += $(GPUCOMMONDIR)/TextureDecoder.cpp \
 				$(GPUCOMMONDIR)/PostShader.cpp \
+				$(COMMONDIR)/ColorConv.cpp \
 				$(GPUDIR)/Debugger/Breakpoints.cpp \
 				$(GPUDIR)/Debugger/Stepping.cpp \
 				$(GPUDIR)/GLES/DepalettizeShader.cpp \
@@ -143,7 +144,6 @@ SOURCES_CXX += $(GPUCOMMONDIR)/TextureDecoder.cpp \
 				$(NATIVEDIR)/base/buffer.cpp \
 				$(NATIVEDIR)/base/colorutil.cpp \
 				$(NATIVEDIR)/base/display.cpp \
-				$(GPUDIR)/GLES/Spline.cpp \
 				$(NATIVEDIR)/base/error_context.cpp \
 				$(NATIVEDIR)/base/fastlist_test.cpp \
 				$(NATIVEDIR)/base/stringutil.cpp \
@@ -153,6 +153,7 @@ SOURCES_CXX += $(GPUCOMMONDIR)/TextureDecoder.cpp \
 				$(GPUDIR)/GLES/StencilBuffer.cpp \
 				$(NATIVEDIR)/ext/vjson/block_allocator.cpp \
 				$(GPUDIR)/Common/TextureCacheCommon.cpp \
+				$(GPUDIR)/Common/TextureScalerCommon.cpp \
 				$(GPUDIR)/GLES/TextureCache.cpp \
 				$(GPUDIR)/GLES/TextureScaler.cpp
 SOURCES_C   += $(NATIVEDIR)/gfx_es2/gl3stub.c \
@@ -331,6 +332,7 @@ SOURCES_CXX += $(NATIVEDIR)/file/chunk_file.cpp \
 				$(COREDIR)/Host.cpp \
 				$(COREDIR)/Loaders.cpp \
 				$(COREDIR)/MIPS/JitCommon/JitCommon.cpp \
+				$(COREDIR)/MIPS/JitCommon/JitState.cpp \
 				$(COREDIR)/MIPS/JitCommon/JitBlockCache.cpp \
 				$(COREDIR)/MIPS/MIPS.cpp \
 				$(COREDIR)/MIPS/MIPSAnalyst.cpp \

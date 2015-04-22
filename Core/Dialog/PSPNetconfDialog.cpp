@@ -18,7 +18,7 @@
 #include "PSPNetconfDialog.h"
 #include "ChunkFile.h"
 #include "Core/Config.h"
-#include "Core/MemMap.h"
+#include "Core/MemMapHelpers.h"
 #include "Core/HLE/sceNetAdhoc.h"
 #include "Core/Util/PPGeDraw.h"
 #include "Core/HLE/sceCtrl.h"
@@ -114,7 +114,7 @@ int PSPNetconfDialog::Shutdown(bool force) {
 	if (status != SCE_UTILITY_STATUS_FINISHED && !force)
 		return SCE_ERROR_UTILITY_INVALID_STATUS;
 
-	return PSPDialog::Shutdown();
+	return PSPDialog::Shutdown(force);
 }
 
 void PSPNetconfDialog::DoState(PointerWrap &p) {	

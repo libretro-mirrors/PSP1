@@ -16,6 +16,8 @@
 // https://github.com/hrydgard/ppsspp and http://www.ppsspp.org/.
 
 #include "math/lin/matrix4x4.h"
+
+#include "Common/ColorConv.h"
 #include "Core/Host.h"
 #include "Core/MemMap.h"
 #include "Core/Config.h"
@@ -38,26 +40,6 @@
 #include <algorithm>
 
 namespace DX9 {
-	inline u16 RGBA8888toRGB565(u32 px) {
-		return ((px >> 3) & 0x001F) | ((px >> 5) & 0x07E0) | ((px >> 8) & 0xF800);
-	}
-
-	inline u16 RGBA8888toRGBA4444(u32 px) {
-		return ((px >> 4) & 0x000F) | ((px >> 8) & 0x00F0) | ((px >> 12) & 0x0F00) | ((px >> 16) & 0xF000);
-	}
-
-	inline u16 RGBA8888toRGBA5551(u32 px) {
-		return ((px >> 3) & 0x001F) | ((px >> 6) & 0x03E0) | ((px >> 9) & 0x7C00) | ((px >> 16) & 0x8000);
-	}
-
-	inline u16 BGRA8888toRGB565(u32 px) {
-		return ((px >> 19) & 0x001F) | ((px >> 5) & 0x07E0) | ((px << 8) & 0xF800);
-	}
-
-	inline u16 BGRA8888toRGBA4444(u32 px) {
-		return ((px >> 20) & 0x000F) | ((px >> 8) & 0x00F0) | ((px << 4) & 0x0F00) | ((px >> 16) & 0xF000);
-	}
-
 	static void ConvertFromRGBA8888(u8 *dst, u8 *src, u32 dstStride, u32 srcStride, u32 width, u32 height, GEBufferFormat format);
 
 	void CenterRect(float *x, float *y, float *w, float *h,
@@ -99,7 +81,7 @@ namespace DX9 {
 		dxstate.colorMask.set(true, true, true, true);
 		dxstate.stencilFunc.set(D3DCMP_ALWAYS, 0, 0);
 		dxstate.stencilMask.set(0xFF);
-		pD3Ddevice->Clear(0, NULL, D3DCLEAR_STENCIL|D3DCLEAR_TARGET |D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0, 0, 0), 0, 0);
+		pD3Ddevice->Clear(0, NULL, D3DCLEAR_STENCIL|D3DCLEAR_TARGET |D3DCLEAR_ZBUFFER, D3DCOLOR_ARGB(0, 0, 0, 0), 0, 0);
 	}
 
 	void FramebufferManagerDX9::ClearDepthBuffer() {
@@ -107,7 +89,7 @@ namespace DX9 {
 		dxstate.depthWrite.set(TRUE);
 		dxstate.colorMask.set(false, false, false, false);
 		dxstate.stencilFunc.set(D3DCMP_NEVER, 0, 0);
-		pD3Ddevice->Clear(0, NULL, D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0, 0, 0), 0, 0);
+		pD3Ddevice->Clear(0, NULL, D3DCLEAR_ZBUFFER, D3DCOLOR_ARGB(0, 0, 0, 0), 0, 0);
 	}
 
 	void FramebufferManagerDX9::DisableState() {
@@ -149,24 +131,6 @@ namespace DX9 {
 		}
 	}
 
-	static inline void ARGB8From4444(u16 c, u32 * dst) {
-		*dst = ((c & 0xf) << 4) | (((c >> 4) & 0xf) << 12) | (((c >> 8) & 0xf) << 20) | ((c >> 12) << 28);
-	}
-	static inline void ARGB8From565(u16 c, u32 * dst) {
-		*dst = ((c & 0x001f) << 19) | (((c >> 5) & 0x003f) << 11) | ((((c >> 10) & 0x001f) << 3)) | 0xFF000000;
-	}
-	static inline void ARGB8From5551(u16 c, u32 * dst) {
-		*dst = ((c & 0x001f) << 19) | (((c >> 5) & 0x001f) << 11) | ((((c >> 10) & 0x001f) << 3)) | 0xFF000000;
-	}
-
-	// TODO: Swizzle the texture access instead.
-	static inline u32 RGBA2BGRA(u32 src) {
-		const u32 r = (src & 0x000000FF) << 16;
-		const u32 ga = src & 0xFF00FF00;
-		const u32 b = (src & 0x00FF0000) >> 16;
-		return r | ga | b;
-	}
-
 	void FramebufferManagerDX9::MakePixelTexture(const u8 *srcPixels, GEBufferFormat srcPixelFormat, int srcStride, int width, int height) {
 		u8 *convBuf = NULL;
 		D3DLOCKED_RECT rect;
@@ -205,15 +169,11 @@ namespace DX9 {
 		if (srcPixelFormat != GE_FORMAT_8888 || srcStride != 512) {
 			for (int y = 0; y < height; y++) {
 				switch (srcPixelFormat) {
-					// not tested
 				case GE_FORMAT_565:
 					{
 						const u16_le *src = (const u16_le *)srcPixels + srcStride * y;
 						u32 *dst = (u32 *)(convBuf + rect.Pitch * y);
-						for (int x = 0; x < width; x++) {
-							u16_le col0 = src[x+0];
-							ARGB8From565(col0, &dst[x + 0]);
-						}
+						ConvertBGR565ToRGBA8888(dst, src, width);
 					}
 					break;
 					// faster
@@ -221,24 +181,14 @@ namespace DX9 {
 					{
 						const u16_le *src = (const u16_le *)srcPixels + srcStride * y;
 						u32 *dst = (u32 *)(convBuf + rect.Pitch * y);
-						for (int x = 0; x < width; x++) {
-							u16_le col0 = src[x+0];
-							ARGB8From5551(col0, &dst[x + 0]);
-						}
+						ConvertBGRA5551ToRGBA8888(dst, src, width);
 					}
 					break;
 				case GE_FORMAT_4444:
 					{
 						const u16_le *src = (const u16_le *)srcPixels + srcStride * y;
 						u8 *dst = (u8 *)(convBuf + rect.Pitch * y);
-						for (int x = 0; x < width; x++)
-						{
-							u16_le col = src[x];
-							dst[x * 4 + 0] = (col >> 12) << 4;
-							dst[x * 4 + 1] = ((col >> 8) & 0xf) << 4;
-							dst[x * 4 + 2] = ((col >> 4) & 0xf) << 4;
-							dst[x * 4 + 3] = (col & 0xf) << 4;
-						}
+						ConvertBGRA4444ToRGBA8888((u32 *)dst, src, width);
 					}
 					break;
 
@@ -246,10 +196,7 @@ namespace DX9 {
 					{
 						const u32_le *src = (const u32_le *)srcPixels + srcStride * y;
 						u32 *dst = (u32 *)(convBuf + rect.Pitch * y);
-						for (int x = 0; x < width; x++)
-						{
-							dst[x] = RGBA2BGRA(src[x]);
-						}
+						ConvertBGRA8888ToRGBA8888(dst, src, width);
 					}
 					break;
 				}
@@ -258,10 +205,7 @@ namespace DX9 {
 			for (int y = 0; y < height; y++) {
 				const u32_le *src = (const u32_le *)srcPixels + srcStride * y;
 				u32 *dst = (u32 *)(convBuf + rect.Pitch * y);
-				for (int x = 0; x < width; x++)
-				{
-					dst[x] = RGBA2BGRA(src[x]);
-				}
+				ConvertBGRA8888ToRGBA8888(dst, src, width);
 			}
 		}
 
@@ -491,8 +435,7 @@ namespace DX9 {
 		}
 		if (vfb->drawnFormat != vfb->format) {
 			// TODO: Might ultimately combine this with the resize step in DoSetRenderFrameBuffer().
-			// TODO
-			//ReformatFramebufferFrom(vfb, vfb->drawnFormat);
+			ReformatFramebufferFrom(vfb, vfb->drawnFormat);
 		}
 
 		// ugly...
@@ -509,8 +452,7 @@ namespace DX9 {
 		if (vfbFormatChanged) {
 			textureCache_->NotifyFramebuffer(vfb->fb_address, vfb, NOTIFY_FB_UPDATED);
 			if (vfb->drawnFormat != vfb->format) {
-				// TODO
-				//ReformatFramebufferFrom(vfb, vfb->drawnFormat);
+				ReformatFramebufferFrom(vfb, vfb->drawnFormat);
 			}
 		}
 
@@ -522,6 +464,62 @@ namespace DX9 {
 			shaderManager_->DirtyUniform(DIRTY_PROJMATRIX);
 			shaderManager_->DirtyUniform(DIRTY_PROJTHROUGHMATRIX);
 		}
+	}
+
+	void FramebufferManagerDX9::ReformatFramebufferFrom(VirtualFramebuffer *vfb, GEBufferFormat old) {
+		if (!useBufferedRendering_ || !vfb->fbo) {
+			return;
+		}
+
+		fbo_bind_as_render_target(vfb->fbo);
+
+		// Technically, we should at this point re-interpret the bytes of the old format to the new.
+		// That might get tricky, and could cause unnecessary slowness in some games.
+		// For now, we just clear alpha/stencil from 565, which fixes shadow issues in Kingdom Hearts.
+		// (it uses 565 to write zeros to the buffer, than 4444 to actually render the shadow.)
+		//
+		// The best way to do this may ultimately be to create a new FBO (combine with any resize?)
+		// and blit with a shader to that, then replace the FBO on vfb.  Stencil would still be complex
+		// to exactly reproduce in 4444 and 8888 formats.
+
+		if (old == GE_FORMAT_565) {
+			dxstate.scissorTest.disable();
+			dxstate.depthWrite.set(FALSE);
+			dxstate.colorMask.set(false, false, false, true);
+			dxstate.stencilFunc.set(D3DCMP_ALWAYS, 0, 0);
+			dxstate.stencilMask.set(0xFF);
+
+			float coord[20] = {
+				-1.0f,-1.0f,0, 0,0,
+				1.0f,-1.0f,0, 0,0,
+				1.0f,1.0f,0, 0,0,
+				-1.0f,1.0f,0, 0,0,
+			};
+
+			dxstate.cullMode.set(false, false);
+			pD3Ddevice->SetVertexDeclaration(pFramebufferVertexDecl);
+			pD3Ddevice->SetPixelShader(pFramebufferPixelShader);
+			pD3Ddevice->SetVertexShader(pFramebufferVertexShader);
+			shaderManager_->DirtyLastShader();
+			pD3Ddevice->SetTexture(0, nullptr);
+
+			D3DVIEWPORT9 vp;
+			vp.MinZ = 0;
+			vp.MaxZ = 1;
+			vp.X = 0;
+			vp.Y = 0;
+			vp.Width = vfb->renderWidth;
+			vp.Height = vfb->renderHeight;
+			pD3Ddevice->SetViewport(&vp);
+
+			// This should clear stencil and alpha without changing the other colors.
+			HRESULT hr = pD3Ddevice->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, coord, 5 * sizeof(float));
+			if (FAILED(hr)) {
+				ERROR_LOG_REPORT(G3D, "ReformatFramebufferFrom() failed: %08x", hr);
+			}
+		}
+
+		RebindFramebuffer();
 	}
 
 	void FramebufferManagerDX9::BlitFramebufferDepth(VirtualFramebuffer *src, VirtualFramebuffer *dst) {
@@ -1028,9 +1026,7 @@ namespace DX9 {
 			switch (format) {
 			case GE_FORMAT_565: // BGR 565
 				for (u32 y = 0; y < height; ++y) {
-					for (u32 x = 0; x < width; ++x) {
-						dst16[x] = BGRA8888toRGB565(src32[x]);
-					}
+					ConvertBGRA8888ToRGB565(dst16, src32, width);
 					src32 += srcStride;
 					dst16 += dstStride;
 				}
@@ -1044,9 +1040,7 @@ namespace DX9 {
 				break;
 			case GE_FORMAT_4444: // ABGR 4444
 				for (u32 y = 0; y < height; ++y) {
-					for (u32 x = 0; x < width; ++x) {
-						dst16[x] = BGRA8888toRGBA4444(src32[x]);
-					}
+					ConvertBGRA8888ToRGBA4444(dst16, src32, width);
 					src32 += srcStride;
 					dst16 += dstStride;
 				}

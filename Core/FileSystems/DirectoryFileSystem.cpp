@@ -385,9 +385,13 @@ void DirectoryFileHandle::Close()
 	if (needsTrunc_ != -1) {
 #ifdef _WIN32_NO_MINGW
 		Seek((s32)needsTrunc_, FILEMOVE_BEGIN);
-		SetEndOfFile(hFile);
+		if (SetEndOfFile(hFile) == 0) {
+			ERROR_LOG_REPORT(FILESYS, "Failed to truncate file.");
+		}
 #else
-		ftruncate(hFile, (off_t)needsTrunc_);
+		if (ftruncate(hFile, (off_t)needsTrunc_) != 0) {
+			ERROR_LOG_REPORT(FILESYS, "Failed to truncate file.");
+		}
 #endif
 	}
 #ifdef _WIN32_NO_MINGW

@@ -239,7 +239,6 @@ void Jit::Comp_SV(MIPSOpcode op) {
 	case 50: //lv.s  // VI(vt) = Memory::Read_U32(addr);
 		{
 			gpr.Lock(rs);
-			gpr.MapReg(rs, true, false);
 			fpr.MapRegV(vt, MAP_DIRTY | MAP_NOINIT);
 
 			JitSafeMem safe(this, rs, imm);
@@ -263,9 +262,7 @@ void Jit::Comp_SV(MIPSOpcode op) {
 	case 58: //sv.s   // Memory::Write_U32(VI(vt), addr);
 		{
 			gpr.Lock(rs);
-			gpr.MapReg(rs, true, false);
 
-			// Even if we don't use real SIMD there's still 8 or 16 scalar float registers.
 			fpr.MapRegV(vt, 0);
 
 			JitSafeMem safe(this, rs, imm);
@@ -380,19 +377,36 @@ void Jit::Comp_SVQ(MIPSOpcode op)
 	case 54: //lv.q
 		{
 			gpr.Lock(rs);
-			gpr.MapReg(rs, true, false);
+			// This must be in a reg or an immediate.
+			// Otherwise, it'll get put in EAX and we'll clobber that during NextSlowRead().
+			if (!gpr.IsImm(rs))
+				gpr.MapReg(rs, true, false);
 	
 			u8 vregs[4];
 			GetVectorRegs(vregs, V_Quad, vt);
 
-			if (g_Config.bFastMemory && fpr.TryMapRegsVS(vregs, V_Quad, MAP_NOINIT | MAP_DIRTY)) {
+			if (fpr.TryMapRegsVS(vregs, V_Quad, MAP_NOINIT | MAP_DIRTY)) {
 				JitSafeMem safe(this, rs, imm);
 				safe.SetFar();
 				OpArg src;
 				if (safe.PrepareRead(src, 16)) {
-					MOVAPS(fpr.VSX(vregs), safe.NextFastAddress(0));
-				} else {
-					// Hmm... probably never happens.
+					// Should be safe, since lv.q must be aligned, but let's try to avoid crashing in safe mode.
+					if (g_Config.bFastMemory) {
+						MOVAPS(fpr.VSX(vregs), safe.NextFastAddress(0));
+					} else {
+						MOVUPS(fpr.VSX(vregs), safe.NextFastAddress(0));
+					}
+				}
+				if (safe.PrepareSlowRead(safeMemFuncs.readU32)) {
+					for (int i = 0; i < 4; i++) {
+						safe.NextSlowRead(safeMemFuncs.readU32, i * 4);
+						// We use XMM0 as a temporary since MOVSS and MOVD would clear the higher bits.
+						MOVD_xmm(XMM0, R(EAX));
+						MOVSS(fpr.VSX(vregs), R(XMM0));
+						// Rotate things so we can read in the next higher float.
+						// By the end (4 rotates), they'll all be back into place.
+						SHUFPS(fpr.VSX(vregs), fpr.VS(vregs), _MM_SHUFFLE(0, 3, 2, 1));
+					}
 				}
 				safe.Finish();
 				gpr.UnlockAll();
@@ -429,19 +443,33 @@ void Jit::Comp_SVQ(MIPSOpcode op)
 	case 62: //sv.q
 		{
 			gpr.Lock(rs);
-			gpr.MapReg(rs, true, false);
+			// This must be in a reg or an immediate.
+			// Otherwise, it'll get put in EAX and we'll clobber that during NextSlowRead().
+			if (!gpr.IsImm(rs))
+				gpr.MapReg(rs, true, false);
 
 			u8 vregs[4];
 			GetVectorRegs(vregs, V_Quad, vt);
 
-			if (g_Config.bFastMemory && fpr.TryMapRegsVS(vregs, V_Quad, 0)) {
+			if (fpr.TryMapRegsVS(vregs, V_Quad, 0)) {
 				JitSafeMem safe(this, rs, imm);
 				safe.SetFar();
 				OpArg dest;
 				if (safe.PrepareWrite(dest, 16)) {
-					MOVAPS(safe.NextFastAddress(0), fpr.VSX(vregs));
-				} else {
-					// Hmm... probably never happens.
+					// Should be safe, since sv.q must be aligned, but let's try to avoid crashing in safe mode.
+					if (g_Config.bFastMemory) {
+						MOVAPS(safe.NextFastAddress(0), fpr.VSX(vregs));
+					} else {
+						MOVUPS(safe.NextFastAddress(0), fpr.VSX(vregs));
+					}
+				}
+				if (safe.PrepareSlowWrite()) {
+					MOVAPS(XMM0, fpr.VS(vregs));
+					for (int i = 0; i < 4; i++) {
+						MOVSS(M(&ssLoadStoreTemp), XMM0);
+						SHUFPS(XMM0, R(XMM0), _MM_SHUFFLE(3, 3, 2, 1));
+						safe.DoSlowWrite(safeMemFuncs.writeU32, M(&ssLoadStoreTemp), i * 4);
+					}
 				}
 				safe.Finish();
 				gpr.UnlockAll();
@@ -935,6 +963,32 @@ void Jit::Comp_Vcmov(MIPSOpcode op) {
 	fpr.ReleaseSpillLocks();
 }
 
+static s32 MEMORY_ALIGNED16(vminmax_sreg[4]);
+
+static s32 DoVminSS(s32 treg) {
+	s32 sreg = vminmax_sreg[0];
+
+	// If both are negative, we flip the comparison (not two's compliment.)
+	if (sreg < 0 && treg < 0) {
+		// If at least one side is NAN, we take the highest mantissa bits.
+		return treg < sreg ? sreg : treg;
+	} else {
+		// Otherwise, we take the lowest value (negative or lowest mantissa.)
+		return treg > sreg ? sreg : treg;
+	}
+}
+
+static s32 DoVmaxSS(s32 treg) {
+	s32 sreg = vminmax_sreg[0];
+
+	// This is the same logic as vmin, just reversed.
+	if (sreg < 0 && treg < 0) {
+		return treg < sreg ? treg : sreg;
+	} else {
+		return treg > sreg ? treg : sreg;
+	}
+}
+
 void Jit::Comp_VecDo3(MIPSOpcode op) {
 	CONDITIONAL_DISABLE;
 
@@ -942,6 +996,7 @@ void Jit::Comp_VecDo3(MIPSOpcode op) {
 		DISABLE;
 
 	// Check that we can support the ops, and prepare temporary values for ops that need it.
+	bool allowSIMD = true;
 	switch (op >> 26) {
 	case 24: //VFPU0
 		switch ((op >> 23) & 7) {
@@ -965,6 +1020,7 @@ void Jit::Comp_VecDo3(MIPSOpcode op) {
 		switch ((op >> 23) & 7) {
 		case 2:  // vmin
 		case 3:  // vmax
+			allowSIMD = false;
 			break;
 		case 6:  // vsge
 		case 7:  // vslt
@@ -986,7 +1042,7 @@ void Jit::Comp_VecDo3(MIPSOpcode op) {
 	GetVectorRegsPrefixT(tregs, sz, _VT);
 	GetVectorRegsPrefixD(dregs, sz, _VD);
 
-	if (fpr.TryMapDirtyInInVS(dregs, sz, sregs, sz, tregs, sz)) {
+	if (allowSIMD && fpr.TryMapDirtyInInVS(dregs, sz, sregs, sz, tregs, sz)) {
 		void (XEmitter::*opFunc)(X64Reg, OpArg) = nullptr;
 		bool symmetric = false;
 		switch (op >> 26) {
@@ -1017,21 +1073,24 @@ void Jit::Comp_VecDo3(MIPSOpcode op) {
 			switch ((op >> 23) & 7)
 			{
 			case 2:  // vmin
-				// TODO: Mishandles NaN.
+				// TODO: Mishandles NaN.  Disabled for now.
 				MOVAPS(XMM1, fpr.VS(sregs));
 				MINPS(XMM1, fpr.VS(tregs));
 				MOVAPS(fpr.VSX(dregs), R(XMM1));
 				break;
 			case 3:  // vmax
-				// TODO: Mishandles NaN.
+				// TODO: Mishandles NaN.  Disabled for now.
 				MOVAPS(XMM1, fpr.VS(sregs));
 				MAXPS(XMM1, fpr.VS(tregs));
 				MOVAPS(fpr.VSX(dregs), R(XMM1));
 				break;
 			case 6:  // vsge
-				// TODO: Mishandles NaN.
+				MOVAPS(XMM0, fpr.VS(tregs));
 				MOVAPS(XMM1, fpr.VS(sregs));
+				CMPPS(XMM0, R(XMM1), CMP_ORD);
 				CMPPS(XMM1, fpr.VS(tregs), CMP_NLT);
+
+				ANDPS(XMM1, R(XMM0));
 				ANDPS(XMM1, M(&oneOneOneOne));
 				MOVAPS(fpr.VSX(dregs), R(XMM1));
 				break;
@@ -1077,7 +1136,8 @@ void Jit::Comp_VecDo3(MIPSOpcode op) {
 		if (!IsOverlapSafeAllowS(dregs[i], i, n, sregs, n, tregs))
 		{
 			// On 32-bit we only have 6 xregs for mips regs, use XMM0/XMM1 if possible.
-			if (i < 2)
+			// But for vmin/vmax/vsge, we need XMM0/XMM1, so avoid.
+			if (i < 2 && (op >> 26) != 27)
 				tempxregs[i] = (X64Reg) (XMM0 + i);
 			else
 			{
@@ -1128,16 +1188,46 @@ void Jit::Comp_VecDo3(MIPSOpcode op) {
 			switch ((op >> 23) & 7)
 			{
 			case 2:  // vmin
-				// TODO: Mishandles NaN.
-				MINSS(tempxregs[i], fpr.V(tregs[i]));
+				{
+					MOVSS(XMM0, fpr.V(tregs[i]));
+					UCOMISS(tempxregs[i], R(XMM0));
+					FixupBranch skip = J_CC(CC_NP, true);
+
+					MOVSS(M(&vminmax_sreg), tempxregs[i]);
+					MOVD_xmm(R(EAX), XMM0);
+					CallProtectedFunction(&DoVminSS, R(EAX));
+					MOVD_xmm(tempxregs[i], R(EAX));
+					FixupBranch finish = J();
+
+					SetJumpTarget(skip);
+					MINSS(tempxregs[i], R(XMM0));
+					SetJumpTarget(finish);
+				}
 				break;
 			case 3:  // vmax
-				// TODO: Mishandles NaN.
-				MAXSS(tempxregs[i], fpr.V(tregs[i]));
+				{
+					MOVSS(XMM0, fpr.V(tregs[i]));
+					UCOMISS(tempxregs[i], R(XMM0));
+					FixupBranch skip = J_CC(CC_NP, true);
+
+					MOVSS(M(&vminmax_sreg), tempxregs[i]);
+					MOVD_xmm(R(EAX), XMM0);
+					CallProtectedFunction(&DoVmaxSS, R(EAX));
+					MOVD_xmm(tempxregs[i], R(EAX));
+					FixupBranch finish = J();
+
+					SetJumpTarget(skip);
+					MAXSS(tempxregs[i], R(XMM0));
+					SetJumpTarget(finish);
+				}
 				break;
 			case 6:  // vsge
-				// TODO: Mishandles NaN.
-				CMPNLTSS(tempxregs[i], fpr.V(tregs[i]));
+				// We can't just reverse, because of 0/-0.
+				MOVSS(XMM0, fpr.V(tregs[i]));
+				MOVSS(XMM1, R(tempxregs[i]));
+				CMPORDSS(XMM1, R(XMM0));
+				CMPNLTSS(tempxregs[i], R(XMM0));
+				ANDPS(tempxregs[i], R(XMM1));
 				ANDPS(tempxregs[i], M(&oneOneOneOne));
 				break;
 			case 7:  // vslt
@@ -3332,7 +3422,7 @@ void Jit::Comp_VRot(MIPSOpcode op) {
 	u8 dregs[4];
 	u8 dregs2[4];
 
-	u32 nextOp = Memory::Read_Opcode_JIT(js.compilerPC + 4).encoding;
+	u32 nextOp = GetOffsetInstruction(1).encoding;
 	int vd2 = -1;
 	int imm2 = -1;
 	if ((nextOp >> 26) == 60 && ((nextOp >> 21) & 0x1F) == 29 && _VS == MIPS_GET_VS(nextOp)) {

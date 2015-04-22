@@ -49,6 +49,8 @@
 #elif defined(_M_IX86) || defined(_M_X64)
 #include "Common/x64Analyzer.h"
 #include "Core/MIPS/x86/Asm.h"
+#elif defined(ARM64)
+#include "Core/MIPS/ARM64/Arm64Asm.h"
 #else
 // FakeJit doesn't need an emitter, no blocks will be created
 #include "Core/MIPS/MIPS.h"
@@ -72,6 +74,9 @@ using namespace ArmGen;
 using namespace ArmJitConstants;
 #elif defined(_M_X64) || defined(_M_IX86)
 using namespace Gen;
+#elif defined(ARM64)
+using namespace Arm64Gen;
+using namespace Arm64JitConstants;
 #endif
 
 const u32 INVALID_EXIT = 0xFFFFFFFF;
@@ -438,6 +443,11 @@ void JitBlockCache::LinkBlockExits(int i) {
 					}
 				}
 				b.linkStatus[e] = true;
+#elif defined(ARM64)
+				ARM64XEmitter emit(b.exitPtrs[e]);
+				emit.B(blocks_[destinationBlock].checkedEntry);
+				emit.FlushIcache();
+				b.linkStatus[e] = true;
 #endif
 			}
 		}
@@ -584,6 +594,18 @@ void JitBlockCache::DestroyBlock(int block_num, bool invalidate) {
 	XEmitter emit((u8 *)b->checkedEntry);
 	emit.MOV(32, M(&mips_->pc), Imm32(b->originalAddress));
 	emit.JMP(MIPSComp::jit->Asm().dispatcher, true);
+
+#elif defined(ARM64)
+
+	// Send anyone who tries to run this block back to the dispatcher.
+	// Not entirely ideal, but .. works.
+	// Spurious entrances from previously linked blocks can only come through checkedEntry
+	ARM64XEmitter emit((u8 *)b->checkedEntry);
+	emit.MOVI2R(SCRATCH1, b->originalAddress);
+	emit.STR(INDEX_UNSIGNED, SCRATCH1, CTXREG, offsetof(MIPSState, pc));
+	emit.B(MIPSComp::jit->dispatcher);
+	emit.FlushIcache();
+
 #endif
 }
 
@@ -624,8 +646,39 @@ int JitBlockCache::GetBlockExitSize() {
 	return 0;
 #elif defined(_M_IX86) || defined(_M_X64)
 	return 15;
+#elif defined(ARM64)
+	// Will depend on the sequence found to encode the destination address.
+	return 0;
 #else
 #warning GetBlockExitSize unimplemented
 	return 0;
 #endif
+}
+
+void JitBlockCache::ComputeStats(BlockCacheStats &bcStats) {
+	double totalBloat = 0.0;
+	double maxBloat = 0.0;
+	double minBloat = 1000000000.0;
+	for (int i = 0; i < num_blocks_; i++) {
+		JitBlock *b = GetBlock(i);
+		double codeSize = (double)b->codeSize;
+		if (codeSize == 0)
+			continue;
+		double origSize = (double)(4 * b->originalSize);
+		double bloat = codeSize / origSize;
+		if (bloat < minBloat) {
+			minBloat = bloat;
+			bcStats.minBloatBlock = b->originalAddress;
+		}
+		if (bloat > maxBloat) {
+			maxBloat = bloat;
+			bcStats.maxBloatBlock = b->originalAddress;
+		}
+		totalBloat += bloat;
+		bcStats.bloatMap[bloat] = b->originalAddress;
+	}
+	bcStats.numBlocks = num_blocks_;
+	bcStats.minBloat = minBloat;
+	bcStats.maxBloat = maxBloat;
+	bcStats.avgBloat = totalBloat / (double)num_blocks_;
 }

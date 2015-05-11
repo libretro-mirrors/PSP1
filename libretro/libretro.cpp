@@ -256,7 +256,7 @@ void retro_get_system_info(struct retro_system_info *info)
 {
    memset(info, 0, sizeof(*info));
    info->library_name     = "PPSSPP";
-   info->library_version  = PPSSPP_GIT_VERSION;
+   info->library_version  = "v1.0.1-git";
    info->need_fullpath    = true;
    info->valid_extensions = "elf|iso|cso|prx|pbp";
 }
@@ -784,6 +784,7 @@ static void check_variables(void)
    }
    else
       g_Config.bPrescaleUV = 0;
+
    var.key = "ppsspp_threaded_input";
    var.value = NULL;
 

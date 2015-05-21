@@ -189,7 +189,10 @@ static void AfterStateLoad(bool success, void *ignored) {
 void EmuScreen::sendMessage(const char *message, const char *value) {
 	// External commands, like from the Windows UI.
 	if (!strcmp(message, "pause")) {
+		releaseButtons();
 		screenManager()->push(new GamePauseScreen(gamePath_));
+	} else if (!strcmp(message, "lost_focus")) {
+		releaseButtons();
 	} else if (!strcmp(message, "stop")) {
 		// We will push MainScreen in update().
 		PSP_Shutdown();
@@ -220,9 +223,11 @@ void EmuScreen::sendMessage(const char *message, const char *value) {
 		}
 	} else if (!strcmp(message, "control mapping")) {
 		UpdateUIState(UISTATE_MENU);
+		releaseButtons();
 		screenManager()->push(new ControlMappingScreen());
 	} else if (!strcmp(message, "settings")) {
 		UpdateUIState(UISTATE_MENU);
+		releaseButtons();
 		screenManager()->push(new GameSettingsScreen(gamePath_));
 	} else if (!strcmp(message, "gpu resized") || !strcmp(message, "gpu clear cache")) {
 		if (gpu) {
@@ -232,7 +237,8 @@ void EmuScreen::sendMessage(const char *message, const char *value) {
 		Reporting::UpdateConfig();
 		RecreateViews();
 	} else if (!strcmp(message, "gpu dump next frame")) {
-		if (gpu) gpu->DumpNextFrame();
+		if (gpu)
+			gpu->DumpNextFrame();
 	} else if (!strcmp(message, "clear jit")) {
 		currentMIPS->ClearJitCache();
 		if (PSP_IsInited()) {
@@ -407,6 +413,32 @@ void EmuScreen::onVKeyUp(int virtualKeyCode) {
 	}
 }
 
+// Handles control rotation due to internal screen rotation.
+static void SetPSPAxis(char axis, float value, int stick) {
+	switch (g_Config.iInternalScreenRotation) {
+	case ROTATION_LOCKED_HORIZONTAL:
+		// Standard rotation.
+		break;
+	case ROTATION_LOCKED_HORIZONTAL180:
+		value = -value;
+		break;
+	case ROTATION_LOCKED_VERTICAL:
+		value = axis == 'Y' ? value : -value;
+		axis = (axis == 'X') ? 'Y' : 'X';
+		break;
+	case ROTATION_LOCKED_VERTICAL180:
+		value = axis == 'Y' ? -value : value;
+		axis = (axis == 'X') ? 'Y' : 'X';
+		break;
+	default:
+		break;
+	}
+	if (axis == 'X')
+		__CtrlSetAnalogX(value, stick);
+	else if (axis == 'Y')
+		__CtrlSetAnalogY(value, stick);
+}
+
 inline void EmuScreen::setVKeyAnalogX(int stick, int virtualKeyMin, int virtualKeyMax) {
 	const float value = virtKeys[VIRTKEY_ANALOG_LIGHTLY - VIRTKEY_FIRST] ? g_Config.fAnalogLimiterDeadzone : 1.0f;
 	float axis = 0.0f;
@@ -415,7 +447,7 @@ inline void EmuScreen::setVKeyAnalogX(int stick, int virtualKeyMin, int virtualK
 		axis -= value;
 	if (virtKeys[virtualKeyMax - VIRTKEY_FIRST])
 		axis += value;
-	__CtrlSetAnalogX(axis, stick);
+	SetPSPAxis('X', axis, stick);
 }
 
 inline void EmuScreen::setVKeyAnalogY(int stick, int virtualKeyMin, int virtualKeyMax) {
@@ -425,7 +457,7 @@ inline void EmuScreen::setVKeyAnalogY(int stick, int virtualKeyMin, int virtualK
 		axis -= value;
 	if (virtKeys[virtualKeyMax - VIRTKEY_FIRST])
 		axis += value;
-	__CtrlSetAnalogY(axis, stick);
+	SetPSPAxis('Y', axis, stick);
 }
 
 bool EmuScreen::key(const KeyInput &key) {
@@ -453,7 +485,35 @@ bool EmuScreen::key(const KeyInput &key) {
 	return pspKeys.size() > 0;
 }
 
+static int RotatePSPKeyCode(int x) {
+	switch (x) {
+	case CTRL_UP: return CTRL_RIGHT;
+	case CTRL_RIGHT: return CTRL_DOWN;
+	case CTRL_DOWN: return CTRL_LEFT;
+	case CTRL_LEFT: return CTRL_UP;
+	default:
+		return x;
+	}
+}
+
 void EmuScreen::pspKey(int pspKeyCode, int flags) {
+	int rotations = 0;
+	switch (g_Config.iInternalScreenRotation) {
+	case ROTATION_LOCKED_HORIZONTAL180:
+		rotations = 2;
+		break;
+	case ROTATION_LOCKED_VERTICAL:
+		rotations = 1;
+		break;
+	case ROTATION_LOCKED_VERTICAL180:
+		rotations = 3;
+		break;
+	}
+
+	for (int i = 0; i < rotations; i++) {
+		pspKeyCode = RotatePSPKeyCode(pspKeyCode);
+	}
+
 	if (pspKeyCode >= VIRTKEY_FIRST) {
 		int vk = pspKeyCode - VIRTKEY_FIRST;
 		if (flags & KEY_DOWN) {
@@ -515,33 +575,34 @@ void EmuScreen::processAxis(const AxisInput &axis, int direction) {
 
 	std::vector<int> results;
 	KeyMap::AxisToPspButton(axis.deviceId, axis.axisId, direction, &results);
+
 	for (size_t i = 0; i < results.size(); i++) {
 		int result = results[i];
 		switch (result) {
 		case VIRTKEY_AXIS_X_MIN:
-			__CtrlSetAnalogX(-fabs(axis.value), CTRL_STICK_LEFT);
+			SetPSPAxis('X', -fabs(axis.value), CTRL_STICK_LEFT);
 			break;
 		case VIRTKEY_AXIS_X_MAX:
-			__CtrlSetAnalogX(fabs(axis.value), CTRL_STICK_LEFT);
+			SetPSPAxis('X', fabs(axis.value), CTRL_STICK_LEFT);
 			break;
 		case VIRTKEY_AXIS_Y_MIN:
-			__CtrlSetAnalogY(-fabs(axis.value), CTRL_STICK_LEFT);
+			SetPSPAxis('Y', -fabs(axis.value), CTRL_STICK_LEFT);
 			break;
 		case VIRTKEY_AXIS_Y_MAX:
-			__CtrlSetAnalogY(fabs(axis.value), CTRL_STICK_LEFT);
+			SetPSPAxis('Y', fabs(axis.value), CTRL_STICK_LEFT);
 			break;
 
 		case VIRTKEY_AXIS_RIGHT_X_MIN:
-			__CtrlSetAnalogX(-fabs(axis.value), CTRL_STICK_RIGHT);
+			SetPSPAxis('X', -fabs(axis.value), CTRL_STICK_RIGHT);
 			break;
 		case VIRTKEY_AXIS_RIGHT_X_MAX:
-			__CtrlSetAnalogX(fabs(axis.value), CTRL_STICK_RIGHT);
+			SetPSPAxis('X', fabs(axis.value), CTRL_STICK_RIGHT);
 			break;
 		case VIRTKEY_AXIS_RIGHT_Y_MIN:
-			__CtrlSetAnalogY(-fabs(axis.value), CTRL_STICK_RIGHT);
+			SetPSPAxis('Y', -fabs(axis.value), CTRL_STICK_RIGHT);
 			break;
 		case VIRTKEY_AXIS_RIGHT_Y_MAX:
-			__CtrlSetAnalogY(fabs(axis.value), CTRL_STICK_RIGHT);
+			SetPSPAxis('Y', fabs(axis.value), CTRL_STICK_RIGHT);
 			break;
 		}
 	}
@@ -602,6 +663,7 @@ void EmuScreen::CreateViews() {
 }
 
 UI::EventReturn EmuScreen::OnDevTools(UI::EventParams &params) {
+	releaseButtons();
 	screenManager()->push(new DevMenu());
 	return UI::EVENT_DONE;
 }
@@ -697,6 +759,7 @@ void EmuScreen::update(InputState &input) {
 	// This is here to support the iOS on screen back button.
 	if (pauseTrigger_) {
 		pauseTrigger_ = false;
+		releaseButtons();
 		screenManager()->push(new GamePauseScreen(gamePath_));
 	}
 
@@ -879,4 +942,13 @@ void EmuScreen::autoLoad() {
 		SaveState::LoadSlot(lastSlot, SaveState::Callback(), 0);
 		g_Config.iCurrentStateSlot = lastSlot;
 	}
+}
+
+// TODO: Add generic loss-of-focus handling for Screens, use this.
+void EmuScreen::releaseButtons() {
+	TouchInput input;
+	input.flags = TOUCH_RELEASE_ALL;
+	input.timestamp = time_now_d();
+	input.id = 0;
+	touch(input);
 }

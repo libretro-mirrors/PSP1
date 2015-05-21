@@ -391,6 +391,7 @@ ifdef WITH_DYNAREC
 			SOURCES_CXX   += \
 							  $(COREDIR)/MIPS/ARM/ArmCompVFPUNEON.cpp \
 							  $(COREDIR)/MIPS/ARM/ArmCompVFPUNEONUtil.cpp \
+							  $(COMMONDIR)/ColorConvNEON.cpp \
 							  $(GPUDIR)/Common/TextureDecoderNEON.cpp
 
 			SOURCES_C += $(NATIVEDIR)/ext/libpng17/arm/arm_init.c \

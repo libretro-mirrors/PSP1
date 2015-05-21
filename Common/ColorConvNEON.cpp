@@ -1,4 +1,4 @@
-// Copyright (c) 2012- PPSSPP Project.
+// Copyright (c) 2015- PPSSPP Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,7 +15,9 @@
 // Official git repository and contact information can be found at
 // https://github.com/hrydgard/ppsspp and http://www.ppsspp.org/.
 
-#pragma once
+#include <arm_neon.h>
+#include "ColorConvNEON.h"
+#include "Common.h"
+#include "CPUDetect.h"
 
-#include "InputDevice.h"
-
+// TODO: NEON color conversion funcs.

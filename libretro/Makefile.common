@@ -32,6 +32,8 @@ SOURCES_C    += $(NATIVEDIR)/ext/libpng17/pngget.c \
 SOURCES_C   += $(NATIVEDIR)/ext/libpng17/pngmem.c \
 				$(NATIVEDIR)/ext/libpng17/pngpread.c 
 SOURCES_CXX += $(NATIVEDIR)/ext/cityhash/city.cpp \
+				$(COMMONDIR)/Arm64Emitter.cpp \
+				$(COMMONDIR)/ArmEmitter.cpp \
 				$(COMMONDIR)/ChunkFile.cpp
 SOURCES_C   += $(NATIVEDIR)/ext/libpng17/pngread.c
 SOURCES_CXX += $(COMMONDIR)/ConsoleListener.cpp \
@@ -109,7 +111,8 @@ SOURCES_CXX += $(GPUCOMMONDIR)/VertexDecoderCommon.cpp \
 				$(GPUCOMMONDIR)/DrawEngineCommon.cpp \
 				$(GPUCOMMONDIR)/SplineCommon.cpp \
 				$(GPUCOMMONDIR)/FramebufferCommon.cpp \
-				$(GPUCOMMONDIR)/DepalettizeShaderCommon.cpp
+				$(GPUCOMMONDIR)/DepalettizeShaderCommon.cpp \
+				$(EXTDIR)/disarm.cpp
 SOURCES_C   += $(NATIVEDIR)/ext/libzip/zip_source_function.c \
 				$(NATIVEDIR)/ext/libzip/zip_source_zip.c \
 				$(NATIVEDIR)/ext/libzip/zip_stat.c \
@@ -352,6 +355,7 @@ SOURCES_CXX += $(NATIVEDIR)/file/chunk_file.cpp \
 				$(COREDIR)/SaveState.cpp \
 				$(COREDIR)/Screenshot.cpp \
 				$(COREDIR)/System.cpp \
+				$(COREDIR)/Util/DisArm64.cpp \
 				$(COREDIR)/Util/GameManager.cpp \
 				$(COREDIR)/Util/BlockAllocator.cpp \
 				$(COREDIR)/Util/PPGeDraw.cpp \

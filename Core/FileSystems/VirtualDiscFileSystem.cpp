@@ -795,8 +795,8 @@ VirtualDiscFileSystem::Handler::Handler(const char *filename, VirtualDiscFileSys
 #define dlclose(mod) FreeLibrary((HMODULE)mod)
 #elif defined(_WIN32)
 #define dlopen(name, ignore) (void *)LoadLibrary(name)
-#define dlsym(mod, name) GetProcAddress(mod, name)
-#define dlclose(mod) FreeLibrary(mod)
+#define dlsym(mod, name) GetProcAddress((HMODULE)mod, name)
+#define dlclose(mod) FreeLibrary((HMODULE)mod)
 #endif
 
 	library = dlopen(filename, RTLD_LOCAL | RTLD_NOW);
@@ -829,7 +829,7 @@ VirtualDiscFileSystem::Handler::~Handler() {
 	if (library != NULL) {
 		Shutdown();
 
-#ifdef _WIN32_NO_MINGW
+#ifdef _WIN32
 		FreeLibrary((HMODULE)library);
 #else
 		dlclose(library);

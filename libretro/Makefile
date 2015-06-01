@@ -254,7 +254,7 @@ else ifeq ($(platform), emscripten)
 # Windows
 else ifneq (,$(findstring win,$(platform)))
 	TARGET := $(TARGET_NAME)_libretro.dll
-	LDFLAGS += -shared -static-libgcc -static-libstdc++ -Wl,--version-script=link.T -lwinmm -lgdi32
+	LDFLAGS += -shared -static-libgcc -static-libstdc++ -Wl,--version-script=link.T -lwinmm -lgdi32 -lwsock32 -lws2_32
 	GL_LIB := -lopengl32
 	PLATFORM_EXT := win32
 	CC = gcc
@@ -295,7 +295,7 @@ OBJECTS		+= $(SOURCES_CXX:.cpp=.o) $(SOURCES_C:.c=.o) $(ASMFILES:.S=.o)
 CXXFLAGS	+= -std=c++11 $(CPUOPTS) $(COREFLAGS) $(INCFLAGS) $(PLATCFLAGS) $(fpic) $(PLATCFLAGS) $(CPUFLAGS) $(GLFLAGS) $(DYNAFLAGS) 
 CFLAGS		+= $(CPUOPTS) $(COREFLAGS) $(INCFLAGS) $(PLATCFLAGS) $(fpic) $(PLATCFLAGS) $(CPUFLAGS) $(GLFLAGS) $(DYNAFLAGS)
 
-LDFLAGS		+= -lm -ldl -lz $(FFMPEGLDFLAGS) $(fpic)
+LDFLAGS		+= -lm -lz -lavcodec -lavformat -lswresample -lavutil -lswscale $(FFMPEGLDFLAGS) $(fpic)
 ifeq (,$(findstring android,$(platform)))
 	LDFLAGS		+= -lpthread
 endif

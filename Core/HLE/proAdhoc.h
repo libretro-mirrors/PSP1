@@ -39,7 +39,7 @@ class PointerWrap;
 #ifdef _XBOX
 #include <winsockx.h>
 typedef int socklen_t;
-#elif defined(_MSC_VER)
+#elif defined(_WIN32)
 #include <WS2tcpip.h>
 #else
 #include <unistd.h>
@@ -52,7 +52,7 @@ typedef int socklen_t;
 #include <fcntl.h>
 #include <errno.h>
 #endif
-#ifdef _MSC_VER
+#ifdef _WIN32
 #define PACK
 #undef errno
 #undef ECONNABORTED

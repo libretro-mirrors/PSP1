@@ -39,6 +39,9 @@
 #undef _interlockedbittestandset64
 #undef _interlockedbittestandreset64
 
+#define __cpuid(cpuInfo, function_id) do { memset(cpuInfo, 0, sizeof(cpuInfo)); } while (0)
+#define __cpuidex(cpuInfo, function_id, subfunction_id ) do { memset(cpuInfo, 0, sizeof(cpuInfo)); } while (0)
+
 void do_cpuidex(u32 regs[4], u32 cpuid_leaf, u32 ecxval) {
 	__cpuidex((int *)regs, cpuid_leaf, ecxval);
 }
@@ -102,6 +105,9 @@ CPUInfo cpu_info;
 CPUInfo::CPUInfo() {
 	Detect();
 }
+
+#define _xgetbv(xcr) 0
+#define _XCR_XFEATURE_ENABLED_MASK 0
 
 // Detects the various cpu features
 void CPUInfo::Detect() {

@@ -216,6 +216,7 @@ bool TakeGameScreenshot(const char *filename, ScreenshotFormat fmt, ScreenshotTy
 	GPUDebugBuffer buf;
 	bool success = false;
 
+#if 0
 	if (type == SCREENSHOT_RENDER) {
 		if (gpuDebug) {
 			success = gpuDebug->GetCurrentFramebuffer(buf);
@@ -229,6 +230,7 @@ bool TakeGameScreenshot(const char *filename, ScreenshotFormat fmt, ScreenshotTy
 #endif
 		}
 	}
+#endif
 
 	if (!success) {
 		ERROR_LOG(COMMON, "Failed to obtain screenshot data.");

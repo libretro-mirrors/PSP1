@@ -211,6 +211,10 @@ bool Load_PSP_ISO(FileLoader *fileLoader, std::string *error_string)
 	return __KernelLoadExec(bootpath.c_str(), 0, error_string);
 }
 
+#if defined(_WIN32) && defined(__MINGW32__)
+#include "realpath.c"
+#endif
+
 static std::string NormalizePath(const std::string &path)
 {
 #if defined(_WIN32) && !defined(__MINGW32__)

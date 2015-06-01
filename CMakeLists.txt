@@ -21,7 +21,9 @@ if(CMAKE_SYSTEM_PROCESSOR)
 		if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^armv7")
 			set(ARMV7 ON)
 		endif()
-	elseif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^x86" OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES "i.86")
+	elseif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^x86" OR
+		${CMAKE_SYSTEM_PROCESSOR} MATCHES "^amd64" OR
+		${CMAKE_SYSTEM_PROCESSOR} MATCHES "i.86")
 		set(X86 ON)
 	elseif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^mips")
 		set(MIPS ON)
@@ -250,7 +252,7 @@ if(NOT MSVC)
 		if (NOT CMAKE_C_COMPILER_ID STREQUAL "Intel" AND NOT CMAKE_C_COMPILER_ID STREQUAL "Clang")
 			add_definitions(-Wno-psabi)
 		endif()
-		add_definitions(-D_XOPEN_SOURCE=600 -D_XOPEN_SOURCE_EXTENDED -D__BSD_VISIBLE=1)
+		add_definitions(-D_XOPEN_SOURCE=700 -D_XOPEN_SOURCE_EXTENDED -D__BSD_VISIBLE=1)
 		add_definitions(-D_LARGEFILE64_SOURCE=1 -D_FILE_OFFSET_BITS=64)
 	endif()
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
@@ -738,7 +740,7 @@ if(ANDROID)
 elseif(IOS)
 	set(nativeExtra ${nativeExtra}
 		ios/main.mm
-		ios/AppDelegate.m
+		ios/AppDelegate.mm
 		ios/AppDelegate.h
 		ios/ViewController.mm
 		ios/ViewController.h
@@ -752,7 +754,7 @@ elseif(IOS)
 		set(nativeExtraLibs ${nativeExtraLibs} "-weak_framework GameController")
 	endif()
 
-	set_source_files_properties(ios/AppDelegate.m PROPERTIES COMPILE_FLAGS -fobjc-arc)
+	set_source_files_properties(ios/AppDelegate.mm PROPERTIES COMPILE_FLAGS -fobjc-arc)
 	set_source_files_properties(ios/ViewController.mm PROPERTIES COMPILE_FLAGS -fobjc-arc)
 
 	set(TargetBin PPSSPP)
@@ -1607,20 +1609,25 @@ endif()
 
 if (TargetBin)
 	if (IOS OR APPLE)
+		if (APPLE AND NOT IOS)
 		set(ICON_PATH_ABS ${CMAKE_CURRENT_SOURCE_DIR}/assets/ppsspp.icns)
 		set( MACOSX_BUNDLE_ICON_FILE ppsspp.icns )
 		set_source_files_properties(${ICON_PATH_ABS} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+		endif()
 
 		# TODO: there must a native way to copy these.
 		# Now this is very prone to errors when changes occur.
-		# Also better to have assets under Resources dir.
+		# Also better to have assets under Resources dir for OS X.
 		file(GLOB_RECURSE FLASH0_FILES flash0/*)
 		file(GLOB_RECURSE LANG_FILES lang/*)
 		file(GLOB_RECURSE SHADER_FILES assets/shaders/*)
+
+		if (APPLE AND NOT IOS)
 		set_source_files_properties(${NativeAssets} PROPERTIES MACOSX_PACKAGE_LOCATION "MacOS/assets")
 		set_source_files_properties(${FLASH0_FILES} PROPERTIES MACOSX_PACKAGE_LOCATION "MacOS/assets/flash0/font")
 		set_source_files_properties(${LANG_FILES} PROPERTIES MACOSX_PACKAGE_LOCATION "MacOS/assets/lang")
 		set_source_files_properties(${SHADER_FILES} PROPERTIES MACOSX_PACKAGE_LOCATION "MacOS/assets/shaders")
+		endif()
 
 		add_executable(${TargetBin} MACOSX_BUNDLE ${ICON_PATH_ABS} ${NativeAssets} ${SHADER_FILES} ${FLASH0_FILES} ${LANG_FILES} ${NativeAppSource})
 	else()

@@ -18,6 +18,8 @@
 #include <algorithm>
 #include <cstring>
 
+#include "profiler/profiler.h"
+
 #include "Common/ColorConv.h"
 #include "Core/Host.h"
 #include "Core/MemMap.h"
@@ -1701,6 +1703,7 @@ void *TextureCache::DecodeTextureLevel(GETextureFormat format, GEPaletteFormat c
 			// Special case: if we don't need to deal with packing, we don't need to copy.
 			if ((g_Config.iTexScalingLevel == 1 && gl_extensions.EXT_unpack_subimage) || w == bufw) {
 				if (UseBGRA8888()) {
+					tmpTexBuf32.resize(std::max(bufw, w) * h);
 					finalBuf = tmpTexBuf32.data();
 					ConvertColors(finalBuf, texptr, dstFmt, bufw * h);
 				} else {
@@ -1825,71 +1828,36 @@ void *TextureCache::DecodeTextureLevel(GETextureFormat format, GEPaletteFormat c
 }
 
 TextureCache::TexCacheEntry::Status TextureCache::CheckAlpha(const u32 *pixelData, GLenum dstFmt, int stride, int w, int h) {
-	// TODO: Could probably be optimized more.
-	u32 hitZeroAlpha = 0;
-	u32 hitSomeAlpha = 0;
-
+	CheckAlphaResult res;
 	switch (dstFmt) {
 	case GL_UNSIGNED_SHORT_4_4_4_4:
-		{
-			const u32 *p = pixelData;
-			for (int y = 0; y < h && hitSomeAlpha == 0; ++y) {
-				for (int i = 0; i < (w + 1) / 2; ++i) {
-					u32 a = p[i] & 0x000F000F;
-					hitZeroAlpha |= a ^ 0x000F000F;
-					if (a != 0x000F000F && a != 0x0000000F && a != 0x000F0000 && a != 0) {
-						hitSomeAlpha = 1;
-						break;
-					}
-				}
-				p += stride/2;
-			}
-		}
+		res = CheckAlphaABGR4444Basic(pixelData, stride, w, h);
 		break;
 	case GL_UNSIGNED_SHORT_5_5_5_1:
-		{
-			const u32 *p = pixelData;
-			for (int y = 0; y < h; ++y) {
-				for (int i = 0; i < (w + 1) / 2; ++i) {
-					u32 a = p[i] & 0x00010001;
-					hitZeroAlpha |= a ^ 0x00010001;
-				}
-				p += stride/2;
-			}
-		}
+		res = CheckAlphaABGR1555Basic(pixelData, stride, w, h);
 		break;
 	case GL_UNSIGNED_SHORT_5_6_5:
-		{
-			// Never has any alpha.
-		}
+		// Never has any alpha.
+		res = CHECKALPHA_FULL;
 		break;
 	default:
-		{
-			const u32 *p = pixelData;
-			for (int y = 0; y < h && hitSomeAlpha == 0; ++y) {
-				for (int i = 0; i < w; ++i) {
-					u32 a = p[i] & 0xFF000000;
-					hitZeroAlpha |= a ^ 0xFF000000;
-					if (a != 0xFF000000 && a != 0) {
-						hitSomeAlpha = 1;
-						break;
-					}
-				}
-				p += stride;
-			}
-		}
+		res = CheckAlphaRGBA8888Basic(pixelData, stride, w, h);
 		break;
 	}
 
-	if (hitSomeAlpha != 0)
-		return TexCacheEntry::STATUS_ALPHA_UNKNOWN;
-	else if (hitZeroAlpha != 0)
-		return TexCacheEntry::STATUS_ALPHA_SIMPLE;
-	else
-		return TexCacheEntry::STATUS_ALPHA_FULL;
+	return (TexCacheEntry::Status)res;
 }
 
 void TextureCache::LoadTextureLevel(TexCacheEntry &entry, int level, bool replaceImages, int scaleFactor, GLenum dstFmt) {
+	int w = gstate.getTextureWidth(level);
+	int h = gstate.getTextureHeight(level);
+	bool useUnpack = false;
+	bool useBGRA;
+	u32 *pixelData;
+	{
+
+	PROFILE_THIS_SCOPE("decodetex");
+
 	// TODO: only do this once
 	u32 texByteAlign = 1;
 
@@ -1900,13 +1868,9 @@ void TextureCache::LoadTextureLevel(TexCacheEntry &entry, int level, bool replac
 		return;
 	}
 
-	int w = gstate.getTextureWidth(level);
-	int h = gstate.getTextureHeight(level);
-
 	gpuStats.numTexturesDecoded++;
 
 	// Can restore these and remove the fixup at the end of DecodeTextureLevel on desktop GL and GLES 3.
-	bool useUnpack = false;
 	if ((g_Config.iTexScalingLevel == 1 && gl_extensions.EXT_unpack_subimage) && w != bufw) {
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, bufw);
 		useUnpack = true;
@@ -1914,9 +1878,9 @@ void TextureCache::LoadTextureLevel(TexCacheEntry &entry, int level, bool replac
 
 	glPixelStorei(GL_UNPACK_ALIGNMENT, texByteAlign);
 
-	bool useBGRA = UseBGRA8888() && dstFmt == GL_UNSIGNED_BYTE;
+	useBGRA = UseBGRA8888() && dstFmt == GL_UNSIGNED_BYTE;
 
-	u32 *pixelData = (u32 *)finalBuf;
+	pixelData = (u32 *)finalBuf;
 	if (scaleFactor > 1 && (entry.status & TexCacheEntry::STATUS_CHANGE_FREQUENT) == 0)
 		scaler.Scale(pixelData, dstFmt, w, h, scaleFactor);
 
@@ -1925,6 +1889,7 @@ void TextureCache::LoadTextureLevel(TexCacheEntry &entry, int level, bool replac
 		entry.SetAlphaStatus(alphaStatus, level);
 	} else {
 		entry.SetAlphaStatus(TexCacheEntry::STATUS_ALPHA_UNKNOWN);
+	}
 	}
 
 	GLuint components = dstFmt == GL_UNSIGNED_SHORT_5_6_5 ? GL_RGB : GL_RGBA;
@@ -1935,8 +1900,10 @@ void TextureCache::LoadTextureLevel(TexCacheEntry &entry, int level, bool replac
 	}
 
 	if (replaceImages) {
+		PROFILE_THIS_SCOPE("repltex");
 		glTexSubImage2D(GL_TEXTURE_2D, level, 0, 0, w, h, components2, dstFmt, pixelData);
 	} else {
+		PROFILE_THIS_SCOPE("loadtex");
 		glTexImage2D(GL_TEXTURE_2D, level, components, w, h, 0, components2, dstFmt, pixelData);
 		if (!lowMemoryMode_) {
 			GLenum err = glGetError();

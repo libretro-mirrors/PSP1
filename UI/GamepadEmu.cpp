@@ -65,6 +65,7 @@ void MultiTouchButton::Draw(UIContext &dc) {
 		scale *= 2.0f;
 		opacity *= 1.15f;
 	}
+
 	uint32_t colorBg = colorAlpha(GetButtonColor(), opacity);
 	uint32_t color = colorAlpha(0xFFFFFF, opacity);
 
@@ -397,9 +398,12 @@ void InitPadLayout(float xres, float yres, float globalScale) {
 		g_Config.fUnthrottleKeyScale = scale;
 	}
 
-	//L and R------------------------------------------------------------
-	int l_key_X = 70 * scale;
-	int l_key_Y = 40 * scale;
+	// L and R------------------------------------------------------------
+	// Put them above the analog stick / above the buttons to the right.
+	// The corners were very hard to reach..
+
+	int l_key_X = 60 * scale;
+	int l_key_Y = yres - 380 * scale;
 
 	if (g_Config.fLKeyX == -1.0 || g_Config.fLKeyY == -1.0 ) {
 		g_Config.fLKeyX = (float)l_key_X / xres;
@@ -408,7 +412,7 @@ void InitPadLayout(float xres, float yres, float globalScale) {
 	}
 
 	int r_key_X = xres - 60 * scale;
-	int r_key_Y = 40 * scale;
+	int r_key_Y = l_key_Y;
 
 	if (g_Config.fRKeyX == -1.0 || g_Config.fRKeyY == -1.0 ) {
 		g_Config.fRKeyX = (float)r_key_X / xres;
@@ -423,7 +427,7 @@ UI::ViewGroup *CreatePadLayout(float xres, float yres, bool *pause) {
 	using namespace UI;
 
 	AnchorLayout *root = new AnchorLayout(new LayoutParams(FILL_PARENT, FILL_PARENT));
-	
+
 	//PSP buttons (triangle, circle, square, cross)---------------------
 	//space between the PSP buttons (traingle, circle, square and cross)
 	const float Action_button_scale = g_Config.fActionButtonScale;

@@ -1,4 +1,4 @@
-INCFLAGS := \
+INCFLAGS += \
 	-I$(ROOTDIR) \
 	-I$(COMMONDIR) \
 	-I$(EXTDIR)/snappy \

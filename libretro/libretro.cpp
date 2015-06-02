@@ -43,7 +43,7 @@ const char *PPSSPP_GIT_VERSION = "v1.0.1-git";
 
 static CoreParameter coreParam;
 static struct retro_hw_render_callback hw_render;
-static retro_log_printf_t log_cb;
+retro_log_printf_t log_cb;
 static retro_video_refresh_t video_cb;
 static retro_audio_sample_batch_t audio_batch_cb;
 static retro_input_poll_t input_poll_cb;

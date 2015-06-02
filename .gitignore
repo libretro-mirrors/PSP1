@@ -3,6 +3,7 @@
 *.pdb
 *.ilk
 *.obj
+*.o
 *.pch
 *.log
 *.dll

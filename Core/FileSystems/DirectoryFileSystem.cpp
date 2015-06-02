@@ -46,6 +46,8 @@
 #elif defined(__SYMBIAN32__)
 #include <mw/QSystemStorageInfo>
 QTM_USE_NAMESPACE
+#elif defined(_WIN32)
+#include "Common/CommonWindows.h"
 #else
 #include <sys/statvfs.h>
 #endif

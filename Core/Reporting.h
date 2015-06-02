@@ -17,6 +17,11 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Log.h"
+
+#ifdef __LIBRETRO__
+//long long atoll(const char *a);
+#endif
+
 #include <string>
 
 #define DEBUG_LOG_REPORT(t,...)   do { DEBUG_LOG(t, __VA_ARGS__);  Reporting::ReportMessage(__VA_ARGS__); } while (false)

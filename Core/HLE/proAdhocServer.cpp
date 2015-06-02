@@ -35,7 +35,7 @@
 #ifdef _XBOX
 #include <winsockx.h>
 typedef int socklen_t;
-#elif defined(_MSC_VER)
+#elif defined(_WIN32)
 #include <WS2tcpip.h>
 #else
 #include <sys/socket.h>
@@ -1337,7 +1337,7 @@ void change_blocking_mode(int fd, int nonblocking)
 {
 	unsigned long on = 1;
 	unsigned long off = 0;
-#ifdef _MSC_VER
+#ifdef _WIN32
 	if (nonblocking){
 		// Change to Non-Blocking Mode
 		ioctlsocket(fd, FIONBIO, &on);

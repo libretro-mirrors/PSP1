@@ -57,6 +57,8 @@ static bool threaded_input = false;
 static uint32_t screen_width, screen_height,
                 screen_pitch;
 
+static bool first_ctx_reset;
+
 // linker stubs
 std::string System_GetProperty(SystemProperty prop) { return ""; }
 int System_GetPropertyInt(SystemProperty prop) { return -1; }
@@ -314,20 +316,24 @@ static void initialize_gl(void)
 
 static void context_reset(void)
 {
-   if (log_cb)
-      log_cb(RETRO_LOG_INFO, "Context reset!\n");
+   if (!first_ctx_reset)
+   {
+      if (log_cb)
+         log_cb(RETRO_LOG_INFO, "Context reset!\n");
 
-   if (gpu)
-      gpu->DeviceLost();
+      if (gpu)
+         gpu->DeviceLost();
 
-   //RecreateViews(); /* TODO ? */
+      //RecreateViews(); /* TODO ? */
 
-   gl_lost();
+      gl_lost();
 
-   initialize_gl();
+      initialize_gl();
 
-   glstate.Restore();
-
+      glstate.Restore();
+   }
+   
+   first_ctx_reset = false;
 }
 
 static void set_language_auto(void)
@@ -848,6 +854,8 @@ bool retro_load_game(const struct retro_game_info *game)
          log_cb(RETRO_LOG_ERROR, "XRGB8888 is not supported.\n");
       return false;
    }
+   
+   first_ctx_reset = true;
 
 #ifdef USING_GLES2
    hw_render.context_type = RETRO_HW_CONTEXT_OPENGLES2;

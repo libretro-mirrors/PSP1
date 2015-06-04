@@ -44,7 +44,7 @@ namespace MIPSComp {
 	}
 }
 
-#if defined(ARM) || defined(DISASM_ALL)
+#if defined(NEW_DYNAREC) && (defined(ARM) || defined(DISASM_ALL))
 // We compile this for x86 as well because it may be useful when developing the ARM JIT on a PC.
 std::vector<std::string> DisassembleArm2(const u8 *data, int size) {
 	std::vector<std::string> lines;
@@ -93,7 +93,7 @@ std::string AddAddress(const std::string &buf, uint64_t addr) {
 	return std::string(buf2) + " " + buf;
 }
 
-#if defined(ARM64) || defined(DISASM_ALL)
+#if defined(NEW_DYNAREC) && (defined(ARM64) || defined(DISASM_ALL))
 std::vector<std::string> DisassembleArm64(const u8 *data, int size) {
 	std::vector<std::string> lines;
 

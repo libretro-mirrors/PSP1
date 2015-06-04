@@ -76,6 +76,22 @@ static u64 __RtcGetCurrentTick()
 	return CoreTiming::GetGlobalTimeUs() + rtcBaseTicks;
 }
 
+#if defined(__MINGW32__)
+errno_t _get_timezone(long *seconds)
+{
+  time_t now = time(NULL);
+
+  struct tm *gm = gmtime(&now);
+  time_t gmt = mktime(gm);
+
+  struct tm *loc = localtime(&now);
+  time_t local = mktime(loc);
+
+  *seconds = local - gmt;
+  return 0;
+}
+#endif
+
 #if defined(_WIN32)
 #define FILETIME_FROM_UNIX_EPOCH_US (rtcMagicOffset - rtcFiletimeOffset)
 
@@ -459,7 +475,7 @@ static int sceRtcConvertLocalTimeToUTC(u32 tickLocalPtr,u32 tickUTCPtr)
 	{
 		u64 srcTick = Memory::Read_U64(tickLocalPtr);
 		// TODO : Let the user select his timezone / daylight saving instead of taking system param ?
-#ifdef _MSC_VER
+#ifdef _WIN32
 		long timezone_val;
 		_get_timezone(&timezone_val);
 		srcTick -= -timezone_val * 1000000ULL;
@@ -484,7 +500,7 @@ static int sceRtcConvertUtcToLocalTime(u32 tickUTCPtr,u32 tickLocalPtr)
 	{
 		u64 srcTick = Memory::Read_U64(tickUTCPtr);
 		// TODO : Let the user select his timezone / daylight saving instead of taking system param ?
-#ifdef _MSC_VER
+#ifdef _WIN32
 		long timezone_val;
 		_get_timezone(&timezone_val);
 		srcTick += -timezone_val * 1000000ULL;
@@ -1019,7 +1035,7 @@ static int sceRtcFormatRFC2822LocalTime(u32 outPtr, u32 srcTickPtr)
 	}
 
 	int tz_seconds;
-#ifdef _MSC_VER
+#ifdef _WIN32
 		long timezone_val;
 		_get_timezone(&timezone_val);
 		tz_seconds = -timezone_val;
@@ -1056,7 +1072,7 @@ static int sceRtcFormatRFC3339LocalTime(u32 outPtr, u32 srcTickPtr)
 	}
 
 	int tz_seconds;
-#ifdef _MSC_VER
+#ifdef _WIN32
 		long timezone_val;
 		_get_timezone(&timezone_val);
 		tz_seconds = -timezone_val;

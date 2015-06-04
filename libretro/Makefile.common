@@ -32,7 +32,6 @@ SOURCES_C    += $(NATIVEDIR)/ext/libpng17/pngget.c \
 SOURCES_C   += $(NATIVEDIR)/ext/libpng17/pngmem.c \
 				$(NATIVEDIR)/ext/libpng17/pngpread.c 
 SOURCES_CXX += $(NATIVEDIR)/ext/cityhash/city.cpp \
-				$(COMMONDIR)/Arm64Emitter.cpp \
 				$(COMMONDIR)/ArmEmitter.cpp \
 				$(COMMONDIR)/ChunkFile.cpp
 SOURCES_C   += $(NATIVEDIR)/ext/libpng17/pngread.c
@@ -379,6 +378,7 @@ ifdef WITH_DYNAREC
 						$(EXTDIR)/disarm.cpp \
 						$(COMMONDIR)/ArmCPUDetect.cpp \
 						$(COMMONDIR)/ArmThunk.cpp \
+						$(COMMONDIR)/Arm64Emitter.cpp \
 						$(COREDIR)/MIPS/ARM/ArmAsm.cpp \
 						$(COREDIR)/MIPS/ARM/ArmCompALU.cpp \
 						$(COREDIR)/MIPS/ARM/ArmCompBranch.cpp \

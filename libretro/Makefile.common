@@ -32,7 +32,6 @@ SOURCES_C    += $(NATIVEDIR)/ext/libpng17/pngget.c \
 SOURCES_C   += $(NATIVEDIR)/ext/libpng17/pngmem.c \
 				$(NATIVEDIR)/ext/libpng17/pngpread.c 
 SOURCES_CXX += $(NATIVEDIR)/ext/cityhash/city.cpp \
-				$(COMMONDIR)/ArmEmitter.cpp \
 				$(COMMONDIR)/ChunkFile.cpp
 SOURCES_C   += $(NATIVEDIR)/ext/libpng17/pngread.c
 SOURCES_CXX += $(COMMONDIR)/ConsoleListener.cpp \
@@ -110,8 +109,7 @@ SOURCES_CXX += $(GPUCOMMONDIR)/VertexDecoderCommon.cpp \
 				$(GPUCOMMONDIR)/DrawEngineCommon.cpp \
 				$(GPUCOMMONDIR)/SplineCommon.cpp \
 				$(GPUCOMMONDIR)/FramebufferCommon.cpp \
-				$(GPUCOMMONDIR)/DepalettizeShaderCommon.cpp \
-				$(EXTDIR)/disarm.cpp
+				$(GPUCOMMONDIR)/DepalettizeShaderCommon.cpp
 SOURCES_C   += $(NATIVEDIR)/ext/libzip/zip_source_function.c \
 				$(NATIVEDIR)/ext/libzip/zip_source_zip.c \
 				$(NATIVEDIR)/ext/libzip/zip_stat.c \
@@ -354,7 +352,6 @@ SOURCES_CXX += $(NATIVEDIR)/file/chunk_file.cpp \
 				$(COREDIR)/SaveState.cpp \
 				$(COREDIR)/Screenshot.cpp \
 				$(COREDIR)/System.cpp \
-				$(COREDIR)/Util/DisArm64.cpp \
 				$(COREDIR)/Util/GameManager.cpp \
 				$(COREDIR)/Util/BlockAllocator.cpp \
 				$(COREDIR)/Util/PPGeDraw.cpp \
@@ -376,6 +373,37 @@ ifdef WITH_DYNAREC
       DYNAFLAGS += -DNEW_DYNAREC=3 -D_ARCH_32
 		SOURCES_CXX += $(COMMONDIR)/ArmEmitter.cpp \
 						$(EXTDIR)/disarm.cpp \
+						$(COMMONDIR)/ArmEmitter.cpp \
+						$(COMMONDIR)/ArmCPUDetect.cpp \
+						$(COMMONDIR)/ArmThunk.cpp \
+						$(COREDIR)/MIPS/ARM/ArmAsm.cpp \
+						$(COREDIR)/MIPS/ARM/ArmCompALU.cpp \
+						$(COREDIR)/MIPS/ARM/ArmCompBranch.cpp \
+						$(COREDIR)/MIPS/ARM/ArmCompFPU.cpp \
+						$(COREDIR)/MIPS/ARM/ArmCompLoadStore.cpp \
+						$(COREDIR)/MIPS/ARM/ArmCompVFPU.cpp \
+						$(COREDIR)/MIPS/ARM/ArmCompReplace.cpp \
+						$(COREDIR)/MIPS/ARM/ArmJit.cpp \
+						$(COREDIR)/MIPS/ARM/ArmRegCache.cpp \
+						$(COREDIR)/MIPS/ARM/ArmRegCacheFPU.cpp \
+						$(GPUCOMMONDIR)/VertexDecoderArm.cpp
+		
+		ifeq ($(HAVE_NEON),1)
+			SOURCES_CXX   += \
+							  $(COREDIR)/MIPS/ARM/ArmCompVFPUNEON.cpp \
+							  $(COREDIR)/MIPS/ARM/ArmCompVFPUNEONUtil.cpp \
+							  $(COMMONDIR)/ColorConvNEON.cpp \
+							  $(GPUDIR)/Common/TextureDecoderNEON.cpp
+
+			SOURCES_C += $(NATIVEDIR)/ext/libpng17/arm/arm_init.c \
+							$(NATIVEDIR)/ext/libpng17/arm/filter_neon_intrinsics.c
+			ASMFILES   += $(NATIVEDIR)/math/fast/fast_matrix_neon.S \
+							$(NATIVEDIR)/ext/libpng17/arm/filter_neon.S
+		endif
+	else ifeq ($(WITH_DYNAREC), arm64)
+      DYNAFLAGS += -DNEW_DYNAREC=3 -D_ARCH_64
+		SOURCES_CXX += $(COMMONDIR)/ArmEmitter.cpp \
+						$(EXTDIR)/disarm.cpp \
 						$(COMMONDIR)/ArmCPUDetect.cpp \
 						$(COMMONDIR)/ArmThunk.cpp \
 						$(COMMONDIR)/Arm64Emitter.cpp \
@@ -389,6 +417,7 @@ ifdef WITH_DYNAREC
 						$(COREDIR)/MIPS/ARM/ArmJit.cpp \
 						$(COREDIR)/MIPS/ARM/ArmRegCache.cpp \
 						$(COREDIR)/MIPS/ARM/ArmRegCacheFPU.cpp \
+						$(COREDIR)/Util/DisArm64.cpp \
 						$(GPUCOMMONDIR)/VertexDecoderArm.cpp
 		
 		ifeq ($(HAVE_NEON),1)

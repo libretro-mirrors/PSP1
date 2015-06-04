@@ -72,7 +72,7 @@ ifneq (,$(findstring unix,$(platform)))
 		GL_LIB := -lGL
 	endif
 	PLATFORM_EXT := unix
-	LDFLAGS += -lrt
+	LDFLAGS += -lrt -ldl
 
 # Raspberry Pi
 else ifneq (,$(findstring rpi,$(platform)))

@@ -9,8 +9,10 @@
     <ClInclude Include="../../Common/Atomic_GCC.h" />
     <ClInclude Include="../../Common/Atomic_Win32.h" />
     <ClInclude Include="../../Common/BitSet.h" />
+    <ClInclude Include="../../Common/ColorConvNEON.h" />
     <ClInclude Include="../../Common/ChunkFile.h" />
     <ClInclude Include="../../Common/CodeBlock.h" />
+    <ClInclude Include="../../Common/ColorConv.h" />
     <ClInclude Include="../../Common/Common.h" />
     <ClInclude Include="../../Common/CommonFuncs.h" />
     <ClInclude Include="../../Common/CommonTypes.h" />
@@ -46,7 +48,9 @@
     <ClCompile Include="../../Common/ArmCPUDetect.cpp" />
     <ClCompile Include="../../Common/ArmEmitter.cpp" />
     <ClCompile Include="../../Common/ArmThunk.cpp" />
+    <ClCompile Include="../../Common/ColorConvNEON.cpp" />
     <ClCompile Include="../../Common/ChunkFile.cpp" />
+    <ClCompile Include="../../Common/ColorConv.cpp" />
     <ClCompile Include="../../Common/ConsoleListener.cpp" />
     <ClCompile Include="../../Common/CPUDetect.cpp" />
     <ClCompile Include="../../Common/Crypto\md5.cpp" />

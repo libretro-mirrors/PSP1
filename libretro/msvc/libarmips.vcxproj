@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -215,7 +215,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>__LIBRETRO__;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalIncludeDirectories>..\..\ext\armips</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../libretro;../../libretro;..\..\ext\armips</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <FloatingPointModel>Precise</FloatingPointModel>
@@ -262,7 +262,6 @@
     <ClCompile Include="..\..\ext\armips\Core\ELF\ElfFile.cpp" />
     <ClCompile Include="..\..\ext\armips\Core\ELF\ElfRelocator.cpp" />
     <ClCompile Include="..\..\ext\armips\Core\FileManager.cpp" />
-    <ClCompile Include="..\..\ext\armips\Core\MathParser.cpp" />
     <ClCompile Include="..\..\ext\armips\Core\Misc.cpp" />
     <ClCompile Include="..\..\ext\armips\Core\SymbolData.cpp" />
     <ClCompile Include="..\..\ext\armips\Core\SymbolTable.cpp" />
@@ -279,7 +278,6 @@
     <ClCompile Include="..\..\ext\armips\Util\CRC.cpp" />
     <ClCompile Include="..\..\ext\armips\Util\EncodingTable.cpp" />
     <ClCompile Include="..\..\ext\armips\Util\FileClasses.cpp" />
-    <ClCompile Include="..\..\ext\armips\Util\StringFormat.cpp" />
     <ClCompile Include="..\..\ext\armips\Util\Util.cpp" />
   </ItemGroup>
   <ItemGroup>

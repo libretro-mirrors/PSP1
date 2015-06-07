@@ -66,7 +66,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v120_xp</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -125,17 +125,15 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetName>$(ProjectName)64</TargetName>
     <IncludePath>.;$(IncludePath)</IncludePath>
-    <OutDir>_Output\</OutDir>
-    <IntDir>_Output\$(ProjectName)\$(Configuration)64\</IntDir>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName)\</OutDir>
+    <IntDir>$(SolutionDir)$(Platform)\$(Configuration)\$(ProjectName)\Out\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>__LIBRETRO__;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalIncludeDirectories>..\..\ext\armips</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -150,9 +148,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>__LIBRETRO__;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalIncludeDirectories>..\..\ext\armips</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -168,7 +164,6 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>armips</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -181,7 +176,6 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>armips</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -195,9 +189,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>__LIBRETRO__;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalIncludeDirectories>..\..\ext\armips</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -214,11 +206,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>__LIBRETRO__;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalIncludeDirectories>..\..\ext\armips</AdditionalIncludeDirectories>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
-      <FloatingPointModel>Precise</FloatingPointModel>
+      <AdditionalIncludeDirectories>../../ext/armips</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -261,8 +249,9 @@
     <ClCompile Include="..\..\ext\armips\Core\Directives.cpp" />
     <ClCompile Include="..\..\ext\armips\Core\ELF\ElfFile.cpp" />
     <ClCompile Include="..\..\ext\armips\Core\ELF\ElfRelocator.cpp" />
+    <ClCompile Include="..\..\ext\armips\Core\Expression.cpp" />
+    <ClCompile Include="..\..\ext\armips\Core\ExpressionParser.cpp" />
     <ClCompile Include="..\..\ext\armips\Core\FileManager.cpp" />
-    <ClCompile Include="..\..\ext\armips\Core\MathParser.cpp" />
     <ClCompile Include="..\..\ext\armips\Core\Misc.cpp" />
     <ClCompile Include="..\..\ext\armips\Core\SymbolData.cpp" />
     <ClCompile Include="..\..\ext\armips\Core\SymbolTable.cpp" />
@@ -279,7 +268,6 @@
     <ClCompile Include="..\..\ext\armips\Util\CRC.cpp" />
     <ClCompile Include="..\..\ext\armips\Util\EncodingTable.cpp" />
     <ClCompile Include="..\..\ext\armips\Util\FileClasses.cpp" />
-    <ClCompile Include="..\..\ext\armips\Util\StringFormat.cpp" />
     <ClCompile Include="..\..\ext\armips\Util\Util.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -317,18 +305,19 @@
     <ClInclude Include="..\..\ext\armips\Core\ELF\ElfFile.h" />
     <ClInclude Include="..\..\ext\armips\Core\ELF\ElfRelocator.h" />
     <ClInclude Include="..\..\ext\armips\Core\ELF\ElfTypes.h" />
+    <ClInclude Include="..\..\ext\armips\Core\Expression.h" />
+    <ClInclude Include="..\..\ext\armips\Core\ExpressionParser.h" />
     <ClInclude Include="..\..\ext\armips\Core\FileManager.h" />
-    <ClInclude Include="..\..\ext\armips\Core\MathParser.h" />
     <ClInclude Include="..\..\ext\armips\Core\Misc.h" />
     <ClInclude Include="..\..\ext\armips\Core\SymbolData.h" />
     <ClInclude Include="..\..\ext\armips\Core\SymbolTable.h" />
+    <ClInclude Include="..\..\ext\armips\ext\tinyformat\tinyformat.h" />
     <ClInclude Include="..\..\ext\armips\stdafx.h" />
     <ClInclude Include="..\..\ext\armips\Util\ByteArray.h" />
     <ClInclude Include="..\..\ext\armips\Util\CommonClasses.h" />
     <ClInclude Include="..\..\ext\armips\Util\CRC.h" />
     <ClInclude Include="..\..\ext\armips\Util\EncodingTable.h" />
     <ClInclude Include="..\..\ext\armips\Util\FileClasses.h" />
-    <ClInclude Include="..\..\ext\armips\Util\StringFormat.h" />
     <ClInclude Include="..\..\ext\armips\Util\Util.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

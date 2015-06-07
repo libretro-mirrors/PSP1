@@ -13,6 +13,9 @@
     <Filter Include="MIPS\ARM">
       <UniqueIdentifier>{8a5bebeb-575f-483d-8bd2-4b7eac163a7d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="MIPS\MIPS">
+      <UniqueIdentifier>{aaaaaaaa-575f-483d-8bd2-4b7eac163a7d}</UniqueIdentifier>
+    </Filter>
     <Filter Include="MIPS\JitCommon">
       <UniqueIdentifier>{37896407-c373-44a3-b6ec-b57bceb2c4a3}</UniqueIdentifier>
     </Filter>
@@ -55,9 +58,16 @@
     <Filter Include="Ext\udis86">
       <UniqueIdentifier>{435eb15d-386c-44df-97b4-343a1d6524ec}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Ext\sfmt19937">
+      <UniqueIdentifier>{8f56c2fd-7706-49f7-8a1d-64dcffad9ad0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MIPS\ARM64">
+      <UniqueIdentifier>{fd036bbc-1f55-40f8-8b62-7879e6b774d8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\ext\disarm.cpp" />
+    <ClCompile Include="..\..\ext\sfmt19937\SFMT.c" />
     <ClCompile Include="..\..\ext\snappy\snappy-c.cpp" />
     <ClCompile Include="..\..\ext\snappy\snappy.cpp" />
     <ClCompile Include="..\..\git-version.cpp" />
@@ -102,9 +112,11 @@
     <ClCompile Include="..\..\Core\HLE\proAdhoc.cpp" />
     <ClCompile Include="..\..\Core\HLE\proAdhocServer.cpp" />
     <ClCompile Include="..\..\Core\HLE\ReplaceTables.cpp" />
+    <ClCompile Include="..\..\Core\HLE\sceAdler.cpp" />
     <ClCompile Include="..\..\Core\HLE\sceAtrac.cpp" />
     <ClCompile Include="..\..\Core\HLE\sceAudio.cpp" />
     <ClCompile Include="..\..\Core\HLE\sceAudiocodec.cpp" />
+    <ClCompile Include="..\..\Core\HLE\sceAudioRouting.cpp" />
     <ClCompile Include="..\..\Core\HLE\sceCcc.cpp" />
     <ClCompile Include="..\..\Core\HLE\sceChnnlsv.cpp" />
     <ClCompile Include="..\..\Core\HLE\sceCtrl.cpp" />
@@ -112,6 +124,7 @@
     <ClCompile Include="..\..\Core\HLE\sceDisplay.cpp" />
     <ClCompile Include="..\..\Core\HLE\sceDmac.cpp" />
     <ClCompile Include="..\..\Core\HLE\sceFont.cpp" />
+    <ClCompile Include="..\..\Core\HLE\sceG729.cpp" />
     <ClCompile Include="..\..\Core\HLE\sceGe.cpp" />
     <ClCompile Include="..\..\Core\HLE\sceHeap.cpp" />
     <ClCompile Include="..\..\Core\HLE\sceHprm.cpp" />
@@ -151,6 +164,7 @@
     <ClCompile Include="..\..\Core\HLE\sceGameUpdate.cpp" />
     <ClCompile Include="..\..\Core\HLE\sceRtc.cpp" />
     <ClCompile Include="..\..\Core\HLE\sceSas.cpp" />
+    <ClCompile Include="..\..\Core\HLE\sceSfmt19937.cpp" />
     <ClCompile Include="..\..\Core\HLE\sceSha256.cpp" />
     <ClCompile Include="..\..\Core\HLE\sceSsl.cpp" />
     <ClCompile Include="..\..\Core\HLE\sceUmd.cpp" />
@@ -170,6 +184,16 @@
     <ClCompile Include="..\..\Core\Loaders.cpp" />
     <ClCompile Include="..\..\Core\MemMap.cpp" />
     <ClCompile Include="..\..\Core\MemmapFunctions.cpp" />
+    <ClCompile Include="..\..\Core\MIPS\ARM64\Arm64Asm.cpp" />
+    <ClCompile Include="..\..\Core\MIPS\ARM64\Arm64CompALU.cpp" />
+    <ClCompile Include="..\..\Core\MIPS\ARM64\Arm64CompBranch.cpp" />
+    <ClCompile Include="..\..\Core\MIPS\ARM64\Arm64CompFPU.cpp" />
+    <ClCompile Include="..\..\Core\MIPS\ARM64\Arm64CompLoadStore.cpp" />
+    <ClCompile Include="..\..\Core\MIPS\ARM64\Arm64CompReplace.cpp" />
+    <ClCompile Include="..\..\Core\MIPS\ARM64\Arm64CompVFPU.cpp" />
+    <ClCompile Include="..\..\Core\MIPS\ARM64\Arm64Jit.cpp" />
+    <ClCompile Include="..\..\Core\MIPS\ARM64\Arm64RegCache.cpp" />
+    <ClCompile Include="..\..\Core\MIPS\ARM64\Arm64RegCacheFPU.cpp" />
     <ClCompile Include="..\..\Core\MIPS\ARM\ArmAsm.cpp" />
     <ClCompile Include="..\..\Core\MIPS\ARM\ArmCompALU.cpp" />
     <ClCompile Include="..\..\Core\MIPS\ARM\ArmCompBranch.cpp" />
@@ -184,17 +208,19 @@
     <ClCompile Include="..\..\Core\MIPS\ARM\ArmRegCache.cpp" />
     <ClCompile Include="..\..\Core\MIPS\JitCommon\JitBlockCache.cpp" />
     <ClCompile Include="..\..\Core\MIPS\JitCommon\JitCommon.cpp" />
-    <ClCompile Include="..\..\Core\Mips\MIPS.cpp" />
-    <ClCompile Include="..\..\Core\Mips\MIPSAnalyst.cpp" />
+    <ClCompile Include="..\..\Core\MIPS\JitCommon\JitState.cpp" />
+    <ClCompile Include="..\..\Core\MIPS\MIPS.cpp" />
+    <ClCompile Include="..\..\Core\MIPS\MIPSAnalyst.cpp" />
     <ClCompile Include="..\..\Core\MIPS\MIPSAsm.cpp" />
-    <ClCompile Include="..\..\Core\Mips\MIPSCodeUtils.cpp" />
+    <ClCompile Include="..\..\Core\MIPS\MIPSCodeUtils.cpp" />
     <ClCompile Include="..\..\Core\MIPS\MIPSDebugInterface.cpp" />
-    <ClCompile Include="..\..\Core\Mips\MIPSDis.cpp" />
+    <ClCompile Include="..\..\Core\MIPS\MIPSDis.cpp" />
     <ClCompile Include="..\..\Core\MIPS\MIPSDisVFPU.cpp" />
-    <ClCompile Include="..\..\Core\Mips\MIPSInt.cpp" />
+    <ClCompile Include="..\..\Core\MIPS\MIPSInt.cpp" />
     <ClCompile Include="..\..\Core\MIPS\MIPSIntVFPU.cpp" />
-    <ClCompile Include="..\..\Core\Mips\MIPSTables.cpp" />
+    <ClCompile Include="..\..\Core\MIPS\MIPSTables.cpp" />
     <ClCompile Include="..\..\Core\MIPS\MIPSVFPUUtils.cpp" />
+    <ClCompile Include="..\..\Core\MIPS\MIPS\MipsJit.cpp" />
     <ClCompile Include="..\..\Core\MIPS\x86\Asm.cpp" />
     <ClCompile Include="..\..\Core\MIPS\x86\CompALU.cpp" />
     <ClCompile Include="..\..\Core\MIPS\x86\CompBranch.cpp" />
@@ -210,20 +236,23 @@
     <ClCompile Include="..\..\Core\Reporting.cpp" />
     <ClCompile Include="..\..\Core\SaveState.cpp" />
     <ClCompile Include="..\..\Core\MIPS\MIPSStackWalk.cpp" />
+    <ClCompile Include="..\..\Core\Screenshot.cpp" />
     <ClCompile Include="..\..\Core\System.cpp" />
     <ClCompile Include="..\..\Core\Util\AudioFormat.cpp" />
     <ClCompile Include="..\..\Core\Util\AudioFormatNEON.cpp" />
     <ClCompile Include="..\..\Core\Util\BlockAllocator.cpp" />
+    <ClCompile Include="..\..\Core\Util\DisArm64.cpp" />
     <ClCompile Include="..\..\Core\Util\GameManager.cpp" />
     <ClCompile Include="..\..\Core\Util\PPGeDraw.cpp" />
     <ClCompile Include="..\..\Core\Util\ppge_atlas.cpp" />
-    <ClCompile Include="..\..\ext\xxhash.c" />
-    <ClCompile Include="..\..\Core\HLE\sceAdler.cpp" />
-    <ClCompile Include="..\..\Core\HLE\sceSfmt19937.cpp" />
-    <ClCompile Include="..\..\ext\sfmt19937\SFMT.c" />
+    <ClCompile Include="..\..\Core\..\ext\xxhash.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\ext\disarm.h" />
+    <ClInclude Include="..\..\ext\sfmt19937\SFMT-common.h" />
+    <ClInclude Include="..\..\ext\sfmt19937\SFMT-params.h" />
+    <ClInclude Include="..\..\ext\sfmt19937\SFMT-params19937.h" />
+    <ClInclude Include="..\..\ext\sfmt19937\SFMT.h" />
     <ClInclude Include="..\..\ext\snappy\snappy-internal.h" />
     <ClInclude Include="..\..\ext\snappy\snappy-sinksource.h" />
     <ClInclude Include="..\..\ext\snappy\snappy-stubs-internal.h" />
@@ -275,9 +304,11 @@
     <ClInclude Include="..\..\Core\HLE\proAdhoc.h" />
     <ClInclude Include="..\..\Core\HLE\proAdhocServer.h" />
     <ClInclude Include="..\..\Core\HLE\ReplaceTables.h" />
+    <ClInclude Include="..\..\Core\HLE\sceAdler.h" />
     <ClInclude Include="..\..\Core\HLE\sceAtrac.h" />
     <ClInclude Include="..\..\Core\HLE\sceAudio.h" />
     <ClInclude Include="..\..\Core\HLE\sceAudiocodec.h" />
+    <ClInclude Include="..\..\Core\HLE\sceAudioRouting.h" />
     <ClInclude Include="..\..\Core\HLE\sceCcc.h" />
     <ClInclude Include="..\..\Core\HLE\sceCtrl.h" />
     <ClInclude Include="..\..\Core\HLE\sceChnnlsv.h" />
@@ -285,6 +316,7 @@
     <ClInclude Include="..\..\Core\HLE\sceDisplay.h" />
     <ClInclude Include="..\..\Core\HLE\sceDmac.h" />
     <ClInclude Include="..\..\Core\HLE\sceFont.h" />
+    <ClInclude Include="..\..\Core\HLE\sceG729.h" />
     <ClInclude Include="..\..\Core\HLE\sceGe.h" />
     <ClInclude Include="..\..\Core\HLE\sceHeap.h" />
     <ClInclude Include="..\..\Core\HLE\sceHprm.h" />
@@ -323,6 +355,7 @@
     <ClInclude Include="..\..\Core\HLE\sceGameUpdate.h" />
     <ClInclude Include="..\..\Core\HLE\sceRtc.h" />
     <ClInclude Include="..\..\Core\HLE\sceSas.h" />
+    <ClInclude Include="..\..\Core\HLE\sceSfmt19937.h" />
     <ClInclude Include="..\..\Core\HLE\sceSha256.h" />
     <ClInclude Include="..\..\Core\HLE\sceSsl.h" />
     <ClInclude Include="..\..\Core\HLE\sceUmd.h" />
@@ -343,6 +376,11 @@
     <ClInclude Include="..\..\Core\HW\StereoResampler.h" />
     <ClInclude Include="..\..\Core\Loaders.h" />
     <ClInclude Include="..\..\Core\MemMap.h" />
+    <ClInclude Include="..\..\Core\MemMapHelpers.h" />
+    <ClInclude Include="..\..\Core\MIPS\ARM64\Arm64Asm.h" />
+    <ClInclude Include="..\..\Core\MIPS\ARM64\Arm64Jit.h" />
+    <ClInclude Include="..\..\Core\MIPS\ARM64\Arm64RegCache.h" />
+    <ClInclude Include="..\..\Core\MIPS\ARM64\Arm64RegCacheFPU.h" />
     <ClInclude Include="..\..\Core\MIPS\ARM\ArmAsm.h" />
     <ClInclude Include="..\..\Core\MIPS\ARM\ArmCompVFPUNEONUtil.h" />
     <ClInclude Include="..\..\Core\MIPS\ARM\ArmJit.h" />
@@ -352,17 +390,18 @@
     <ClInclude Include="..\..\Core\MIPS\JitCommon\JitCommon.h" />
     <ClInclude Include="..\..\Core\MIPS\JitCommon\NativeJit.h" />
     <ClInclude Include="..\..\Core\MIPS\JitCommon\JitState.h" />
-    <ClInclude Include="..\..\Core\Mips\MIPS.h" />
-    <ClInclude Include="..\..\Core\Mips\MIPSAnalyst.h" />
+    <ClInclude Include="..\..\Core\MIPS\MIPS.h" />
+    <ClInclude Include="..\..\Core\MIPS\MIPSAnalyst.h" />
     <ClInclude Include="..\..\Core\MIPS\MIPSAsm.h" />
-    <ClInclude Include="..\..\Core\Mips\MIPSCodeUtils.h" />
+    <ClInclude Include="..\..\Core\MIPS\MIPSCodeUtils.h" />
     <ClInclude Include="..\..\Core\MIPS\MIPSDebugInterface.h" />
-    <ClInclude Include="..\..\Core\Mips\MIPSDis.h" />
+    <ClInclude Include="..\..\Core\MIPS\MIPSDis.h" />
     <ClInclude Include="..\..\Core\MIPS\MIPSDisVFPU.h" />
-    <ClInclude Include="..\..\Core\Mips\MIPSInt.h" />
+    <ClInclude Include="..\..\Core\MIPS\MIPSInt.h" />
     <ClInclude Include="..\..\Core\MIPS\MIPSIntVFPU.h" />
-    <ClInclude Include="..\..\Core\Mips\MIPSTables.h" />
+    <ClInclude Include="..\..\Core\MIPS\MIPSTables.h" />
     <ClInclude Include="..\..\Core\MIPS\MIPSVFPUUtils.h" />
+    <ClInclude Include="..\..\Core\MIPS\MIPS\MipsJit.h" />
     <ClInclude Include="..\..\Core\MIPS\x86\Asm.h" />
     <ClInclude Include="..\..\Core\MIPS\x86\JitSafeMem.h" />
     <ClInclude Include="..\..\Core\MIPS\x86\RegCacheFPU.h" />
@@ -373,17 +412,17 @@
     <ClInclude Include="..\..\Core\Reporting.h" />
     <ClInclude Include="..\..\Core\SaveState.h" />
     <ClInclude Include="..\..\Core\MIPS\MIPSStackWalk.h" />
+    <ClInclude Include="..\..\Core\Screenshot.h" />
     <ClInclude Include="..\..\Core\System.h" />
     <ClInclude Include="..\..\Core\ThreadEventQueue.h" />
     <ClInclude Include="..\..\Core\Util\AudioFormat.h" />
     <ClInclude Include="..\..\Core\Util\AudioFormatNEON.h" />
     <ClInclude Include="..\..\Core\Util\BlockAllocator.h" />
+    <ClInclude Include="..\..\Core\Util\DisArm64.h" />
     <ClInclude Include="..\..\Core\Util\GameManager.h" />
     <ClInclude Include="..\..\Core\Util\PPGeDraw.h" />
     <ClInclude Include="..\..\Core\Util\ppge_atlas.h" />
-    <ClInclude Include="..\..\ext\xxhash.h" />
-    <ClInclude Include="..\..\Core\HLE\sceAdler.h" />
-    <ClInclude Include="..\..\Core\HLE\sceSfmt19937.h" />
+    <ClInclude Include="..\..\Core\..\ext\xxhash.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CMakeLists.txt" />

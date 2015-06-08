@@ -247,6 +247,10 @@ bool DirectoryFileHandle::Open(std::string &basePath, std::string &fileName, Fil
 	if (access & FILEACCESS_CREATE) {
 		flags |= O_CREAT;
 	}
+  
+#ifdef _WIN32
+  flags |= O_BINARY;
+#endif
 
 	hFile = open(fullName.c_str(), flags, 0666);
 	bool success = hFile != -1;

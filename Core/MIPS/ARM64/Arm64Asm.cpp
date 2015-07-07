@@ -62,7 +62,8 @@ static const bool enableDebug = false;
 // saving them when we call out of the JIT. We will perform regular dynamic register allocation in the rest (x0-x15)
 
 // STATIC ALLOCATION ARM64 (these are all callee-save registers):
-// x24 : Down counter
+// x23 : Down counter
+// x24 : PC save on JR with non-nice delay slot (to be eliminated later?)
 // x25 : MSR/MRS temporary (to be eliminated later)
 // x26 : JIT base reg
 // x27 : MIPS state (Could eliminate by placing the MIPS state right at the memory base)
@@ -95,26 +96,15 @@ using namespace Arm64JitConstants;
 void Arm64Jit::GenerateFixedCode() {
 	enterCode = AlignCode16();
 
-	const u32 ALL_CALLEE_SAVED = 0x7FF80000;
-	BitSet32 regs_to_save(ALL_CALLEE_SAVED);
-	enterCode = GetCodePtr();
-
+	BitSet32 regs_to_save(Arm64Gen::ALL_CALLEE_SAVED);
+	BitSet32 regs_to_save_fp(Arm64Gen::ALL_CALLEE_SAVED_FP);
 	ABI_PushRegisters(regs_to_save);
-	// TODO: Also push D8-D15, the fp registers we need to save.
+	fp.ABI_PushRegisters(regs_to_save_fp);
 
 	// Fixed registers, these are always kept when in Jit context.
-	// R8 is used to hold flags during delay slots. Not always needed.
-	// R13 cannot be used as it's the stack pointer.
-	// TODO: Consider statically allocating:
-	//   * r2-r4
-	// Really starting to run low on registers already though...
-
-	// R11, R10, R9
 	MOVP2R(MEMBASEREG, Memory::base);
 	MOVP2R(CTXREG, mips_);
 	MOVP2R(JITBASEREG, GetBasePtr());
-
-	// TODO: Preserve ASIMD registers
 
 	RestoreDowncount();
 	MovFromPC(SCRATCH1);
@@ -194,23 +184,38 @@ void Arm64Jit::GenerateFixedCode() {
 	SetJumpTarget(badCoreState);
 	breakpointBailout = GetCodePtr();
 
-	// TODO: Restore ASIMD registers
-
 	SaveDowncount();
 	RestoreRoundingMode(true);
 
+	fp.ABI_PopRegisters(regs_to_save_fp);
 	ABI_PopRegisters(regs_to_save);
 
 	RET();
-	// Don't forget to zap the instruction cache!
-	FlushIcache();
-
+	
 	if (false) {
 		std::vector<std::string> lines = DisassembleArm64(enterCode, GetCodePtr() - enterCode);
 		for (auto s : lines) {
 			INFO_LOG(JIT, "%s", s.c_str());
 		}
 	}
+
+	// Generate some integer conversion funcs.
+	static const RoundingMode roundModes[8] = {ROUND_N, ROUND_P, ROUND_M, ROUND_Z, ROUND_N, ROUND_P, ROUND_M, ROUND_Z,};
+	for (size_t i = 0; i < ARRAY_SIZE(roundModes); ++i) {
+		convertS0ToSCRATCH1[i] = AlignCode16();
+
+		fp.FCMP(S0, S0);  // Detect NaN
+		fp.FCVTS(S0, S0, roundModes[i]);
+		FixupBranch skip = B(CC_VC);
+		MOVI2R(SCRATCH2, 0x7FFFFFFF);
+		fp.FMOV(S0, SCRATCH2);
+		SetJumpTarget(skip);
+
+		RET();
+	}
+
+	// Don't forget to zap the instruction cache! This must stay at the end of this function.
+	FlushIcache();
 }
 
 }  // namespace MIPSComp

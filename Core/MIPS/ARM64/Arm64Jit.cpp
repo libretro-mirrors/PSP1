@@ -16,6 +16,7 @@
 // https://github.com/hrydgard/ppsspp and http://www.ppsspp.org/.
 
 #include "base/logging.h"
+#include "profiler/profiler.h"
 #include "Common/ChunkFile.h"
 #include "Common/CPUDetect.h"
 
@@ -179,6 +180,7 @@ void Arm64Jit::CompileDelaySlot(int flags) {
 
 
 void Arm64Jit::Compile(u32 em_address) {
+	PROFILE_THIS_SCOPE("jitc");
 	if (GetSpaceLeft() < 0x10000 || blocks.IsFull()) {
 		INFO_LOG(JIT, "Space left: %i", GetSpaceLeft());
 		ClearCache();
@@ -217,6 +219,7 @@ void Arm64Jit::Compile(u32 em_address) {
 }
 
 void Arm64Jit::RunLoopUntil(u64 globalticks) {
+	PROFILE_THIS_SCOPE("jit");
 	((void (*)())enterCode)();
 }
 
@@ -362,7 +365,6 @@ bool Arm64Jit::ReplaceJalTo(u32 dest) {
 	if (!CanReplaceJalTo(dest, &entry, &funcSize)) {
 		return false;
 	}
-	INFO_LOG(HLE, "ReplaceJalTo to %s", entry->name);
 
 	// Warning - this might be bad if the code at the destination changes...
 	if (entry->flags & REPFLAG_ALLOWINLINE) {
@@ -410,7 +412,6 @@ void Arm64Jit::Comp_ReplacementFunc(MIPSOpcode op)
 	if (entry->flags & REPFLAG_DISABLED) {
 		MIPSCompileOp(Memory::Read_Instruction(GetCompilerPC(), true));
 	} else if (entry->jitReplaceFunc) {
-		INFO_LOG(HLE, "JitReplaceFunc to %s", entry->name);
 		MIPSReplaceFunc repl = entry->jitReplaceFunc;
 		int cycles = (this->*repl)();
 
@@ -426,7 +427,6 @@ void Arm64Jit::Comp_ReplacementFunc(MIPSOpcode op)
 			js.compiling = false;
 		}
 	} else if (entry->replaceFunc) {
-		INFO_LOG(HLE, "ReplaceFunc to %s", entry->name);
 		FlushAll();
 		RestoreRoundingMode();
 		gpr.SetRegImm(SCRATCH1, GetCompilerPC());
@@ -562,6 +562,14 @@ void Arm64Jit::ApplyRoundingMode(bool force) {
 		}
 		ORR(SCRATCH1, SCRATCH1, SCRATCH2, ArithOption(SCRATCH2, ST_LSL, 22));
 		_MSR(FIELD_FPCR, SCRATCH1_64);
+
+		// Let's update js.currentRoundingFunc with the right convertS0ToSCRATCH1 func.
+		MOVP2R(SCRATCH1_64, convertS0ToSCRATCH1);
+		// We already index this array including the FZ bit.  Easy.
+		LSL(SCRATCH2, SCRATCH2, 3);
+		LDR(SCRATCH2_64, SCRATCH1_64, SCRATCH2);
+		MOVP2R(SCRATCH1_64, &js.currentRoundingFunc);
+		STR(INDEX_UNSIGNED, SCRATCH2_64, SCRATCH1_64, 0);
 
 		POP(SCRATCH1);
 		SetJumpTarget(skip);

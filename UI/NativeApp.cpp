@@ -71,6 +71,7 @@
 #include "Common/MemArena.h"
 #include "Core/Config.h"
 #include "Core/Core.h"
+#include "Core/FileLoaders/DiskCachingFileLoader.h"
 #include "Core/Host.h"
 #include "Core/SaveState.h"
 #include "Core/Screenshot.h"
@@ -447,7 +448,7 @@ void NativeInit(int argc, const char *argv[],
 	else
 		i18nrepo.LoadIni(g_Config.sLanguageIni, langOverridePath);
 
-	I18NCategory *d = GetI18NCategory("DesktopUI");
+	I18NCategory *des = GetI18NCategory("DesktopUI");
 	// Note to translators: do not translate this/add this to PPSSPP-lang's files.
 	// It's intended to be custom for every user.
 	// Only add it to your own personal copies of PPSSPP.
@@ -455,7 +456,7 @@ void NativeInit(int argc, const char *argv[],
 	// TODO: Could allow a setting to specify a font file to load?
 	// TODO: Make this a constant if we can sanely load the font on other systems?
 	AddFontResourceEx(L"assets/Roboto-Condensed.ttf", FR_PRIVATE, NULL);
-	g_Config.sFont = d->T("Font", "Roboto");
+	g_Config.sFont = des->T("Font", "Roboto");
 #endif
 
 	if (!boot_filename.empty() && stateToLoad != NULL)
@@ -759,6 +760,10 @@ void NativeRender() {
 void HandleGlobalMessage(const std::string &msg, const std::string &value) {
 	if (msg == "inputDeviceConnected") {
 		KeyMap::NotifyPadConnected(value);
+	}
+
+	if (msg == "cacheDir") {
+		DiskCachingFileLoaderCache::SetCacheDir(value);
 	}
 }
 

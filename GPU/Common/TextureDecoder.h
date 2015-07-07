@@ -32,6 +32,8 @@ enum CheckAlphaResult {
 
 void SetupTextureDecoder();
 
+void DoSwizzleTex16(const u32 *ysrcp, u8 *texptr, int bxc, int byc, u32 pitch, u32 rowWidth);
+
 // For SSE, we statically link the SSE2 algorithms.
 #if defined(_M_SSE)
 u32 QuickTexHashSSE2(const void *checkp, u32 size);

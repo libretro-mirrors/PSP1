@@ -230,6 +230,11 @@ SOURCES_CXX += $(NATIVEDIR)/file/chunk_file.cpp \
 				$(NATIVEDIR)/ext/jpge/jpge.cpp \
 				$(COREDIR)/Config.cpp \
 				$(COREDIR)/Core.cpp \
+				$(COREDIR)/FileLoaders/HTTPFileLoader.cpp \
+				$(COREDIR)/FileLoaders/CachingFileLoader.cpp \
+				$(COREDIR)/FileLoaders/DiskCachingFileLoader.cpp \
+				$(COREDIR)/FileLoaders/RetryingFileLoader.cpp \
+				$(COREDIR)/FileLoaders/LocalFileLoader.cpp \
 				$(COREDIR)/CoreTiming.cpp \
 				$(COREDIR)/CwCheat.cpp \
 				$(COREDIR)/HDRemaster.cpp \

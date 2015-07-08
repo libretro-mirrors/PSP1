@@ -85,7 +85,7 @@ else ifneq (,$(findstring rpi,$(platform)))
 	CPUFLAGS += -DARMv5_ONLY 
 	PLATFORM_EXT := unix
 	WITH_DYNAREC=arm
-	LDFLAGS += -lrt
+	LDFLAGS += -lrt -ldl
 
 # i.MX6
 else ifneq (,$(findstring imx6,$(platform)))
@@ -101,7 +101,7 @@ else ifneq (,$(findstring imx6,$(platform)))
 	FFMPEGINCFLAGS += -I$(FFMPEGDIR)/linux/armv7/include
 	FFMPEGLIBDIR := $(FFMPEGDIR)/linux/armv7/lib
 	FFMPEGLDFLAGS += -L$(FFMPEGLIBDIR) -lavformat -lavcodec -lavutil -lswresample -lswscale
-	LDFLAGS += -lrt
+	LDFLAGS += -lrt -ldl
 
 # OS X
 else ifneq (,$(findstring osx,$(platform)))
@@ -235,7 +235,7 @@ else ifneq (,$(findstring armv,$(platform)))
 	endif
 	CPUFLAGS += -D__arm__ -DARM_ASM
 	PLATCFLAGS += -DARM
-	LDFLAGS += -lrt
+	LDFLAGS += -lrt -ldl
 
 # emscripten
 else ifeq ($(platform), emscripten)

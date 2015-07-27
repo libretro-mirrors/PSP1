@@ -378,7 +378,6 @@ ifdef WITH_DYNAREC
       DYNAFLAGS += -DNEW_DYNAREC=3 -D_ARCH_32
 		SOURCES_CXX += $(COMMONDIR)/ArmEmitter.cpp \
 						$(EXTDIR)/disarm.cpp \
-						$(COMMONDIR)/ArmEmitter.cpp \
 						$(COMMONDIR)/ArmCPUDetect.cpp \
 						$(COMMONDIR)/ArmThunk.cpp \
 						$(COREDIR)/MIPS/ARM/ArmAsm.cpp \

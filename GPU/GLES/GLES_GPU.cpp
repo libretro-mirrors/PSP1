@@ -805,7 +805,7 @@ void GLES_GPU::Execute_Prim(u32 op, u32 diff) {
 	}
 
 	// This also makes skipping drawing very effective.
-	framebufferManager_.SetRenderFrameBuffer();
+	framebufferManager_.SetRenderFrameBuffer(gstate_c.framebufChanged, gstate_c.skipDrawReason);
 	if (gstate_c.skipDrawReason & (SKIPDRAW_SKIPFRAME | SKIPDRAW_NON_DISPLAYED_FB))	{
 		transformDraw_.SetupVertexDecoder(gstate.vertType);
 		// Rough estimate, not sure what's correct.
@@ -881,7 +881,7 @@ void GLES_GPU::Execute_VertexTypeSkinning(u32 op, u32 diff) {
 
 void GLES_GPU::Execute_Bezier(u32 op, u32 diff) {
 	// This also make skipping drawing very effective.
-	framebufferManager_.SetRenderFrameBuffer();
+	framebufferManager_.SetRenderFrameBuffer(gstate_c.framebufChanged, gstate_c.skipDrawReason);
 	if (gstate_c.skipDrawReason & (SKIPDRAW_SKIPFRAME | SKIPDRAW_NON_DISPLAYED_FB))	{
 		// TODO: Should this eat some cycles?  Probably yes.  Not sure if important.
 		return;
@@ -917,12 +917,14 @@ void GLES_GPU::Execute_Bezier(u32 op, u32 diff) {
 	GEPatchPrimType patchPrim = gstate.getPatchPrimitiveType();
 	int bz_ucount = op & 0xFF;
 	int bz_vcount = (op >> 8) & 0xFF;
-	transformDraw_.SubmitBezier(control_points, indices, bz_ucount, bz_vcount, patchPrim, gstate.vertType);
+	bool computeNormals = gstate.isLightingEnabled();
+	bool patchFacing = gstate.patchfacing & 1;
+	transformDraw_.SubmitBezier(control_points, indices, gstate.getPatchDivisionU(), gstate.getPatchDivisionV(), bz_ucount, bz_vcount, patchPrim, computeNormals, patchFacing, gstate.vertType);
 }
 
 void GLES_GPU::Execute_Spline(u32 op, u32 diff) {
 	// This also make skipping drawing very effective.
-	framebufferManager_.SetRenderFrameBuffer();
+	framebufferManager_.SetRenderFrameBuffer(gstate_c.framebufChanged, gstate_c.skipDrawReason);
 	if (gstate_c.skipDrawReason & (SKIPDRAW_SKIPFRAME | SKIPDRAW_NON_DISPLAYED_FB))	{
 		// TODO: Should this eat some cycles?  Probably yes.  Not sure if important.
 		return;
@@ -960,7 +962,10 @@ void GLES_GPU::Execute_Spline(u32 op, u32 diff) {
 	int sp_utype = (op >> 16) & 0x3;
 	int sp_vtype = (op >> 18) & 0x3;
 	GEPatchPrimType patchPrim = gstate.getPatchPrimitiveType();
-	transformDraw_.SubmitSpline(control_points, indices, sp_ucount, sp_vcount, sp_utype, sp_vtype, patchPrim, gstate.vertType);
+	bool computeNormals = gstate.isLightingEnabled();
+	bool patchFacing = gstate.patchfacing & 1;
+	u32 vertType = gstate.vertType;
+	transformDraw_.SubmitSpline(control_points, indices, gstate.getPatchDivisionU(), gstate.getPatchDivisionV(), sp_ucount, sp_vcount, sp_utype, sp_vtype, patchPrim, computeNormals, patchFacing, vertType);
 }
 
 void GLES_GPU::Execute_BoundingBox(u32 op, u32 diff) {
@@ -1093,7 +1098,7 @@ void GLES_GPU::Execute_TexLevel(u32 op, u32 diff) {
 
 void GLES_GPU::Execute_LoadClut(u32 op, u32 diff) {
 	gstate_c.textureChanged |= TEXCHANGE_PARAMSONLY;
-	textureCache_.LoadClut();
+	textureCache_.LoadClut(gstate.getClutAddress(), gstate.getClutLoadBytes());
 	// This could be used to "dirty" textures with clut.
 }
 

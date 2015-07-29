@@ -474,11 +474,11 @@ void TextureCacheDX9::NotifyFramebuffer(u32 address, VirtualFramebuffer *framebu
 	}
 }
 
-void *TextureCacheDX9::UnswizzleFromMem(const u8 *texptr, u32 bufw, u32 bytesPerPixel, u32 level) {
+void *TextureCacheDX9::UnswizzleFromMem(const u8 *texptr, u32 bufw, u32 height, u32 bytesPerPixel) {
 	const u32 rowWidth = (bytesPerPixel > 0) ? (bufw * bytesPerPixel) : (bufw / 2);
 	const u32 pitch = rowWidth / 4;
 	const int bxc = rowWidth / 16;
-	int byc = (gstate.getTextureHeight(level) + 7) / 8;
+	int byc = (height + 7) / 8;
 	if (byc == 0)
 		byc = 1;
 
@@ -559,7 +559,7 @@ void *TextureCacheDX9::ReadIndexedTex(int level, const u8 *texptr, int bytesPerI
 			}
 		} else {
 			tmpTexBuf32.resize(std::max(bufw, w) * h);
-			UnswizzleFromMem(texptr, bufw, bytesPerIndex, level);
+			UnswizzleFromMem(texptr, bufw, h, bytesPerIndex);
 			switch (bytesPerIndex) {
 			case 1:
 				DeIndexTexture(tmpTexBuf16.data(), (u8 *) tmpTexBuf32.data(), length, clut);
@@ -599,7 +599,7 @@ void *TextureCacheDX9::ReadIndexedTex(int level, const u8 *texptr, int bytesPerI
 			}
 			buf = tmpTexBuf32.data();
 		} else {
-			UnswizzleFromMem(texptr, bufw, bytesPerIndex, level);
+			UnswizzleFromMem(texptr, bufw, h, bytesPerIndex);
 			// Since we had to unswizzle to tmpTexBuf32, let's output to tmpTexBuf16.
 			tmpTexBuf16.resize(std::max(bufw, w) * h * 2);
 			u32 *dest32 = (u32 *) tmpTexBuf16.data();
@@ -822,15 +822,14 @@ inline bool TextureCacheDX9::TexCacheEntry::Matches(u16 dim2, u8 format2, int ma
 	return dim == dim2 && format == format2 && maxLevel == maxLevel2;
 }
 
-void TextureCacheDX9::LoadClut() {
-	u32 clutAddr = gstate.getClutAddress();
-	clutTotalBytes_ = gstate.getClutLoadBytes();
+void TextureCacheDX9::LoadClut(u32 clutAddr, u32 loadBytes) {
+	clutTotalBytes_ = loadBytes;
 	if (Memory::IsValidAddress(clutAddr)) {
 		// It's possible for a game to (successfully) access outside valid memory.
-		u32 bytes = Memory::ValidSize(clutAddr, clutTotalBytes_);
+		u32 bytes = Memory::ValidSize(clutAddr, loadBytes);
 #ifdef _M_SSE
 		int numBlocks = bytes / 16;
-		if (bytes == clutTotalBytes_) {
+		if (bytes == loadBytes) {
 			const __m128i *source = (const __m128i *)Memory::GetPointerUnchecked(clutAddr);
 			__m128i *dest = (__m128i *)clutBufRaw_;
 			for (int i = 0; i < numBlocks; i++, source += 2, dest += 2) {
@@ -841,27 +840,25 @@ void TextureCacheDX9::LoadClut() {
 			}
 		} else {
 			Memory::MemcpyUnchecked(clutBufRaw_, clutAddr, bytes);
-			if (bytes < clutTotalBytes_) {
-				memset(clutBufRaw_ + bytes, 0x00, clutTotalBytes_ - bytes);
+			if (bytes < loadBytes) {
+				memset(clutBufRaw_ + bytes, 0x00, loadBytes - bytes);
 			}
 		}
 #else
 		Memory::MemcpyUnchecked(clutBufRaw_, clutAddr, bytes);
 		if (bytes < clutTotalBytes_) {
-			memset(clutBufRaw_ + bytes, 0x00, clutTotalBytes_ - bytes);
+			memset(clutBufRaw_ + bytes, 0x00, loadBytes - bytes);
 		}
 #endif
 	} else {
-		memset(clutBufRaw_, 0x00, clutTotalBytes_);
+		memset(clutBufRaw_, 0x00, loadBytes);
 	}
 	// Reload the clut next time.
 	clutLastFormat_ = 0xFFFFFFFF;
-	clutMaxBytes_ = std::max(clutMaxBytes_, clutTotalBytes_);
+	clutMaxBytes_ = std::max(clutMaxBytes_, loadBytes);
 }
 
-void TextureCacheDX9::UpdateCurrentClut() {
-	const GEPaletteFormat clutFormat = gstate.getClutPaletteFormat();
-	const u32 clutBase = gstate.getClutIndexStartPos();
+void TextureCacheDX9::UpdateCurrentClut(GEPaletteFormat clutFormat, u32 clutBase, bool clutIndexIsSimple) {
 	const u32 clutBaseBytes = clutBase * (clutFormat == GE_CMODE_32BIT_ABGR8888 ? sizeof(u32) : sizeof(u16));
 	// Technically, these extra bytes weren't loaded, but hopefully it was loaded earlier.
 	// If not, we're going to hash random data, which hopefully doesn't cause a performance issue.
@@ -878,7 +875,7 @@ void TextureCacheDX9::UpdateCurrentClut() {
 	// Special optimization: fonts typically draw clut4 with just alpha values in a single color.
 	clutAlphaLinear_ = false;
 	clutAlphaLinearColor_ = 0;
-	if (gstate.getClutPaletteFormat() == GE_CMODE_16BIT_ABGR4444 && gstate.isClutIndexSimple()) {
+	if (clutFormat == GE_CMODE_16BIT_ABGR4444 && clutIndexIsSimple) {
 		const u16_le *clut = GetCurrentClut<u16_le>();
 		clutAlphaLinear_ = true;
 		clutAlphaLinearColor_ = clut[15] & 0x0FFF;
@@ -1091,7 +1088,7 @@ void TextureCacheDX9::SetTexture(bool force) {
 	if (hasClut) {
 		if (clutLastFormat_ != gstate.clutformat) {
 			// We update here because the clut format can be specified after the load.
-			UpdateCurrentClut();
+			UpdateCurrentClut(gstate.getClutPaletteFormat(), gstate.getClutIndexStartPos(), gstate.isClutIndexSimple());
 		}
 		cluthash = GetCurrentClutHash() ^ gstate.clutformat;
 		cachekey ^= cluthash;
@@ -1309,7 +1306,7 @@ void TextureCacheDX9::SetTexture(bool force) {
 	entry->maxLevel = maxLevel;
 	entry->lodBias = 0.0f;
 	
-	entry->dim = gstate.getTextureDimension(0);
+	entry->dim = dim;
 	entry->bufw = bufw;
 
 	// This would overestimate the size in many case so we underestimate instead
@@ -1500,7 +1497,7 @@ void *TextureCacheDX9::DecodeTextureLevel(GETextureFormat format, GEPaletteForma
 				}
 			} else {
 				tmpTexBuf32.resize(std::max(bufw, w) * h);
-				UnswizzleFromMem(texptr, bufw, 0, level);
+				UnswizzleFromMem(texptr, bufw, h, 0);
 				if (clutAlphaLinear_ && mipmapShareClut) {
 					DeIndexTexture4Optimal(tmpTexBuf16.data(), (const u8 *)tmpTexBuf32.data(), bufw * h, clutAlphaLinearColor_);
 				} else {
@@ -1520,7 +1517,7 @@ void *TextureCacheDX9::DecodeTextureLevel(GETextureFormat format, GEPaletteForma
 				DeIndexTexture4(tmpTexBuf32.data(), texptr, bufw * h, clut);
 				finalBuf = tmpTexBuf32.data();
 			} else {
-				UnswizzleFromMem(texptr, bufw, 0, level);
+				UnswizzleFromMem(texptr, bufw, h, 0);
 				// Let's reuse tmpTexBuf16, just need double the space.
 				tmpTexBuf16.resize(std::max(bufw, w) * h * 2);
 				DeIndexTexture4((u32 *)tmpTexBuf16.data(), (u8 *)tmpTexBuf32.data(), bufw * h, clut);
@@ -1565,7 +1562,7 @@ void *TextureCacheDX9::DecodeTextureLevel(GETextureFormat format, GEPaletteForma
 		}
 		else {
 			tmpTexBuf32.resize(std::max(bufw, w) * h);
-			finalBuf = UnswizzleFromMem(texptr, bufw, 2, level);
+			finalBuf = UnswizzleFromMem(texptr, bufw, h, 2);
 		}
 		break;
 
@@ -1584,7 +1581,7 @@ void *TextureCacheDX9::DecodeTextureLevel(GETextureFormat format, GEPaletteForma
 			}
 		} else {
 			tmpTexBuf32.resize(std::max(bufw, w) * h);
-			finalBuf = UnswizzleFromMem(texptr, bufw, 4, level);
+			finalBuf = UnswizzleFromMem(texptr, bufw, h, 4);
 		}
 		break;
 

@@ -20,8 +20,8 @@
 #include <vector>
 #include <string>
 
+#include "GPU/GPU.h"
 #include "GPU/GPUInterface.h"
-#include "GPU/GPUState.h"
 #include "Core/MemMap.h"
 
 struct GPUDebugOp {

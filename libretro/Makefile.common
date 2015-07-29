@@ -170,6 +170,7 @@ SOURCES_CXX += $(NATIVEDIR)/file/chunk_file.cpp \
 				$(GPUDIR)/GeDisasm.cpp \
 				$(NATIVEDIR)/file/path.cpp \
 				$(GPUDIR)/GPUCommon.cpp \
+				$(GPUDIR)/GPU.cpp \
 				$(GPUDIR)/GPUState.cpp \
 				$(GPUDIR)/Math3D.cpp \
 				$(NATIVEDIR)/file/zip_read.cpp \

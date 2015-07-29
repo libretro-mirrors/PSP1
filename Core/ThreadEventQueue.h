@@ -188,6 +188,7 @@ protected:
 			break;
 
 		case EVENT_SYNC:
+			// Nothing special to do, this event it just to wait on, see SyncThread.
 			break;
 
 		default:

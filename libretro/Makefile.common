@@ -1,6 +1,7 @@
 INCFLAGS += \
-	-I$(ROOTDIR) \
+	-I$(CORE_DIR) \
 	-I$(COMMONDIR) \
+	-I$(CORE_DIR)/libretro \
 	-I$(EXTDIR)/snappy \
 	-I$(NATIVEDIR)/ext/rg_etc1 \
 	-I$(NATIVEDIR)/ext/stb_vorbis \

@@ -40,15 +40,15 @@ endif
 
 
 # Dirs
-ROOTDIR			= ..
-FFMPEGDIR		= $(ROOTDIR)/ffmpeg
-LIBRETRODIR		= $(ROOTDIR)/libretro
-COREDIR			= $(ROOTDIR)/Core
-COMMONDIR		= $(ROOTDIR)/Common
-GPUCOMMONDIR	= $(ROOTDIR)/GPU/Common
-GPUDIR			= $(ROOTDIR)/GPU
-NATIVEDIR		= $(ROOTDIR)/native
-EXTDIR			= $(ROOTDIR)/ext
+CORE_DIR			= ..
+FFMPEGDIR		= $(CORE_DIR)/ffmpeg
+LIBRETRODIR		= $(CORE_DIR)/libretro
+COREDIR			= $(CORE_DIR)/Core
+COMMONDIR		= $(CORE_DIR)/Common
+GPUCOMMONDIR	= $(CORE_DIR)/GPU/Common
+GPUDIR			= $(CORE_DIR)/GPU
+NATIVEDIR		= $(CORE_DIR)/native
+EXTDIR			= $(CORE_DIR)/ext
 
 TARGET_NAME := ppsspp
 CC_AS ?= $(CC)

@@ -68,9 +68,6 @@ bool IsAudioInitialised();
 void UpdateLoadedFile(FileLoader *fileLoader);
 
 std::string GetSysDirectory(PSPDirectories directoryType);
-#ifdef _WIN32
-void InitSysDirectories();
-#endif
 
 // RUNNING must be at 0, NEXTFRAME must be at 1.
 enum CoreState

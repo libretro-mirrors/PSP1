@@ -67,7 +67,7 @@ bool MsgAlert(bool yes_no, int Style, const char* format, ...)
 // Default non library dependent panic alert
 bool MsgHandler(const char* caption, const char* text, bool yes_no, int Style)
 {
-#if defined(_WIN32) && !defined(_XBOX) && !defined(__MINGW32__)
+#if defined(_WIN32) && !defined(__MINGW32__)
 	int STYLE = MB_ICONINFORMATION;
 	if (Style == QUESTION) STYLE = MB_ICONQUESTION;
 	if (Style == WARNING) STYLE = MB_ICONWARNING;

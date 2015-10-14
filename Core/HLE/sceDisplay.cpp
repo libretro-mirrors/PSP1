@@ -33,9 +33,7 @@
 #include "base/timeutil.h"
 #include "profiler/profiler.h"
 
-#ifndef _XBOX
 #include "gfx_es2/gl_state.h"
-#endif
 
 #include "Common/ChunkFile.h"
 #include "Core/CoreTiming.h"
@@ -277,13 +275,11 @@ void __DisplayDoState(PointerWrap &p) {
 	// Maybe a bit tricky to move at this point, though...
 
 	gstate_c.DoState(p);
-#ifndef _XBOX
 	if (s < 2) {
 		// This shouldn't have been savestated anyway, but it was.
 		// It's unlikely to overlap with the first value in gpuStats.
 		p.ExpectVoid(&gl_extensions.gpuVendor, sizeof(gl_extensions.gpuVendor));
 	}
-#endif
 	if (s < 6) {
 		p.Do(gpuStats);
 	}

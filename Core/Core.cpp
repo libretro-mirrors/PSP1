@@ -30,14 +30,6 @@
 #include "Core/System.h"
 #include "Core/MIPS/MIPS.h"
 
-#ifdef _WIN32
-#ifndef _XBOX
-#include "Windows/OpenGLBase.h"
-#include "Windows/D3D9Base.h"
-#endif
-#include "Windows/InputDevice.h"
-#endif
-
 #include "Host.h"
 
 #include "Core/Debugger/Breakpoints.h"

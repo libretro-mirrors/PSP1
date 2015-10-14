@@ -19,10 +19,6 @@
 
 struct JitBlock;
 
-#ifdef USING_QT_UI
-#undef emit
-#endif
-
 #if defined(ARM)
 #include "../ARM/ArmJit.h"
 typedef MIPSComp::ArmJit NativeJit;

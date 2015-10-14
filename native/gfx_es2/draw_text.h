@@ -12,16 +12,12 @@
 
 #include "base/basictypes.h"
 #include "gfx_es2/draw_buffer.h"
-#if !(defined(_WIN32) && !defined(USING_QT_UI))
+#ifndef _WIN32
 #include "gfx_es2/gl_state.h"
 #endif
 
 class Thin3DContext;
 class Thin3DTexture;
-
-#ifdef USING_QT_UI
-#include <QtGui/QFont>
-#endif
 
 struct TextStringEntry {
 	Thin3DTexture *texture;
@@ -65,11 +61,7 @@ private:
 	float fontScaleY_;
 
 	TextDrawerContext *ctx_;
-#ifdef USING_QT_UI
-	std::map<uint32_t, QFont *> fontMap_;
-#else
 	std::map<uint32_t, TextDrawerFontContext *> fontMap_;
-#endif
 
 	uint32_t fontHash_;
 	// The key is the CityHash of the string xor the fontHash_.

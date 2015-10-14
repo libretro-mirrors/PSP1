@@ -1,9 +1,6 @@
 // TODO: Move much of this code to vfs.cpp
 #pragma once
 
-#ifdef ANDROID
-#include <zip.h>
-#endif
 
 #include <string.h>
 #include <string>
@@ -25,41 +22,6 @@ public:
 	virtual bool GetFileInfo(const char *path, FileInfo *info) = 0;
 	virtual std::string toString() const = 0;
 };
-
-#ifdef USING_QT_UI
-class AssetsAssetReader : public AssetReader {
-public:
-	AssetsAssetReader() {}
-	~AssetsAssetReader() {}
-	// use delete[]
-	virtual uint8_t *ReadAsset(const char *path, size_t *size);
-	virtual bool GetFileListing(const char *path, std::vector<FileInfo> *listing, const char *filter);
-	virtual bool GetFileInfo(const char *path, FileInfo *info);
-	virtual std::string toString() const {
-		return ":assets/";
-	}
-};
-#endif
-
-#ifdef ANDROID
-uint8_t *ReadFromZip(zip *archive, const char* filename, size_t *size);
-class ZipAssetReader : public AssetReader {
-public:
-	ZipAssetReader(const char *zip_file, const char *in_zip_path);
-	~ZipAssetReader();
-	// use delete[]
-	virtual uint8_t *ReadAsset(const char *path, size_t *size);
-	virtual bool GetFileListing(const char *path, std::vector<FileInfo> *listing, const char *filter);
-	virtual bool GetFileInfo(const char *path, FileInfo *info);
-	virtual std::string toString() const {
-		return in_zip_path_;
-	}
-
-private:
-	zip *zip_file_;
-	char in_zip_path_[256];
-};
-#endif
 
 class DirectoryAssetReader : public AssetReader {
 public:

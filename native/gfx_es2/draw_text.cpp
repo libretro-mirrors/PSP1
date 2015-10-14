@@ -5,14 +5,7 @@
 #include "util/text/utf8.h"
 #include "gfx_es2/draw_text.h"
 
-#ifdef USING_QT_UI
-#include <QtGui/QImage>
-#include <QtGui/QPainter>
-#include <QtGui/QFontMetrics>
-#include <QtOpenGL/QGLWidget>
-#endif
-
-#if defined(_WIN32) && !defined(USING_QT_UI)
+#if defined(_WIN32)
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -222,27 +215,8 @@ TextDrawer::~TextDrawer() {
 }
 
 uint32_t TextDrawer::SetFont(const char *fontName, int size, int flags) {
-#ifdef USING_QT_UI
-	// We will only use the default font
-	uint32_t fontHash = 0; //hash::Fletcher((const uint8_t *)fontName, strlen(fontName));
-	fontHash ^= size;
-	fontHash ^= flags << 10;
-
-	auto iter = fontMap_.find(fontHash);
-	if (iter != fontMap_.end()) {
-		fontHash_ = fontHash;
-		return fontHash;
-	}
-
-	QFont* font = new QFont();
-	font->setPixelSize(size + 6);
-	fontMap_[fontHash] = font;
-	fontHash_ = fontHash;
-	return fontHash;
-#else
 	ELOG("System fonts not supported on this platform");
 	return 0;
-#endif
 }
 
 void TextDrawer::SetFont(uint32_t fontHandle) {
@@ -250,77 +224,11 @@ void TextDrawer::SetFont(uint32_t fontHandle) {
 }
 
 void TextDrawer::MeasureString(const char *str, float *w, float *h) {
-#ifdef USING_QT_UI
-	QFont* font = fontMap_.find(fontHash_)->second;
-	QFontMetrics fm(*font);
-	QSize size = fm.size(0, QString::fromUtf8(str));
-	*w = (float)size.width() * fontScaleX_;
-	*h = (float)size.height() * fontScaleY_;
-#else
 	*w = 0;
 	*h = 0;
-#endif
 }
 
 void TextDrawer::DrawString(DrawBuffer &target, const char *str, float x, float y, uint32_t color, int align) {
-	if (!strlen(str))
-		return;
-
-#ifdef USING_QT_UI
-	uint32_t stringHash = hash::Fletcher((const uint8_t *)str, strlen(str));
-	uint32_t entryHash = stringHash ^ fontHash_;
-	
-	target.Flush(true);
-
-	TextStringEntry *entry;
-
-	auto iter = cache_.find(entryHash);
-	if (iter != cache_.end()) {
-		entry = iter->second;
-		entry->lastUsedFrame = frameCount_;
-		thin3d_->SetTexture(0, entry->texture);
-	} else {
-		QFont *font = fontMap_.find(fontHash_)->second;
-		QFontMetrics fm(*font);
-		QSize size = fm.size(0, QString::fromUtf8(str));
-		QImage image((size.width() + 3) & ~ 3, (size.height() + 3) & ~ 3, QImage::Format_ARGB32_Premultiplied);
-		if (image.isNull()) {
-			return;
-		}
-		image.fill(0);
-
-		QPainter painter;
-		painter.begin(&image);
-		painter.setFont(*font);
-		painter.setPen(color);
-		painter.drawText(image.rect(), Qt::AlignTop | Qt::AlignLeft, QString::fromUtf8(str).replace("&&", "&"));
-		painter.end();
-
-		entry = new TextStringEntry();
-		entry->bmWidth = entry->width = image.width();
-		entry->bmHeight = entry->height = image.height();
-		entry->lastUsedFrame = frameCount_;
-		entry->texture = thin3d_->CreateTexture(LINEAR2D, RGBA4444, entry->bmWidth, entry->bmHeight, 1, 0);
-
-		uint16_t *bitmapData = new uint16_t[entry->bmWidth * entry->bmHeight];
-		for (int x = 0; x < entry->bmWidth; x++) {
-			for (int y = 0; y < entry->bmHeight; y++) {
-				bitmapData[entry->bmWidth * y + x] = 0xfff0 | image.pixel(x, y) >> 28;
-			}
-		}
-		entry->texture->SetImageData(0, 0, 0, entry->bmWidth, entry->bmHeight, 1, 0, entry->bmWidth * 2, (const uint8_t *)bitmapData);
-		entry->texture->Finalize(0);
-
-		delete [] bitmapData;
-
-		cache_[entryHash] = entry;
-	}
-	float w = entry->bmWidth * fontScaleX_;
-	float h = entry->bmHeight * fontScaleY_;
-	DrawBuffer::DoAlign(align, &x, &y, &w, &h);
-	target.DrawTexRect(x, y, x + w, y + h, 0.0f, 0.0f, 1.0f, 1.0f, color);
-	target.Flush(true);
-#endif
 }
 
 #endif

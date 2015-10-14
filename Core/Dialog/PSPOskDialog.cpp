@@ -28,10 +28,6 @@
 #include "Common/ChunkFile.h"
 #include "GPU/GPUState.h"
 
-#if defined(USING_WIN_UI)
-#include "base/NativeApp.h"
-#endif
-
 #ifndef _WIN32
 #include <ctype.h>
 #include <math.h>
@@ -791,52 +787,6 @@ void PSPOskDialog::RenderKeyboard()
 	}
 }
 
-#if defined(USING_WIN_UI)
-// TODO: Why does this have a 2 button press lag/delay when
-// re-opening the dialog box? I don't get it.
-int PSPOskDialog::NativeKeyboard() {
-	if (GetStatus() != SCE_UTILITY_STATUS_RUNNING) {
-		return SCE_ERROR_UTILITY_INVALID_STATUS;
-	}
-
-	std::wstring titleText;
-	GetWideStringFromPSPPointer(titleText, oskParams->fields[0].desc);
-
-	std::wstring defaultText;
-	GetWideStringFromPSPPointer(defaultText, oskParams->fields[0].intext);
-
-	if (defaultText.empty())
-		defaultText.assign(L"VALUE");
-
-	if (System_InputBoxGetWString(titleText.c_str(), defaultText, inputChars)) {
-		u32 maxLength = FieldMaxLength();
-		if (inputChars.length() > maxLength) {
-			ERROR_LOG(SCEUTILITY, "NativeKeyboard: input text too long(%d characters/glyphs max), truncating to game-requested length.", maxLength);
-			inputChars.erase(maxLength, std::string::npos);
-		}
-	}
-	ChangeStatus(SCE_UTILITY_STATUS_FINISHED, 0);
-	
-	u16_le *outText = oskParams->fields[0].outtext;
-
-	size_t end = oskParams->fields[0].outtextlength;
-	if (end > inputChars.size())
-		end = inputChars.size() + 1;
-	// Only write the bytes of the output and the null terminator, don't write the rest.
-	for (size_t i = 0; i < end; ++i) {
-		u16 value = 0;
-		if (i < FieldMaxLength())
-			value = inputChars[i];
-		outText[i] = value;
-	}
-
-	oskParams->base.result = 0;
-	oskParams->fields[0].result = PSP_UTILITY_OSK_RESULT_CHANGED;
-
-	return 0;
-}
-#endif
-
 int PSPOskDialog::Update(int animSpeed) {
 	if (GetStatus() != SCE_UTILITY_STATUS_RUNNING) {
 		return SCE_ERROR_UTILITY_INVALID_STATUS;
@@ -856,15 +806,6 @@ int PSPOskDialog::Update(int animSpeed) {
 	UpdateButtons();
 	int selectedRow = selectedChar / numKeyCols[currentKeyboard];
 	int selectedExtra = selectedChar % numKeyCols[currentKeyboard];
-
-	// TODO: Add your platforms here when you have a NativeKeyboard func.
-
-#if defined(USING_WIN_UI)
-	// Windows: Fall back to the OSK/continue normally if we're in fullscreen.
-	// The dialog box doesn't work right if in fullscreen.
-	if(g_Config.bBypassOSKWithKeyboard && !g_Config.bFullScreen)
-		return NativeKeyboard();
-#endif
 
 	UpdateFade(animSpeed);
 

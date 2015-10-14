@@ -9,7 +9,6 @@
 #include "base/logging.h"
 #include "gfx/texture.h"
 #include "gfx/texture_gen.h"
-#include "gfx/gl_debug_log.h"
 #include "gfx/gl_lost_manager.h"
 #include "gfx/gl_common.h"
 #include "gfx_es2/gl_state.h"
@@ -47,14 +46,12 @@ static void SetTextureParameters(int zim_flags) {
 		wrap = GL_CLAMP_TO_EDGE;
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap);
-	GL_CHECK();
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	if ((zim_flags & (ZIM_HAS_MIPS | ZIM_GEN_MIPS))) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
 	} else {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	}
-	GL_CHECK();
 }
 
 bool Texture::Load(const char *filename) {
@@ -150,7 +147,6 @@ bool Texture::LoadPNG(const char *filename, bool genMips) {
 	if (1 != pngLoad(filename, &width_, &height_, &image_data, false)) {
 		return false;
 	}
-	GL_CHECK();
 	glGenTextures(1, &id_);
 	glBindTexture(GL_TEXTURE_2D, id_);
 	SetTextureParameters(genMips ? ZIM_GEN_MIPS : ZIM_CLAMP);
@@ -165,7 +161,6 @@ bool Texture::LoadPNG(const char *filename, bool genMips) {
 #endif
 		}
 	}
-	GL_CHECK();
 	free(image_data);
 	return true;
 }
@@ -182,7 +177,6 @@ bool Texture::LoadJPEG(const char *filename, bool genMips) {
 	ILOG("Jpeg decoder failed to get RGB, got: %i x %i x %i", actual_comps, width_, height_);
 	ILOG("First four bytes: %i %i %i %i", image_data[0], image_data[1], image_data[2], image_data[3]);
 
-	GL_CHECK();
 	glGenTextures(1, &id_);
 	glBindTexture(GL_TEXTURE_2D, id_);
 	SetTextureParameters(genMips ? ZIM_GEN_MIPS : ZIM_CLAMP);
@@ -196,7 +190,6 @@ bool Texture::LoadJPEG(const char *filename, bool genMips) {
 #endif
 		}
 	}
-	GL_CHECK();
 	free(image_data);
 	return true;
 }
@@ -206,7 +199,6 @@ bool Texture::LoadPNG(const uint8_t *data, size_t size, bool genMips) {
 	if (1 != pngLoadPtr(data, size, &width_, &height_, &image_data, false)) {
 		return false;
 	}
-	GL_CHECK();
 	// TODO: should check for power of 2 tex size and disallow genMips when not.
 	glGenTextures(1, &id_);
 	glBindTexture(GL_TEXTURE_2D, id_);
@@ -221,7 +213,6 @@ bool Texture::LoadPNG(const uint8_t *data, size_t size, bool genMips) {
 #endif
 		}
 	}
-	GL_CHECK();
 	free(image_data);
 	return true;
 }
@@ -237,7 +228,6 @@ bool Texture::LoadXOR() {
 			buf[(y*width_ + x)*4 + 3] = 0xFF;
 		}
 	}
-	GL_CHECK();
 	glGenTextures(1, &id_);
 	glBindTexture(GL_TEXTURE_2D, id_);
 	SetTextureParameters(ZIM_GEN_MIPS);
@@ -250,7 +240,6 @@ bool Texture::LoadXOR() {
 		glGenerateMipmapEXT(GL_TEXTURE_2D);
 #endif
 	}
-	GL_CHECK();
 	delete [] buf;
 	return true;
 }
@@ -307,7 +296,6 @@ bool Texture::LoadZIM(const char *filename) {
 		break;
 	}
 
-	GL_CHECK();
 
 	glGenTextures(1, &id_);
 	glBindTexture(GL_TEXTURE_2D, id_);
@@ -322,7 +310,6 @@ bool Texture::LoadZIM(const char *filename) {
 #if defined(USING_GLES2) && !defined(IOS)
 			int compressed_image_bytes = data_w * data_h / 2;
 			glCompressedTexImage2D(GL_TEXTURE_2D, l, GL_ETC1_RGB8_OES, width[l], height[l], 0, compressed_image_bytes, image_data[l]);
-			GL_CHECK();
 #else
 			// TODO: OpenGL 4.3+ accepts ETC1 so we should not have to do this anymore on those cards.
 			// Also, iOS does not have support for ETC1 compressed textures so we just decompress.
@@ -332,7 +319,6 @@ bool Texture::LoadZIM(const char *filename) {
 				GL_RGBA, GL_UNSIGNED_BYTE, image_data[l]);
 #endif
 		}
-		GL_CHECK();
 #if !defined(USING_GLES2)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, num_levels - 2);
 #endif
@@ -353,24 +339,19 @@ bool Texture::LoadZIM(const char *filename) {
 	}
 	SetTextureParameters(flags);
 
-	GL_CHECK();
 	// Only free the top level, since the allocation is used for all of them.
 	free(image_data[0]);
 	return true;
 }
 
 void Texture::Bind(int stage) {
-	GL_CHECK();
 	if (stage != -1)
 		glActiveTexture(GL_TEXTURE0 + stage);
 	glBindTexture(GL_TEXTURE_2D, id_);
-	GL_CHECK();
 }
 
 void Texture::Unbind(int stage) {
-	GL_CHECK();
 	if (stage != -1)
 		glActiveTexture(GL_TEXTURE0 + stage);
 	glBindTexture(GL_TEXTURE_2D, 0);
-	GL_CHECK();
 }

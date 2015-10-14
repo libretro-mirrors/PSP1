@@ -86,16 +86,6 @@ bool glsl_up_to_date(GLSLProgram *program) {
 	}
 }
 
-void glsl_refresh() {
-	ILOG("glsl_refresh()");
-	for (std::set<GLSLProgram *>::const_iterator iter = active_programs.begin();
-		iter != active_programs.end(); ++iter) {
-			if (!glsl_up_to_date(*iter)) {
-				glsl_recompile(*iter);
-			}
-	}
-}
-
 // Not wanting to change ReadLocalFile semantics.
 // Needs to use delete [], not delete like auto_ptr, and can't use unique_ptr because of Symbian.
 struct AutoCharArrayBuf {

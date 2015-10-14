@@ -174,7 +174,6 @@ SOURCES_CXX += $(NATIVEDIR)/file/chunk_file.cpp \
 				$(GPUDIR)/Software/Clipper.cpp \
 				$(GPUDIR)/Software/Lighting.cpp \
 				$(GPUDIR)/Software/Rasterizer.cpp \
-				$(NATIVEDIR)/gfx/gl_debug_log.cpp \
 				$(NATIVEDIR)/gfx/gl_lost_manager.cpp \
 				$(GPUDIR)/Software/SoftGpu.cpp \
 				$(NATIVEDIR)/gfx/texture.cpp \
@@ -185,7 +184,6 @@ SOURCES_CXX += $(NATIVEDIR)/file/chunk_file.cpp \
 				$(NATIVEDIR)/gfx_es2/gl_state.cpp \
 				$(NATIVEDIR)/gfx_es2/gpu_features.cpp \
 				$(NATIVEDIR)/gfx_es2/glsl_program.cpp \
-				$(NATIVEDIR)/gfx_es2/vertex_format.cpp \
 				$(NATIVEDIR)/i18n/i18n.cpp \
 				$(NATIVEDIR)/image/zim_load.cpp \
 				$(NATIVEDIR)/image/zim_save.cpp \

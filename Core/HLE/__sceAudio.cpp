@@ -221,7 +221,8 @@ u32 __AudioEnqueue(AudioChannel &chan, int chanNum, bool blocking) {
 	int leftVol = chan.leftVolume;
 	int rightVol = chan.rightVolume;
 
-	if (leftVol == (1 << 15) && rightVol == (1 << 15) && chan.format == PSP_AUDIO_FORMAT_STEREO && IS_LITTLE_ENDIAN) {
+	if (leftVol == (1 << 15) && rightVol == (1 << 15) && chan.format == PSP_AUDIO_FORMAT_STEREO && IS_LITTLE_ENDIAN)
+   {
 		// TODO: Add mono->stereo conversion to this path.
 
 		// Good news: the volume doesn't affect the values at all.
@@ -236,7 +237,9 @@ u32 __AudioEnqueue(AudioChannel &chan, int chanNum, bool blocking) {
 			if (buf2)
 				Memory::Memcpy(buf2, chan.sampleAddress + (u32)sz1 * sizeof(s16), (u32)sz2 * sizeof(s16));
 		}
-	} else {
+	}
+   else
+   {
 		// Remember that maximum volume allowed is 0xFFFFF so left shift is no issue.
 		// This way we can optimally shift by 16.
 		leftVol <<=1;

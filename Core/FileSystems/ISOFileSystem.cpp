@@ -87,20 +87,7 @@ struct DirectoryEntry
 	u8 identifierLength; //identifier comes right after
 	u8 firstIdChar;
 
-#if COMMON_LITTLE_ENDIAN
-	u32 firstDataSector() const
-	{
-		return firstDataSectorLE;
-	}
-	u32 dataLength() const
-	{
-		return dataLengthLE;
-	}
-	u32 volSeqNumber() const
-	{
-		return volSeqNumberLE;
-	}
-#else
+#ifdef MSB_FIRST
 	u32 firstDataSector() const
 	{
 		return firstDataSectorBE;
@@ -112,6 +99,19 @@ struct DirectoryEntry
 	u32 volSeqNumber() const
 	{
 		return volSeqNumberBE;
+	}
+#else
+	u32 firstDataSector() const
+	{
+		return firstDataSectorLE;
+	}
+	u32 dataLength() const
+	{
+		return dataLengthLE;
+	}
+	u32 volSeqNumber() const
+	{
+		return volSeqNumberLE;
 	}
 #endif
 };

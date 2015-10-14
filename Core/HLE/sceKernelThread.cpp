@@ -165,10 +165,10 @@ public:
 	u32 savedV1;
 };
 
-#if COMMON_LITTLE_ENDIAN
-typedef WaitType WaitType_le;
-#else
+#ifdef MSB_FIRST
 typedef swap_struct_t<WaitType, swap_32_t<WaitType> > WaitType_le;
+#else
+typedef WaitType WaitType_le;
 #endif
 
 // Real PSP struct, don't change the fields.

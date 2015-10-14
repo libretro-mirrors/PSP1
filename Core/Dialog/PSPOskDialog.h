@@ -91,14 +91,14 @@ enum SceUtilityOskInputType
 	PSP_UTILITY_OSK_INPUTTYPE_URL                    = 0x00080000
 };
 
-#if COMMON_LITTLE_ENDIAN
-typedef SceUtilityOskState SceUtilityOskState_le;
-typedef SceUtilityOskInputLanguage SceUtilityOskInputLanguage_le;
-typedef SceUtilityOskResult SceUtilityOskResult_le;
-#else
+#ifdef MSB_FIRST
 typedef swap_struct_t<SceUtilityOskState, swap_32_t<SceUtilityOskState> > SceUtilityOskState_le;
 typedef swap_struct_t<SceUtilityOskInputLanguage, swap_32_t<SceUtilityOskInputLanguage> > SceUtilityOskInputLanguage_le;
 typedef swap_struct_t<SceUtilityOskResult, swap_32_t<SceUtilityOskResult> > SceUtilityOskResult_le;
+#else
+typedef SceUtilityOskState SceUtilityOskState_le;
+typedef SceUtilityOskInputLanguage SceUtilityOskInputLanguage_le;
+typedef SceUtilityOskResult SceUtilityOskResult_le;
 #endif
 
 /**

@@ -38,10 +38,10 @@ static const int SCE_UTILITY_SCREENSHOTDIALOG_SIZE_V1 = 436;
 static const int SCE_UTILITY_SCREENSHOTDIALOG_SIZE_V2 = 928;
 static const int SCE_UTILITY_SCREENSHOTDIALOG_SIZE_V3 = 932;
 
-#if COMMON_LITTLE_ENDIAN
-typedef SceUtilityScreenshotType SceUtilityScreenshotType_le;
-#else
+#ifdef MSB_FIRST
 typedef swap_struct_t<SceUtilityScreenshotType, swap_32_t<SceUtilityScreenshotType> > SceUtilityScreenshotType_le;
+#else
+typedef SceUtilityScreenshotType SceUtilityScreenshotType_le;
 #endif
 
 struct SceUtilityScreenshotParams {

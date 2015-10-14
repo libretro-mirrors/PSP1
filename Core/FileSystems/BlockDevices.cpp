@@ -177,25 +177,21 @@ CISOFileBlockDevice::CISOFileBlockDevice(FileLoader *fileLoader)
 
 	const u32 indexSize = numFrames + 1;
 
-#if COMMON_LITTLE_ENDIAN
-	index = new u32[indexSize];
-	if (fileLoader->ReadAt(sizeof(hdr), sizeof(u32), indexSize, index) != indexSize)
-		memset(index, 0, indexSize * sizeof(u32));
-#else
+#ifdef MSB_FIRST
 	index = new u32[indexSize];
 	u32_le *indexTemp = new u32_le[indexSize];
 
 	if (fileLoader->ReadAt(sizeof(hdr), sizeof(u32), indexSize, indexTemp) != indexSize)
-	{
 		memset(indexTemp, 0, indexSize * sizeof(u32_le));
-	}
 
 	for (u32 i = 0; i < indexSize; i++)
-	{
 		index[i] = indexTemp[i];
-	}
 
 	delete[] indexTemp;
+#else
+	index = new u32[indexSize];
+	if (fileLoader->ReadAt(sizeof(hdr), sizeof(u32), indexSize, index) != indexSize)
+		memset(index, 0, indexSize * sizeof(u32));
 #endif
 }
 

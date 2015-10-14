@@ -111,10 +111,10 @@ struct Glyph {
 };
 
 
-#if COMMON_LITTLE_ENDIAN
-typedef FontPixelFormat FontPixelFormat_le;
-#else
+#ifdef MSB_FIRST
 typedef swap_struct_t<FontPixelFormat, swap_32_t<FontPixelFormat> > FontPixelFormat_le;
+#else
+typedef FontPixelFormat FontPixelFormat_le;
 #endif
 
 struct GlyphImage {

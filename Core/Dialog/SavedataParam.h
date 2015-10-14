@@ -96,12 +96,12 @@ enum SceUtilitySavedataFocus
 	SCE_UTILITY_SAVEDATA_FOCUS_LASTEMPTY  = 8, // last empty (what if no empty?)
 };
 
-#if COMMON_LITTLE_ENDIAN
-typedef SceUtilitySavedataType SceUtilitySavedataType_le;
-typedef SceUtilitySavedataFocus SceUtilitySavedataFocus_le;
-#else
+#ifdef MSB_FIRST
 typedef swap_struct_t<SceUtilitySavedataType, swap_32_t<SceUtilitySavedataType> > SceUtilitySavedataType_le;
 typedef swap_struct_t<SceUtilitySavedataFocus, swap_32_t<SceUtilitySavedataFocus> > SceUtilitySavedataFocus_le;
+#else
+typedef SceUtilitySavedataType SceUtilitySavedataType_le;
+typedef SceUtilitySavedataFocus SceUtilitySavedataFocus_le;
 #endif
 
 typedef char SceUtilitySavedataSaveName[20];

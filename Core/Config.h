@@ -78,8 +78,6 @@ public:
 	bool bFirstRun;
 	bool bGameSpecific;
 
-	int iRunCount; // To be used to for example check for updates every 10 runs and things like that.
-
 	bool bAutoRun;  // start immediately
 	bool bBrowse; // when opening the emulator, immediately show a file browser
 
@@ -90,10 +88,6 @@ public:
 	bool bDumpDecryptedEboot;
 
 	bool bPauseWhenMinimized;
-
-#if !defined(MOBILE_DEVICE)
-	bool bPauseExitsEmulator;
-#endif
 
 	// Core
 	bool bIgnoreBadMemAccess;
@@ -131,14 +125,10 @@ public:
 	int iRenderingMode; // 0 = non-buffered rendering 1 = buffered rendering 2 = Read Framebuffer to memory (CPU) 3 = Read Framebuffer to memory (GPU)
 	int iTexFiltering; // 1 = off , 2 = nearest , 3 = linear , 4 = linear(CG)
 	int iBufFilter; // 1 = linear, 2 = nearest
-	bool bPartialStretch;
-	bool bStretchToDisplay;
-	bool bSmallDisplay;  // Useful on large tablets with touch controls to not overlap the image. Temporary setting - will be replaced by more comprehensive display size settings.
 	bool bImmersiveMode;  // Mode on Android Kitkat 4.4 that hides the back button etc.
 	bool bVSync;
 	int iFrameSkip;
 	bool bAutoFrameSkip;
-	bool bFrameSkipUnthrottle;
 
 	bool bEnableCardboard; // Cardboard Master Switch
 	int iCardboardScreenSize; // Screen Size (in %)
@@ -154,7 +144,6 @@ public:
 	bool bTextureBackoffCache;
 	bool bTextureSecondaryCache;
 	bool bVertexDecoderJit;
-	bool bFullScreen;
 	int iInternalResolution;  // 0 = Auto (native), 1 = 1x (480x272), 2 = 2x, 3 = 3x, 4 = 4x and so on.
 	int iAnisotropyLevel;  // 0 - 5, powers of 2: 0 = 1x = no aniso
 	bool bTrueColor;
@@ -193,7 +182,6 @@ public:
 
 	// UI
 	bool bShowDebuggerOnLoad;
-	int iShowFPSCounter;
 
 	bool bShowDebugStats;
 	bool bShowAudioDebug;
@@ -248,9 +236,6 @@ public:
 	float fSelectKeyX, fSelectKeyY;
 	float fSelectKeyScale;
 
-	float fUnthrottleKeyX, fUnthrottleKeyY;
-	float fUnthrottleKeyScale;
-
 	float fLKeyX, fLKeyY;
 	float fLKeyScale;
 
@@ -271,7 +256,6 @@ public:
 
 	bool bShowTouchStart;
 	bool bShowTouchSelect;
-	bool bShowTouchUnthrottle;
 
 	bool bShowTouchLTrigger;
 	bool bShowTouchRTrigger;

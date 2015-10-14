@@ -275,7 +275,6 @@ struct ConfigSectionSettings {
 
 static ConfigSetting generalSettings[] = {
 	ConfigSetting("FirstRun", &g_Config.bFirstRun, true),
-	ConfigSetting("RunCount", &g_Config.iRunCount, 0),
 	ConfigSetting("Enable Logging", &g_Config.bEnableLogging, true),
 	ConfigSetting("AutoRun", &g_Config.bAutoRun, true),
 	ConfigSetting("Browse", &g_Config.bBrowse, false),
@@ -387,7 +386,6 @@ static ConfigSetting graphicsSettings[] = {
 	ConfigSetting("CardboardScreenSize", &g_Config.iCardboardScreenSize, 50, true, true),
 	ConfigSetting("CardboardXShift", &g_Config.iCardboardXShift, 0, true, true),
 	ConfigSetting("CardboardYShift", &g_Config.iCardboardXShift, 0, true, true),
-	ConfigSetting("ShowFPSCounter", &g_Config.iShowFPSCounter, 0, true, true),
 	ReportedConfigSetting("GPUBackend", &g_Config.iGPUBackend, 0),
 	ReportedConfigSetting("RenderingMode", &g_Config.iRenderingMode, &DefaultRenderingMode, true, true),
 	ConfigSetting("SoftwareRendering", &g_Config.bSoftwareRendering, false, true, true),
@@ -401,11 +399,8 @@ static ConfigSetting graphicsSettings[] = {
 	ReportedConfigSetting("AutoFrameSkip", &g_Config.bAutoFrameSkip, false, true, true),
 	ReportedConfigSetting("FrameRate", &g_Config.iFpsLimit, 0, true, true),
 #if defined(_WIN32) && !defined(__LIBRETRO__)
-	ConfigSetting("FrameSkipUnthrottle", &g_Config.bFrameSkipUnthrottle, false, true, true),
 	ConfigSetting("TemporaryGPUBackend", &g_Config.iTempGPUBackend, -1, false),
 	ConfigSetting("RestartRequired", &g_Config.bRestartRequired, false, false),
-#else
-   ConfigSetting("FrameSkipUnthrottle", &g_Config.bFrameSkipUnthrottle, true),
 #endif
 	ReportedConfigSetting("ForceMaxEmulatedFPS", &g_Config.iForceMaxEmulatedFPS, 60, true, true),
 #ifdef USING_GLES2
@@ -418,14 +413,7 @@ static ConfigSetting graphicsSettings[] = {
 	ReportedConfigSetting("TextureSecondaryCache", &g_Config.bTextureSecondaryCache, false, true, true),
 	ReportedConfigSetting("VertexDecJit", &g_Config.bVertexDecoderJit, &DefaultJit, false),
 
-#ifdef _WIN32
-	ConfigSetting("FullScreen", &g_Config.bFullScreen, false),
-#endif
-
 	// TODO: Replace these settings with a list of options
-	ConfigSetting("PartialStretch", &g_Config.bPartialStretch, &DefaultPartialStretch, true, true),
-	ConfigSetting("StretchToDisplay", &g_Config.bStretchToDisplay, false, true, true),
-	ConfigSetting("SmallDisplay", &g_Config.bSmallDisplay, false, true, true),
 	ConfigSetting("ImmersiveMode", &g_Config.bImmersiveMode, false, true, true),
 
 	ReportedConfigSetting("TrueColor", &g_Config.bTrueColor, true, true, true),
@@ -482,7 +470,6 @@ static ConfigSetting controlSettings[] = {
 	ConfigSetting("ShowTouchRTrigger", &g_Config.bShowTouchRTrigger, true, true, true),
 	ConfigSetting("ShowAnalogStick", &g_Config.bShowTouchAnalogStick, true, true, true),
 	ConfigSetting("ShowTouchDpad", &g_Config.bShowTouchDpad, true, true, true),
-	ConfigSetting("ShowTouchUnthrottle", &g_Config.bShowTouchUnthrottle, true, true, true),
 #if !defined(IOS)
 #if defined(_WIN32)
 	// A win32 user seeing touch controls is likely using PPSSPP on a tablet. There it makes
@@ -528,9 +515,6 @@ static ConfigSetting controlSettings[] = {
 	ConfigSetting("SelectKeyX", &g_Config.fSelectKeyX, -1.0f, true, true),
 	ConfigSetting("SelectKeyY", &g_Config.fSelectKeyY, -1.0f, true, true),
 	ConfigSetting("SelectKeyScale", &g_Config.fSelectKeyScale, defaultControlScale, true, true),
-	ConfigSetting("UnthrottleKeyX", &g_Config.fUnthrottleKeyX, -1.0f, true, true),
-	ConfigSetting("UnthrottleKeyY", &g_Config.fUnthrottleKeyY, -1.0f, true, true),
-	ConfigSetting("UnthrottleKeyScale", &g_Config.fUnthrottleKeyScale, defaultControlScale, true, true),
 	ConfigSetting("LKeyX", &g_Config.fLKeyX, -1.0f, true, true),
 	ConfigSetting("LKeyY", &g_Config.fLKeyY, -1.0f, true, true),
 	ConfigSetting("LKeyScale", &g_Config.fLKeyScale, defaultControlScale, true, true),
@@ -723,7 +707,6 @@ void Config::Load(const char *iniFileName, const char *controllerIniFilename) {
 		}
 	}
 
-	iRunCount++;
 	if (!File::Exists(currentDirectory))
 		currentDirectory = "";
 
@@ -777,18 +760,6 @@ void Config::Load(const char *iniFileName, const char *controllerIniFilename) {
 	if ((dismissedVersion == upgradeVersion) || (versionsValid && (installed >= upgrade))) {
 		upgradeMessage = "";
 	}
-
-	// Check for new version on every 10 runs.
-	// Sometimes the download may not be finished when the main screen shows (if the user dismisses the
-	// splash screen quickly), but then we'll just show the notification next time instead, we store the
-	// upgrade number in the ini.
-#if !defined(ARMEABI)
-	if (iRunCount % 10 == 0 && bCheckForNewVersion) {
-		std::shared_ptr<http::Download> dl = g_DownloadManager.StartDownloadWithCallback(
-			"http://www.ppsspp.org/version.json", "", &DownloadCompletedCallback);
-		dl->SetHidden(true);
-	}
-#endif
 
 	bSaveSettings = true;
 
@@ -1154,9 +1125,6 @@ void Config::ResetControlLayout() {
 	g_Config.fSelectKeyX = -1.0;
 	g_Config.fSelectKeyY = -1.0;
 	g_Config.fSelectKeyScale = defaultControlScale;
-	g_Config.fUnthrottleKeyX = -1.0;
-	g_Config.fUnthrottleKeyY = -1.0;
-	g_Config.fUnthrottleKeyScale = defaultControlScale;
 	g_Config.fLKeyX = -1.0;
 	g_Config.fLKeyY = -1.0;
 	g_Config.fLKeyScale = defaultControlScale;

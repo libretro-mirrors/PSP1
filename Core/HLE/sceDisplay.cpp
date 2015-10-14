@@ -488,26 +488,16 @@ static bool FrameTimingThrottled() {
 }
 
 // Let's collect all the throttling and frameskipping logic here.
-static void DoFrameTiming(bool &throttle, bool &skipFrame, float timestep) {
+static void DoFrameTiming(bool &skipFrame, float timestep) {
 	PROFILE_THIS_SCOPE("timing");
 	int fpsLimiter = PSP_CoreParameter().fpsLimit;
-	throttle = FrameTimingThrottled();
 	skipFrame = false;
 
 	// Check if the frameskipping code should be enabled. If neither throttling or frameskipping is on,
 	// we have nothing to do here.
 	bool doFrameSkip = g_Config.iFrameSkip != 0;
 
-	if (!throttle && g_Config.bFrameSkipUnthrottle) {
-		doFrameSkip = true;
-		skipFrame = true;
-		if (numSkippedFrames >= 7) {
-			skipFrame = false;
-		}
-		return;
-	}
-
-	if (!throttle && !doFrameSkip)
+	if (!doFrameSkip)
 		return;
 
 	time_update();
@@ -544,25 +534,6 @@ static void DoFrameTiming(bool &throttle, bool &skipFrame, float timestep) {
 			skipFrame = false;
 		else
 			skipFrame = true;
-	}
-
-	if (curFrameTime < nextFrameTime && throttle) {
-		// If time gap is huge just jump (somebody unthrottled)
-		if (nextFrameTime - curFrameTime > 2*scaledTimestep) {
-			nextFrameTime = curFrameTime;
-		} else {
-			// Wait until we've caught up.
-			while (time_now_d() < nextFrameTime) {
-#ifdef _WIN32
-				sleep_ms(1); // Sleep for 1ms on this thread
-#else
-				const double left = nextFrameTime - curFrameTime;
-				usleep((long)(left * 1000000));
-#endif
-				time_update();
-			}
-		}
-		curFrameTime = time_now_d();
 	}
 
 	lastFrameTime = nextFrameTime;
@@ -659,10 +630,6 @@ void hleEnterVblank(u64 userdata, int cyclesLate) {
 	// some work.
 	// But, let's flip at least once every 10 frames if possible, since there may be sound effects.
 	if (gpu->FramebufferDirty() || (g_Config.iRenderingMode != 0 && numVBlanksSinceFlip >= 10)) {
-		if (g_Config.iShowFPSCounter && g_Config.iShowFPSCounter < 4) {
-			CalculateFPS();
-		}
-
 		// Setting CORE_NEXTFRAME causes a swap.
 		// Check first though, might've just quit / been paused.
 		if (gpu->FramebufferReallyDirty()) {
@@ -675,14 +642,10 @@ void hleEnterVblank(u64 userdata, int cyclesLate) {
 
 		gpuStats.numFlips++;
 
-		bool throttle, skipFrame;
-		DoFrameTiming(throttle, skipFrame, (float)numVBlanksSinceFlip * timePerVblank);
+		bool skipFrame;
+		DoFrameTiming(skipFrame, (float)numVBlanksSinceFlip * timePerVblank);
 
 		int maxFrameskip = 8;
-		if (throttle) {
-			// 4 here means 1 drawn, 4 skipped - so 12 fps minimum.
-			maxFrameskip = g_Config.iFrameSkip;
-		}
 		if (numSkippedFrames >= maxFrameskip) {
 			skipFrame = false;
 		}

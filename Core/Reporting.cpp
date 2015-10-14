@@ -283,14 +283,6 @@ namespace Reporting
 		// Just to get an idea of how long they played.
 		postdata.Add("ticks", (const uint64_t)CoreTiming::GetTicks());
 
-		if (g_Config.iShowFPSCounter && g_Config.iShowFPSCounter < 4)
-		{
-			float vps, fps;
-			__DisplayGetAveragedFPS(&vps, &fps);
-			postdata.Add("vps", vps);
-			postdata.Add("fps", fps);
-		}
-
 		postdata.Add("savestate_used", SaveState::HasLoadedState());
 	}
 

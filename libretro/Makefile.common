@@ -197,7 +197,6 @@ SOURCES_CXX += $(NATIVEDIR)/file/chunk_file.cpp \
 				$(NATIVEDIR)/image/zim_load.cpp \
 				$(NATIVEDIR)/image/zim_save.cpp \
 				$(NATIVEDIR)/image/png_load.cpp \
-				$(NATIVEDIR)/input/gesture_detector.cpp \
 				$(NATIVEDIR)/input/input_state.cpp \
 				$(NATIVEDIR)/math/curves.cpp \
 				$(NATIVEDIR)/math/expression_parser.cpp \
@@ -214,14 +213,7 @@ SOURCES_CXX += $(NATIVEDIR)/file/chunk_file.cpp \
 				$(NATIVEDIR)/thin3d/thin3d_gl.cpp \
 				$(NATIVEDIR)/thread/prioritizedworkqueue.cpp \
 				$(NATIVEDIR)/thread/threadutil.cpp \
-				$(NATIVEDIR)/ui/screen.cpp \
 				$(NATIVEDIR)/thread/threadpool.cpp \
-				$(NATIVEDIR)/ui/ui.cpp \
-				$(NATIVEDIR)/ui/ui_context.cpp \
-				$(NATIVEDIR)/ui/ui_screen.cpp \
-				$(NATIVEDIR)/ui/view.cpp \
-				$(NATIVEDIR)/ui/viewgroup.cpp \
-				$(NATIVEDIR)/ui/virtual_input.cpp \
 				$(NATIVEDIR)/util/bits/bits.cpp \
 				$(NATIVEDIR)/util/bits/varint.cpp \
 				$(NATIVEDIR)/util/hash/hash.cpp \

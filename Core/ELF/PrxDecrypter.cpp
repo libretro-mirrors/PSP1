@@ -418,7 +418,7 @@ static int DecryptPRX1(const u8* pbIn, u8* pbOut, int cbTotal, u32 tag)
 	int ret;
 	int iXOR;
 	for (iXOR = 0; iXOR < 0x70; iXOR++)
-#ifdef COMMON_BIG_ENDIAN
+#ifdef MSB_FIRST
 		pbOut[0x40+iXOR] = pbOut[0x40+iXOR] ^ key[(0x14+iXOR) ^3];
 #else
 		pbOut[0x40+iXOR] = pbOut[0x40+iXOR] ^ key[0x14+iXOR];
@@ -431,7 +431,7 @@ static int DecryptPRX1(const u8* pbIn, u8* pbOut, int cbTotal, u32 tag)
 	}
 
 	for (iXOR = 0x6F; iXOR >= 0; iXOR--)
-#ifdef COMMON_BIG_ENDIAN
+#ifdef MSB_FIRST
 		pbOut[0x40+iXOR] = pbOut[0x2C+iXOR] ^ key[(0x20+iXOR) ^ 3];
 #else
 		pbOut[0x40+iXOR] = pbOut[0x2C+iXOR] ^ key[0x20+iXOR];

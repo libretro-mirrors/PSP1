@@ -17,50 +17,6 @@
 
 #pragma once
 
-// Android
-#if defined(ANDROID)
-#include <sys/endian.h>
-
-#if _BYTE_ORDER == _LITTLE_ENDIAN && !defined(COMMON_LITTLE_ENDIAN)
-#define COMMON_LITTLE_ENDIAN 1
-#elif _BYTE_ORDER == _BIG_ENDIAN && !defined(COMMON_BIG_ENDIAN)
-#define COMMON_BIG_ENDIAN 1
-#endif
-
-// GCC 4.6+
-#elif __GNUC__ >= 5 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
-
-#if __BYTE_ORDER__ && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__) && !defined(COMMON_LITTLE_ENDIAN)
-#define COMMON_LITTLE_ENDIAN 1
-#elif __BYTE_ORDER__ && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__) && !defined(COMMON_BIG_ENDIAN)
-#define COMMON_BIG_ENDIAN 1
-#endif
-
-// LLVM/clang
-#elif __clang__
-
-#if __LITTLE_ENDIAN__ && !defined(COMMON_LITTLE_ENDIAN)
-#define COMMON_LITTLE_ENDIAN 1
-#elif __BIG_ENDIAN__ && !defined(COMMON_BIG_ENDIAN)
-#define COMMON_BIG_ENDIAN 1
-#endif
-
-// MSVC
-#elif defined(_MSC_VER) && !defined(COMMON_BIG_ENDIAN) && !defined(COMMON_LITTLE_ENDIAN)
-
-#ifdef _XBOX
-#define COMMON_BIG_ENDIAN 1
-#else
-#define COMMON_LITTLE_ENDIAN 1
-#endif
-
-#endif
-
-// Worst case, default to little endian.
-#if !COMMON_BIG_ENDIAN && !COMMON_LITTLE_ENDIAN
-#define COMMON_LITTLE_ENDIAN 1
-#endif
-
 #ifdef _MSC_VER
 #ifndef _XBOX
 inline unsigned long long bswap64(unsigned long long x) { return _byteswap_uint64(x); }
@@ -543,31 +499,8 @@ struct swap_double_t {
 	}
 };
 
-#if COMMON_LITTLE_ENDIAN
-typedef u32 u32_le;
-typedef u16 u16_le;
-typedef u64 u64_le;
 
-typedef s32 s32_le;
-typedef s16 s16_le;
-typedef s64 s64_le;
-
-typedef float float_le;
-typedef double double_le;
-
-typedef swap_struct_t<u64, swap_64_t<u64>> u64_be;
-typedef swap_struct_t<s64, swap_64_t<s64>> s64_be;
-
-typedef swap_struct_t<u32, swap_32_t<u32>> u32_be;
-typedef swap_struct_t<s32, swap_32_t<s32>> s32_be;
-
-typedef swap_struct_t<u16, swap_16_t<u16>> u16_be;
-typedef swap_struct_t<s16, swap_16_t<s16>> s16_be;
-
-typedef swap_struct_t<float, swap_float_t<float> > float_be;
-typedef swap_struct_t<double, swap_double_t<double> > double_be;
-#else
-
+#ifdef MSB_FIRST
 typedef swap_struct_t<u64, swap_64_t<u64>> u64_le;
 typedef swap_struct_t<s64, swap_64_t<s64>> s64_le;
 
@@ -590,4 +523,27 @@ typedef s64 s64_be;
 
 typedef float float_be;
 typedef double double_be;
+#else
+typedef u32 u32_le;
+typedef u16 u16_le;
+typedef u64 u64_le;
+
+typedef s32 s32_le;
+typedef s16 s16_le;
+typedef s64 s64_le;
+
+typedef float float_le;
+typedef double double_le;
+
+typedef swap_struct_t<u64, swap_64_t<u64>> u64_be;
+typedef swap_struct_t<s64, swap_64_t<s64>> s64_be;
+
+typedef swap_struct_t<u32, swap_32_t<u32>> u32_be;
+typedef swap_struct_t<s32, swap_32_t<s32>> s32_be;
+
+typedef swap_struct_t<u16, swap_16_t<u16>> u16_be;
+typedef swap_struct_t<s16, swap_16_t<s16>> s16_be;
+
+typedef swap_struct_t<float, swap_float_t<float> > float_be;
+typedef swap_struct_t<double, swap_double_t<double> > double_be;
 #endif

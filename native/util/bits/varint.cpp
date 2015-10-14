@@ -13,23 +13,6 @@ void Encode32(uint32_t value, char **dest) {
   *dest = p;
 }
 
-uint32_t Decode32(const char **ptr) {
-  uint32_t value = 0;
-  const char *p = *ptr;
-  while (true) {
-    uint8 b = *p++;
-    if (b & 0x80) {
-      *ptr = p;
-      return value | (b & 0x7F);
-    } else {
-      value |= *p++;
-      value <<= 7;
-    }
-  }
-  *ptr = p;
-  return value;
-}
-
 }  // namespace varint
 
 

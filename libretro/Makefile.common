@@ -186,8 +186,6 @@ SOURCES_CXX += $(NATIVEDIR)/file/chunk_file.cpp \
 				$(NATIVEDIR)/gfx/texture_atlas.cpp \
 				$(NATIVEDIR)/gfx/texture_gen.cpp \
 				$(GPUDIR)/Software/TransformUnit.cpp \
-				$(NATIVEDIR)/gfx_es2/draw_buffer.cpp \
-				$(NATIVEDIR)/gfx_es2/draw_text.cpp \
 				$(NATIVEDIR)/gfx_es2/fbo.cpp \
 				$(NATIVEDIR)/gfx_es2/gl_state.cpp \
 				$(NATIVEDIR)/gfx_es2/gpu_features.cpp \
@@ -214,7 +212,6 @@ SOURCES_CXX += $(NATIVEDIR)/file/chunk_file.cpp \
 				$(NATIVEDIR)/thread/prioritizedworkqueue.cpp \
 				$(NATIVEDIR)/thread/threadutil.cpp \
 				$(NATIVEDIR)/thread/threadpool.cpp \
-				$(NATIVEDIR)/util/bits/bits.cpp \
 				$(NATIVEDIR)/util/bits/varint.cpp \
 				$(NATIVEDIR)/util/hash/hash.cpp \
 				$(NATIVEDIR)/util/random/perlin.cpp \

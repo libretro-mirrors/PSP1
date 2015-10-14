@@ -6,7 +6,6 @@
 namespace varint {
 
 void Encode32(uint32_t value, char **dest);
-uint32_t Decode32(const char **ptr);
 
 }  // namespace varint
 

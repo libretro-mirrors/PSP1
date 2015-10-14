@@ -8,7 +8,6 @@
 
 #include "base/logging.h"
 #include "base/timeutil.h"
-#include "gfx_es2/draw_buffer.h"
 #include "profiler/profiler.h"
 
 #define MAX_CATEGORIES 32 // Can be any number

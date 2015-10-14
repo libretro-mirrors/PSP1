@@ -494,19 +494,6 @@ void FramebufferManager::DrawActiveTexture(GLuint texture, float x, float y, flo
 
 	if (texture) {
 		// We know the texture, we can do a DrawTexture shortcut on nvidia.
-#if defined(ANDROID)
-		// Don't remember why I disabled this - no win?
-		if (false && gl_extensions.NV_draw_texture && !program) {
-			// Fast path for Tegra. TODO: Make this path work on desktop nvidia, seems GLEW doesn't have a clue.
-			// Actually, on Desktop we should just use glBlitFramebuffer - although we take a texture here
-			// so that's a little gnarly, will have to modify all callers.
-			glDrawTextureNV(texture, 0,
-				x, y, w, h, 0.0f,
-				u0, v1, u1, v0);
-			return;
-		}
-#endif
-
 		glBindTexture(GL_TEXTURE_2D, texture);
 	}
 

@@ -220,9 +220,6 @@ void CPUInfo::Detect()
 	if (!strncmp(brand_string, "MSM", 3))
 		isVFP4 = true;
 	deviceinfo_free_details(&details);
-#elif defined(__SYMBIAN32__)
-	strcpy(brand_string, "Samsung ARMv6");
-	num_cores = 1;
 #else
 	strcpy(brand_string, "Unknown");
 	num_cores = 1;

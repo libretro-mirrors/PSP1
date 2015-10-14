@@ -359,12 +359,7 @@ static bool DefaultPartialStretch() {
 }
 
 static bool DefaultTimerHack() {
-// Has been in use on Symbian since v0.7. Preferred option.
-#ifdef __SYMBIAN32__
-	return true;
-#else
 	return false;
-#endif
 }
 
 static int DefaultAndroidHwScale() {
@@ -508,7 +503,7 @@ static ConfigSetting controlSettings[] = {
 	ConfigSetting("ShowAnalogStick", &g_Config.bShowTouchAnalogStick, true, true, true),
 	ConfigSetting("ShowTouchDpad", &g_Config.bShowTouchDpad, true, true, true),
 	ConfigSetting("ShowTouchUnthrottle", &g_Config.bShowTouchUnthrottle, true, true, true),
-#if !defined(__SYMBIAN32__) && !defined(IOS) && !defined(MAEMO)
+#if !defined(IOS)
 #if defined(_WIN32)
 	// A win32 user seeing touch controls is likely using PPSSPP on a tablet. There it makes
 	// sense to default this to on.
@@ -590,7 +585,7 @@ static ConfigSetting networkSettings[] = {
 
 static int DefaultPSPModel() {
 	// TODO: Can probably default this on, but not sure about its memory differences.
-#if !defined(_M_X64) && !defined(_WIN32) && !defined(__SYMBIAN32__)
+#if !defined(_M_X64) && !defined(_WIN32)
 	return PSP_MODEL_FAT;
 #else
 	return PSP_MODEL_SLIM;

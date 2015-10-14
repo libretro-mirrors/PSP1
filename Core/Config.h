@@ -279,7 +279,7 @@ public:
 	bool bShowTouchAnalogStick;
 	bool bShowTouchDpad;
 
-#if !defined(__SYMBIAN32__) && !defined(IOS) && !defined(MAEMO)
+#if !defined(IOS)
 	bool bShowTouchPause;
 #endif
 

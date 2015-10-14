@@ -135,9 +135,6 @@ bool GameManager::InstallGame(std::string zipfile, bool deleteAfter) {
 	int error;
 #if defined(_WIN32) && !defined(__MINGW32__)
 	struct zip *z = zip_open(ConvertUTF8ToWString(zipfile).c_str(), 0, &error);
-#elif defined(__SYMBIAN32__)
-	// If zipfile is non-ascii, this may not function correctly. Other options?
-	struct zip *z = zip_open(std::wstring(zipfile.begin(), zipfile.end()).c_str(), 0, &error);
 #else
 	struct zip *z = zip_open(zipfile.c_str(), 0, &error);
 #endif

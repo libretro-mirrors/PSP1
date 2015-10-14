@@ -15,10 +15,8 @@
 // Official git repository and contact information can be found at
 // https://github.com/hrydgard/ppsspp and http://www.ppsspp.org/.
 
-// Symbian can't build this due to an old gcc/lib combination, and doesn't need to.
 // Kind programmer, if you want to translate this to a proper feature-detection
 // define, please feel free to.
-#ifndef __SYMBIAN32__
 
 #include "base/logging.h"
 
@@ -505,5 +503,3 @@ void MIPSCodeBlock::UnWriteProtect() {
 }
 
 }
-
-#endif

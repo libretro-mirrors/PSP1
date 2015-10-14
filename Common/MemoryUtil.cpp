@@ -49,21 +49,6 @@ static SYSTEM_INFO sys_info;
 #define round_page(x) ((((uintptr_t)(x)) + PAGE_MASK) & ~(PAGE_MASK))
 #endif
 
-#ifdef __SYMBIAN32__
-#include <e32std.h>
-#define CODECHUNK_SIZE 1024*1024*20
-static RChunk* g_code_chunk = NULL;
-static RHeap* g_code_heap = NULL;
-static u8* g_next_ptr = NULL;
-static u8* g_orig_ptr = NULL;
-
-void ResetExecutableMemory(void* ptr)
-{
-	// Just reset the ptr to the base
-	g_next_ptr = g_orig_ptr;
-}
-#endif
-
 #if defined(_WIN32) && defined(_M_X64)
 static uintptr_t last_addr;
 static void *SearchForFreeMem(size_t size)
@@ -118,19 +103,6 @@ void* AllocateExecutableMemory(size_t size, bool exec)
 	else
 #endif
 		ptr = VirtualAlloc(0, size, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
-#elif defined(__SYMBIAN32__)
-	//This function may be called more than once, and we want to create only one big
-	//memory chunk for all the executable code for the JIT
-	if( g_code_chunk == NULL && g_code_heap == NULL)
-	{
-		g_code_chunk = new RChunk();
-		g_code_chunk->CreateLocalCode(CODECHUNK_SIZE, CODECHUNK_SIZE + 3*GetPageSize());
-		g_code_heap = UserHeap::ChunkHeap(*g_code_chunk, CODECHUNK_SIZE, 1, CODECHUNK_SIZE + 3*GetPageSize());
-		g_next_ptr = reinterpret_cast<u8*>(g_code_heap->AllocZ(CODECHUNK_SIZE));
-		g_orig_ptr = g_next_ptr;
-	}
-	void* ptr = (void*)g_next_ptr;
-	g_next_ptr += size;
 #else
 	static char *map_hint = 0;
 #if defined(_M_X64)
@@ -160,7 +132,7 @@ void* AllocateExecutableMemory(size_t size, bool exec)
 	// printf("Mapped executable memory at %p (size %ld)\n", ptr,
 	//	(unsigned long)size);
 
-#if !defined(_WIN32) && !defined(__SYMBIAN32__)
+#if !defined(_WIN32)
 	if (ptr == MAP_FAILED)
 	{
 		ptr = NULL;
@@ -185,8 +157,6 @@ void* AllocateMemoryPages(size_t size)
 	size = (size + 4095) & (~4095);
 #ifdef _WIN32
 	void* ptr = VirtualAlloc(0, size, MEM_COMMIT, PAGE_READWRITE);
-#elif defined(__SYMBIAN32__)
-	void* ptr = malloc(size);
 #else
 	void* ptr = mmap(0, size, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
 #endif
@@ -207,9 +177,6 @@ void* AllocateAlignedMemory(size_t size,size_t alignment)
 	void* ptr = NULL;
 #ifdef ANDROID
 	ptr = memalign(alignment, size);
-#elif defined(__SYMBIAN32__)
-	// On Symbian, alignment won't matter as NEON isn't supported.
-	ptr = malloc(size);
 #else
 	if(posix_memalign(&ptr, alignment, size) != 0)
 		ptr = NULL;
@@ -235,8 +202,6 @@ void FreeMemoryPages(void* ptr, size_t size)
 		if (!VirtualFree(ptr, 0, MEM_RELEASE))
 			PanicAlert("FreeMemoryPages failed!\n%s", GetLastErrorMsg());
 		ptr = NULL; // Is this our responsibility?
-#elif defined(__SYMBIAN32__)
-		free(ptr);
 #else
 		munmap(ptr, size);
 #endif

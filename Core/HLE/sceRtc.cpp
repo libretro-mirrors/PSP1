@@ -113,7 +113,7 @@ time_t rtc_timegm(struct tm *tm)
 	return _mkgmtime(tm);
 }
 
-#elif (defined(__GLIBC__) && !defined(ANDROID)) || defined(BLACKBERRY) || defined(__SYMBIAN32__)
+#elif (defined(__GLIBC__) && !defined(ANDROID)) || defined(BLACKBERRY)
 #define rtc_timegm timegm
 #else
 

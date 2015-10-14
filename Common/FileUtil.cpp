@@ -70,7 +70,7 @@
 #endif
 
 // Hack
-#if defined(__SYMBIAN32__) || defined(__MINGW32__)
+#if defined(__MINGW32__)
 static inline int readdir_r(DIR *dirp, struct dirent *entry, struct dirent **result) {
 	struct dirent *readdir_entry;
 

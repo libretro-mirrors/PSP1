@@ -187,14 +187,10 @@ namespace Reporting
 		return "iOS";
 #elif defined(__APPLE__)
 		return "Mac";
-#elif defined(__SYMBIAN32__)
-		return "Symbian";
 #elif defined(BLACKBERRY)
 		return "Blackberry";
 #elif defined(LOONGSON)
 		return "Loongson";
-#elif defined(MAEMO)
-		return "Nokia Maemo";
 #elif defined(__linux__)
 		return "Linux";
 #elif defined(__Bitrig__)

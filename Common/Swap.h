@@ -18,15 +18,9 @@
 #pragma once
 
 #ifdef _MSC_VER
-#ifndef _XBOX
 inline unsigned long long bswap64(unsigned long long x) { return _byteswap_uint64(x); }
 inline unsigned int bswap32(unsigned int x) { return _byteswap_ulong(x); }
 inline unsigned short bswap16(unsigned short x) { return _byteswap_ushort(x); }
-#else
-inline unsigned long long bswap64(unsigned long long x) { return __loaddoublewordbytereverse(0, &x); }
-inline unsigned int bswap32(unsigned int x) { return __loadwordbytereverse(0, &x); }
-inline unsigned short bswap16(unsigned short x) { return __loadshortbytereverse(0, &x); }
-#endif
 #elif defined(__DragonFly__) || defined(__FreeBSD__) || \
       defined(__NetBSD__) || defined(__OpenBSD__)
 #include <sys/endian.h>
@@ -535,14 +529,14 @@ typedef s64 s64_le;
 typedef float float_le;
 typedef double double_le;
 
-typedef swap_struct_t<u64, swap_64_t<u64>> u64_be;
-typedef swap_struct_t<s64, swap_64_t<s64>> s64_be;
+typedef swap_struct_t<u64, swap_64_t<u64> > u64_be;
+typedef swap_struct_t<s64, swap_64_t<s64> > s64_be;
 
-typedef swap_struct_t<u32, swap_32_t<u32>> u32_be;
-typedef swap_struct_t<s32, swap_32_t<s32>> s32_be;
+typedef swap_struct_t<u32, swap_32_t<u32> > u32_be;
+typedef swap_struct_t<s32, swap_32_t<s32> > s32_be;
 
-typedef swap_struct_t<u16, swap_16_t<u16>> u16_be;
-typedef swap_struct_t<s16, swap_16_t<s16>> s16_be;
+typedef swap_struct_t<u16, swap_16_t<u16> > u16_be;
+typedef swap_struct_t<s16, swap_16_t<s16> > s16_be;
 
 typedef swap_struct_t<float, swap_float_t<float> > float_be;
 typedef swap_struct_t<double, swap_double_t<double> > double_be;

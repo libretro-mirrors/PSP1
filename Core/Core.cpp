@@ -18,7 +18,6 @@
 #include <set>
 
 #include "base/NativeApp.h"
-#include "base/display.h"
 #include "base/mutex.h"
 #include "base/timeutil.h"
 #include "input/input_state.h"
@@ -116,34 +115,6 @@ void Core_WaitInactive(int milliseconds) {
 	if (Core_IsActive()) {
 		m_hInactiveEvent.wait_for(m_hInactiveMutex, milliseconds);
 	}
-}
-
-bool UpdateScreenScale(int width, int height, bool smallWindow) {
-	g_dpi = 72;
-	g_dpi_scale = 1.0f;
-#if defined(_WIN32)
-	if (smallWindow) {
-		g_dpi_scale = 2.0f;
-	}
-#endif
-	pixel_in_dps = 1.0f / g_dpi_scale;
-
-	int new_dp_xres = width * g_dpi_scale;
-	int new_dp_yres = height * g_dpi_scale;
-
-	bool dp_changed = new_dp_xres != dp_xres || new_dp_yres != dp_yres;
-	bool px_changed = pixel_xres != width || pixel_yres != height;
-
-	if (dp_changed || px_changed) {
-		dp_xres = new_dp_xres;
-		dp_yres = new_dp_yres;
-		pixel_xres = width;
-		pixel_yres = height;
-
-		NativeResized();
-		return true;
-	}
-	return false;
 }
 
 void UpdateRunLoop() {

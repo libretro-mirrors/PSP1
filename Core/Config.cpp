@@ -19,7 +19,6 @@
 #include <ctime>
 #include <algorithm>
 
-#include "base/display.h"
 #include "base/NativeApp.h"
 #include "ext/vjson/json.h"
 #include "file/ini_file.h"
@@ -790,30 +789,6 @@ void Config::Load(const char *iniFileName, const char *controllerIniFilename) {
 		ResetControlLayout();
 	}
 
-	// MIGRATION: For users who had the old static touch layout, aren't I nice?
-	// We can probably kill this in 0.9.8 or something.
-	if (fDpadX > 1.0 || fDpadY > 1.0) { // Likely the rest are too!
-		float screen_width = dp_xres;
-		float screen_height = dp_yres;
-
-		fActionButtonCenterX /= screen_width;
-		fActionButtonCenterY /= screen_height;
-		fDpadX /= screen_width;
-		fDpadY /= screen_height;
-		fStartKeyX /= screen_width;
-		fStartKeyY /= screen_height;
-		fSelectKeyX /= screen_width;
-		fSelectKeyY /= screen_height;
-		fUnthrottleKeyX /= screen_width;
-		fUnthrottleKeyY /= screen_height;
-		fLKeyX /= screen_width;
-		fLKeyY /= screen_height;
-		fRKeyX /= screen_width;
-		fRKeyY /= screen_height;
-		fAnalogStickX /= screen_width;
-		fAnalogStickY /= screen_height;
-	}
-	
 	const char *gitVer = PPSSPP_GIT_VERSION;
 	Version installed(gitVer);
 	Version upgrade(upgradeVersion);

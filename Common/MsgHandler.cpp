@@ -60,24 +60,9 @@ bool MsgAlert(bool yes_no, int Style, const char* format, ...)
 	return true;
 }
 
-#if defined(_WIN32) && !defined(__MINGW32__)
-#include "CommonWindows.h"
-#endif
-
 // Default non library dependent panic alert
 bool MsgHandler(const char* caption, const char* text, bool yes_no, int Style)
 {
-#if defined(_WIN32) && !defined(__MINGW32__)
-	int STYLE = MB_ICONINFORMATION;
-	if (Style == QUESTION) STYLE = MB_ICONQUESTION;
-	if (Style == WARNING) STYLE = MB_ICONWARNING;
-
-	std::wstring wtext = ConvertUTF8ToWString(text);
-	std::wstring wcaption = ConvertUTF8ToWString(caption);
-
-	return IDYES == MessageBox(0, wtext.c_str(), wcaption.c_str(), STYLE | (yes_no ? MB_YESNO : MB_OK));
-#else
 	printf("%s\n", text);
 	return true;
-#endif
 }

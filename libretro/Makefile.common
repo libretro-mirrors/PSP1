@@ -15,6 +15,11 @@ INCFLAGS += \
 	-I$(EXTDIR)/xbrz \
 	-I$(EXTDIR)/xxhash
 
+ifeq (,$(filter $(platform), armv imx6 rpi android))
+SOURCES_C += $(LIBRETRODIR)/ext/glew/glew.c
+INCFLAGS += -I$(LIBRETRODIR)/ext/glew
+endif
+
 SOURCES_CXX += $(NATIVEDIR)/ext/rg_etc1/rg_etc1.cpp
 SOURCES_CXX += $(EXTDIR)/snappy/snappy-c.cpp
 SOURCES_C   += $(NATIVEDIR)/ext/stb_vorbis/stb_vorbis.c \

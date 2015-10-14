@@ -44,7 +44,6 @@ SOURCES_CXX += $(COMMONDIR)/FileUtil.cpp
 SOURCES_C   += $(NATIVEDIR)/ext/libzip/zip_add.c \
 				$(EXTDIR)/libkirk/AES.c \
 				$(NATIVEDIR)/ext/libzip/zip_add_dir.c
-SOURCES_CXX += $(COMMONDIR)/KeyMap.cpp
 SOURCES_C   += $(NATIVEDIR)/ext/libzip/zip_close.c
 SOURCES_CXX += $(COMMONDIR)/LogManager.cpp
 SOURCES_C   += $(EXTDIR)/libkirk/amctrl.c \

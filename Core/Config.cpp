@@ -29,7 +29,6 @@
 #include "net/url.h"
 
 #include "Common/CPUDetect.h"
-#include "Common/KeyMap.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtils.h"
 #include "Core/Config.h"
@@ -466,25 +465,7 @@ static ConfigSetting soundSettings[] = {
 };
 
 static bool DefaultShowTouchControls() {
-#if defined(MOBILE_DEVICE)
-	int deviceType = System_GetPropertyInt(SYSPROP_DEVICE_TYPE);
-	if (deviceType == DEVICE_TYPE_MOBILE) {
-		std::string name = System_GetProperty(SYSPROP_NAME);
-		if (KeyMap::HasBuiltinController(name)) {
-			return false;
-		} else {
-			return true;
-		}
-	} else if (deviceType == DEVICE_TYPE_TV) {
-		return false;
-	} else if (deviceType == DEVICE_TYPE_DESKTOP) {
-		return false;
-	} else {
-		return false;
-	}
-#else
 	return false;
-#endif
 }
 
 static const float defaultControlScale = 1.15f;
@@ -512,7 +493,6 @@ static ConfigSetting controlSettings[] = {
 #endif
 #endif
 	ConfigSetting("ShowTouchControls", &g_Config.bShowTouchControls, &DefaultShowTouchControls, true, true),
-	// ConfigSetting("KeyMapping", &g_Config.iMappingMap, 0),
 
 #ifdef MOBILE_DEVICE
 	ConfigSetting("TiltBaseX", &g_Config.fTiltBaseX, 0.0f, true, true),
@@ -725,9 +705,6 @@ void Config::Load(const char *iniFileName, const char *controllerIniFilename) {
 	const bool useIniFilename = iniFileName != nullptr && strlen(iniFileName) > 0;
 	iniFilename_ = FindConfigFile(useIniFilename ? iniFileName : "ppsspp.ini");
 
-	const bool useControllerIniFilename = controllerIniFilename != nullptr && strlen(controllerIniFilename) > 0;
-	controllerIniFilename_ = FindConfigFile(useControllerIniFilename ? controllerIniFilename : "controls.ini");
-
 	INFO_LOG(LOADER, "Loading config: %s", iniFilename_.c_str());
 	bSaveSettings = true;
 
@@ -813,18 +790,8 @@ void Config::Load(const char *iniFileName, const char *controllerIniFilename) {
 	}
 #endif
 
-	INFO_LOG(LOADER, "Loading controller config: %s", controllerIniFilename_.c_str());
 	bSaveSettings = true;
 
-	IniFile controllerIniFile;
-	if (!controllerIniFile.Load(controllerIniFilename_)) {
-		ERROR_LOG(LOADER, "Failed to read %s. Setting controller config to default.", controllerIniFilename_.c_str());
-		KeyMap::RestoreDefault();
-	} else {
-		// Continue anyway to initialize the config. It will just restore the defaults.
-		KeyMap::LoadFromIni(controllerIniFile);
-	}
-	
 	//so this is all the way down here to overwrite the controller settings
 	//sadly it won't benefit from all the "version conversion" going on up-above
 	//but these configs shouldn't contain older versions anyhow
@@ -907,7 +874,6 @@ void Config::Save() {
 			if (!controllerIniFile.Load(controllerIniFilename_.c_str())) {
 				ERROR_LOG(LOADER, "Error saving config - can't read ini %s", controllerIniFilename_.c_str());
 			}
-			KeyMap::SaveToIni(controllerIniFile);
 			if (!controllerIniFile.Save(controllerIniFilename_.c_str())) {
 				ERROR_LOG(LOADER, "Error saving config - can't write ini %s", controllerIniFilename_.c_str());
 				return;
@@ -1132,7 +1098,6 @@ bool Config::saveGameConfig(const std::string &pGameId)
 		}
 	}
 
-	KeyMap::SaveToIni(iniFile);
 	iniFile.Save(fullIniFilePath);
 
 	return true;
@@ -1161,7 +1126,6 @@ bool Config::loadGameConfig(const std::string &pGameId)
 			}
 		}
 	}
-	KeyMap::LoadFromIni(iniFile);
 	return true;
 }
 

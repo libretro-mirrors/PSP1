@@ -349,7 +349,6 @@ SOURCES_CXX += $(NATIVEDIR)/file/chunk_file.cpp \
 				$(COREDIR)/PSPLoaders.cpp \
 				$(COREDIR)/Reporting.cpp \
 				$(COREDIR)/SaveState.cpp \
-				$(COREDIR)/Screenshot.cpp \
 				$(COREDIR)/System.cpp \
 				$(COREDIR)/Util/GameManager.cpp \
 				$(COREDIR)/Util/BlockAllocator.cpp \

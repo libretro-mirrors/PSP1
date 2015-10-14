@@ -30,7 +30,6 @@
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/Host.h"
-#include "Core/Screenshot.h"
 #include "Core/System.h"
 #include "Core/FileSystems/MetaFileSystem.h"
 #include "Core/ELF/ParamSFO.h"
@@ -275,7 +274,6 @@ namespace SaveState
 
 	void SaveScreenshot(const std::string &filename, Callback callback, void *cbUserData)
 	{
-		Enqueue(Operation(SAVESTATE_SAVE_SCREENSHOT, filename, callback, cbUserData));
 	}
 
 	bool CanRewind()
@@ -565,11 +563,6 @@ namespace SaveState
 				break;
 
 			case SAVESTATE_SAVE_SCREENSHOT:
-#ifndef __LIBRETRO__
-				if (!TakeGameScreenshot(op.filename.c_str(), SCREENSHOT_JPG, SCREENSHOT_RENDER)) {
-					ERROR_LOG(COMMON, "Failed to take a screenshot for the savestate! %s", op.filename.c_str());
-				}
-#endif
 				break;
 
 			default:

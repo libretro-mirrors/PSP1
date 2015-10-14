@@ -57,11 +57,7 @@ static bool windowHidden = false;
 static double lastActivity = 0.0;
 static double lastKeepAwake = 0.0;
 
-#if defined (_WIN32) && !defined (__LIBRETRO__)
-InputState input_state;
-#else
 extern InputState input_state;
-#endif
 
 void Core_NotifyWindowHidden(bool hidden) {
 	windowHidden = hidden;
@@ -125,9 +121,7 @@ void Core_WaitInactive(int milliseconds) {
 bool UpdateScreenScale(int width, int height, bool smallWindow) {
 	g_dpi = 72;
 	g_dpi_scale = 1.0f;
-#if defined(__SYMBIAN32__)
-	g_dpi_scale = 1.4f;
-#elif defined(_WIN32)
+#if defined(_WIN32)
 	if (smallWindow) {
 		g_dpi_scale = 2.0f;
 	}
@@ -153,78 +147,9 @@ bool UpdateScreenScale(int width, int height, bool smallWindow) {
 }
 
 void UpdateRunLoop() {
-	if (windowHidden && g_Config.bPauseWhenMinimized) {
-		sleep_ms(16);
-		return;
-	}
-	NativeUpdate(input_state);
-
-	{
-		lock_guard guard(input_state.lock);
-		EndInputState(&input_state);
-	}
-
-	if (GetUIState() != UISTATE_EXIT) {
-		NativeRender();
-	}
 }
-
-#if defined(USING_WIN_UI)
-
-void GPU_SwapBuffers() {
-	switch (g_Config.iGPUBackend) {
-	case GPU_BACKEND_OPENGL:
-		GL_SwapBuffers();
-		break;
-	case GPU_BACKEND_DIRECT3D9:
-		D3D9_SwapBuffers();
-		break;
-	}
-}
-
-#endif
 
 void Core_RunLoop() {
-	while ((GetUIState() != UISTATE_INGAME || !PSP_IsInited()) && GetUIState() != UISTATE_EXIT) {
-		time_update();
-#if defined(USING_WIN_UI)
-		double startTime = time_now_d();
-		UpdateRunLoop();
-
-		// Simple throttling to not burn the GPU in the menu.
-		time_update();
-		double diffTime = time_now_d() - startTime;
-		int sleepTime = (int)(1000.0 / 60.0) - (int)(diffTime * 1000.0);
-		if (sleepTime > 0)
-			Sleep(sleepTime);
-		if (!windowHidden) {
-			GPU_SwapBuffers();
-		}
-#else
-		UpdateRunLoop();
-#endif
-	}
-
-	while (!coreState && GetUIState() == UISTATE_INGAME) {
-		time_update();
-		UpdateRunLoop();
-#if defined(USING_WIN_UI)
-		if (!windowHidden && !Core_IsStepping()) {
-			GPU_SwapBuffers();
-
-			// Keep the system awake for longer than normal for cutscenes and the like.
-			const double now = time_now_d();
-			if (now < lastActivity + ACTIVITY_IDLE_TIMEOUT) {
-				// Only resetting it ever prime number seconds in case the call is expensive.
-				// Using a prime number to ensure there's no interaction with other periodic events.
-				if (now - lastKeepAwake > 89.0 || now < lastKeepAwake) {
-					SetThreadExecutionState(ES_SYSTEM_REQUIRED | ES_DISPLAY_REQUIRED);
-					lastKeepAwake = now;
-				}
-			}
-		}
-#endif
-	}
 }
 
 void Core_DoSingleStep() {
@@ -253,24 +178,8 @@ void Core_Run()
 #if defined(_DEBUG)
 	host->UpdateDisassembly();
 #endif
-#if !defined(USING_QT_UI) || defined(MOBILE_DEVICE)
-	while (true)
-#endif
 	{
 reswitch:
-		if (GetUIState() != UISTATE_INGAME) {
-			CoreStateProcessed();
-			if (GetUIState() == UISTATE_EXIT) {
-				return;
-			}
-			Core_RunLoop();
-#if defined(USING_QT_UI) && !defined(MOBILE_DEVICE)
-			return;
-#else
-			continue;
-#endif
-		}
-
 		switch (coreState)
 		{
 		case CORE_RUNNING:
@@ -290,21 +199,9 @@ reswitch:
 			}
 
 			// wait for step command..
-#if defined(USING_QT_UI) || defined(_DEBUG)
-			host->UpdateDisassembly();
-			host->UpdateMemView();
-			host->SendCoreWait(true);
-#endif
 
 			m_hStepEvent.wait(m_hStepMutex);
 
-#if defined(USING_QT_UI) || defined(_DEBUG)
-			host->SendCoreWait(false);
-#endif
-#if defined(USING_QT_UI) && !defined(MOBILE_DEVICE)
-			if (coreState != CORE_STEPPING)
-				return;
-#endif
 			// No step pending?  Let's go back to the wait.
 			if (!singleStepPending || coreState != CORE_STEPPING) {
 				if (coreState == CORE_POWERDOWN) {
@@ -315,10 +212,6 @@ reswitch:
 
 			Core_SingleStep();
 			// update disasm dialog
-#if defined(USING_QT_UI) || defined(_DEBUG)
-			host->UpdateDisassembly();
-			host->UpdateMemView();
-#endif
 			break;
 
 		case CORE_POWERUP:

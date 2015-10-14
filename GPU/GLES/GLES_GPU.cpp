@@ -539,30 +539,6 @@ void GLES_GPU::BeginFrame() {
 }
 
 inline void GLES_GPU::UpdateVsyncInterval(bool force) {
-#if defined(_WIN32) && !defined(__LIBRETRO__)
-	int desiredVSyncInterval = g_Config.bVSync ? 1 : 0;
-	if (PSP_CoreParameter().unthrottle) {
-		desiredVSyncInterval = 0;
-	}
-	if (PSP_CoreParameter().fpsLimit == 1) {
-		// For an alternative speed that is a clean factor of 60, the user probably still wants vsync.
-		if (g_Config.iFpsLimit == 0 || (g_Config.iFpsLimit != 15 && g_Config.iFpsLimit != 30 && g_Config.iFpsLimit != 60)) {
-			desiredVSyncInterval = 0;
-		}
-	}
-
-	if (desiredVSyncInterval != lastVsync_ || force) {
-		// Disabled EXT_swap_control_tear for now, it never seems to settle at the correct timing
-		// so it just keeps tearing. Not what I hoped for...
-		//if (gl_extensions.EXT_swap_control_tear) {
-		//	// See http://developer.download.nvidia.com/opengl/specs/WGL_EXT_swap_control_tear.txt
-		//	glstate.SetVSyncInterval(-desiredVSyncInterval);
-		//} else {
-			glstate.SetVSyncInterval(desiredVSyncInterval);
-		//}
-		lastVsync_ = desiredVSyncInterval;
-	}
-#endif
 }
 
 void GLES_GPU::UpdateCmdInfo() {

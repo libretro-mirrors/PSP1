@@ -157,19 +157,18 @@ reswitch:
 
 			// Check if there's any pending savestate actions.
 			SaveState::Process();
-			if (coreState == CORE_POWERDOWN) {
+			if (coreState == CORE_POWERDOWN)
 				return;
-			}
 
 			// wait for step command..
 
 			m_hStepEvent.wait(m_hStepMutex);
 
 			// No step pending?  Let's go back to the wait.
-			if (!singleStepPending || coreState != CORE_STEPPING) {
-				if (coreState == CORE_POWERDOWN) {
+			if (!singleStepPending || coreState != CORE_STEPPING)
+         {
+				if (coreState == CORE_POWERDOWN)
 					return;
-				}
 				goto reswitch;
 			}
 

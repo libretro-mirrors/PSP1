@@ -26,14 +26,6 @@ class ParamSFOData;
 extern MetaFileSystem pspFileSystem;
 extern ParamSFOData g_paramSFO;
 
-// To synchronize the two UIs, we need to know which state we're in.
-enum GlobalUIState {
-	UISTATE_MENU,
-	UISTATE_PAUSEMENU,
-	UISTATE_INGAME,
-	UISTATE_EXIT,
-};
-
 // Use these in conjunction with GetSysDirectory.
 enum PSPDirectories {
 	DIRECTORY_CHEATS,
@@ -46,10 +38,6 @@ enum PSPDirectories {
 	DIRECTORY_SAVESTATE,
 	DIRECTORY_CACHE,
 };
-
-
-void UpdateUIState(GlobalUIState newState);
-GlobalUIState GetUIState();
 
 bool PSP_Init(const CoreParameter &coreParam, std::string *error_string);
 bool PSP_InitStart(const CoreParameter &coreParam, std::string *error_string);

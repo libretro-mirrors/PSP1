@@ -69,7 +69,6 @@ enum CPUThreadState {
 
 MetaFileSystem pspFileSystem;
 ParamSFOData g_paramSFO;
-static GlobalUIState globalUIState;
 static CoreParameter coreParameter;
 static FileLoader *loadedFile;
 static std::thread *cpuThread = nullptr;
@@ -86,18 +85,6 @@ volatile CoreState coreState = CORE_STEPPING;
 volatile bool coreStatePending = false;
 static volatile CPUThreadState cpuThreadState = CPU_THREAD_NOT_RUNNING;
 
-void UpdateUIState(GlobalUIState newState) {
-	// Never leave the EXIT state.
-	if (globalUIState != newState && globalUIState != UISTATE_EXIT) {
-		globalUIState = newState;
-		host->UpdateDisassembly();
-	}
-}
-
-GlobalUIState GetUIState() {
-	return globalUIState;
-}
-
 bool IsAudioInitialised() {
 	return audioInitialized;
 }
@@ -110,11 +97,9 @@ void Audio_Init() {
 }
 
 bool IsOnSeparateCPUThread() {
-	if (cpuThread != nullptr) {
+	if (cpuThread != nullptr)
 		return cpuThreadID == std::this_thread::get_id();
-	} else {
-		return false;
-	}
+   return false;
 }
 
 void CPU_SetState(CPUThreadState to) {
@@ -126,22 +111,22 @@ void CPU_SetState(CPUThreadState to) {
 
 bool CPU_NextState(CPUThreadState from, CPUThreadState to) {
 	lock_guard guard(cpuThreadLock);
-	if (cpuThreadState == from) {
+	if (cpuThreadState == from)
+   {
 		CPU_SetState(to);
 		return true;
-	} else {
-		return false;
 	}
+   return false;
 }
 
 bool CPU_NextStateNot(CPUThreadState from, CPUThreadState to) {
 	lock_guard guard(cpuThreadLock);
-	if (cpuThreadState != from) {
+	if (cpuThreadState != from)
+   {
 		CPU_SetState(to);
 		return true;
-	} else {
-		return false;
 	}
+   return false;
 }
 
 bool CPU_IsReady() {
@@ -158,9 +143,8 @@ bool CPU_HasPendingAction() {
 
 void CPU_WaitStatus(condition_variable &cond, bool (*pred)()) {
 	lock_guard guard(cpuThreadLock);
-	while (!pred()) {
+	while (!pred())
 		cond.wait(cpuThreadLock);
-	}
 }
 
 void CPU_Shutdown();

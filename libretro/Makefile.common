@@ -140,7 +140,6 @@ SOURCES_CXX += $(GPUCOMMONDIR)/TextureDecoder.cpp \
 				$(NATIVEDIR)/base/backtrace.cpp \
 				$(GPUDIR)/GLES/ShaderManager.cpp \
 				$(NATIVEDIR)/base/buffer.cpp \
-				$(NATIVEDIR)/base/colorutil.cpp \
 				$(NATIVEDIR)/base/error_context.cpp \
 				$(NATIVEDIR)/base/stringutil.cpp \
 				$(GPUDIR)/GLES/StateMapping.cpp \

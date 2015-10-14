@@ -47,25 +47,6 @@ uint64_t _frequency = 0;
 uint64_t _starttime = 0;
 
 double real_time_now() {
-#ifdef ANDROID
-	if (false && gl_extensions.EGL_NV_system_time) {
-		// This is needed to profile using PerfHUD on Tegra
-		if (_frequency == 0) {
-			_frequency = eglGetSystemTimeFrequencyNV();
-			_starttime = eglGetSystemTimeNV();
-		}
-
-		uint64_t cur = eglGetSystemTimeNV();
-		int64_t diff = cur - _starttime;
-
-		return (double)diff / (double)_frequency;
-	}
-#if 0
-	// This clock is really "choppy" on Nexus 9!
-	struct timespec time;
-	clock_gettime(CLOCK_MONOTONIC_RAW, &time);
-	return time.tv_sec + time.tv_nsec / 1.0e9;
-#else
 	static time_t start;
 	struct timeval tv;
 	gettimeofday(&tv, NULL);
@@ -74,18 +55,6 @@ double real_time_now() {
 	}
 	tv.tv_sec -= start;
 	return (double)tv.tv_sec + (double)tv.tv_usec / 1000000.0;
-#endif
-
-#else
-	static time_t start;
-	struct timeval tv;
-	gettimeofday(&tv, NULL);
-	if (start == 0) {
-		start = tv.tv_sec;
-	}
-	tv.tv_sec -= start;
-	return (double)tv.tv_sec + (double)tv.tv_usec / 1000000.0;
-#endif
 }
 
 #endif
@@ -93,14 +62,6 @@ double real_time_now() {
 void time_update() {
 	curtime = real_time_now();
 	curtime_f = (float)curtime;
-
-	//printf("curtime: %f %f\n", curtime, curtime_f);
-	// also smooth time.
-	//curtime+=float((double) (time-_starttime) / (double) _frequency);
-	//curtime*=0.5f;
-	//curtime+=1.0f/60.0f;
-	//lastTime=curtime;
-	//curtime_f = (float)curtime;
 }
 
 float time_now() {

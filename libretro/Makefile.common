@@ -139,9 +139,7 @@ SOURCES_CXX += $(GPUCOMMONDIR)/TextureDecoder.cpp \
 				$(GPUDIR)/GLES/TransformPipeline.cpp \
 				$(GPUDIR)/GLES/Framebuffer.cpp \
 				$(NATIVEDIR)/base/backtrace.cpp \
-				$(NATIVEDIR)/audio/mixer.cpp \
 				$(GPUDIR)/GLES/ShaderManager.cpp \
-				$(NATIVEDIR)/audio/wav_read.cpp \
 				$(NATIVEDIR)/base/buffer.cpp \
 				$(NATIVEDIR)/base/colorutil.cpp \
 				$(NATIVEDIR)/base/display.cpp \

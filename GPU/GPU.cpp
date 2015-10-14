@@ -23,11 +23,6 @@
 #include "GPU/Null/NullGpu.h"
 #include "GPU/Software/SoftGpu.h"
 
-#if defined(_WIN32_NO_LIBRETRO)
-#include "GPU/Directx9/helper/global.h"
-#include "GPU/Directx9/GPU_DX9.h"
-#endif
-
 GPUStatistics gpuStats;
 GPUInterface *gpu;
 GPUDebugInterface *gpuDebug;
@@ -48,11 +43,6 @@ bool GPU_Init() {
 		break;
 	case GPU_SOFTWARE:
 		SetGPU(new SoftGPU());
-		break;
-	case GPU_DIRECTX9:
-#if defined(_WIN32_NO_LIBRETRO)
-		SetGPU(new DIRECTX9_GPU());
-#endif
 		break;
 	}
 

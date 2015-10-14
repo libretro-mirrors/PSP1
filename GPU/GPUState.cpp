@@ -15,10 +15,6 @@
 // Official git repository and contact information can be found at
 // https://github.com/hrydgard/ppsspp and http://www.ppsspp.org/.
 
-#if defined(_WIN32) && !defined(__LIBRETRO__)
-#define _WIN32_NO_LIBRETRO
-#endif
-
 #include "GPU/ge_constants.h"
 #include "GPU/GPUState.h"
 #include "GPU/GLES/ShaderManager.h"

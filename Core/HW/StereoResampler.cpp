@@ -62,14 +62,9 @@ inline void ClampBufferToS16(s16 *out, const s32 *in, size_t size) {
 		in += 8;
 		size -= 8;
 	}
-	for (size_t i = 0; i < size; i++) {
-		out[i] = clamp_s16(in[i]);
-	}
-#else
-	for (size_t i = 0; i < size; i++) {
-		out[i] = clamp_s16(in[i]);
-	}
 #endif
+	for (size_t i = 0; i < size; i++)
+		out[i] = clamp_s16(in[i]);
 }
 
 void StereoResampler::MixerFifo::Clear() {

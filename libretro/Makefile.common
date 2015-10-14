@@ -35,8 +35,7 @@ SOURCES_C   += $(NATIVEDIR)/ext/libpng17/pngmem.c \
 SOURCES_CXX += $(NATIVEDIR)/ext/cityhash/city.cpp \
 				$(COMMONDIR)/ChunkFile.cpp
 SOURCES_C   += $(NATIVEDIR)/ext/libpng17/pngread.c
-SOURCES_CXX += $(COMMONDIR)/ConsoleListener.cpp \
-				$(COMMONDIR)/Crypto/md5.cpp \
+SOURCES_CXX += $(COMMONDIR)/Crypto/md5.cpp \
 				$(COMMONDIR)/Crypto/sha1.cpp \
 				$(COMMONDIR)/Crypto/sha256.cpp
 SOURCES_C   += $(NATIVEDIR)/ext/libzip/mkstemp.c
@@ -45,7 +44,6 @@ SOURCES_C   += $(NATIVEDIR)/ext/libzip/zip_add.c \
 				$(EXTDIR)/libkirk/AES.c \
 				$(NATIVEDIR)/ext/libzip/zip_add_dir.c
 SOURCES_C   += $(NATIVEDIR)/ext/libzip/zip_close.c
-SOURCES_CXX += $(COMMONDIR)/LogManager.cpp
 SOURCES_C   += $(EXTDIR)/libkirk/amctrl.c \
 				$(NATIVEDIR)/ext/libpng17/pngrio.c \
 				$(NATIVEDIR)/ext/libpng17/pngrtran.c \

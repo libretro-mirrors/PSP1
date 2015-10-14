@@ -26,7 +26,6 @@
 #include "Core/MIPS/MIPSInt.h"
 #include "Core/MIPS/JitCommon/JitCommon.h"
 
-#include "Common/LogManager.h"
 #include "Core/FileSystems/FileSystem.h"
 #include "Core/FileSystems/MetaFileSystem.h"
 #include "Core/PSPLoaders.h"
@@ -161,7 +160,6 @@ void __KernelShutdown()
 	}
 	kernelObjects.List();
 	INFO_LOG(SCEKERNEL, "Shutting down kernel - %i kernel objects alive", kernelObjects.GetCount());
-	hleCurrentThreadName = NULL;
 	kernelObjects.Clear();
 
 	__AudioCodecShutdown();
@@ -554,7 +552,6 @@ void KernelObjectPool::DoState(PointerWrap &p)
 
 	if (p.mode == p.MODE_READ)
 	{
-		hleCurrentThreadName = NULL;
 		kernelObjects.Clear();
 	}
 

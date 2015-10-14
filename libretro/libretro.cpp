@@ -1202,3 +1202,14 @@ void retro_cheat_set(unsigned index, bool enabled, const char *code)
 }
 
 void System_SendMessage(const char *command, const char *parameter) {}
+
+void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
+      const char *file, int line, const char *fmt, ...)
+{
+}
+
+bool GenericLogEnabled(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type)
+{
+       return false;
+}
+

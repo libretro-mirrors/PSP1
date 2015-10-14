@@ -22,7 +22,6 @@
 
 #include "base/logging.h"
 
-#include "Common/LogManager.h"
 #include "Common/CommonTypes.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HLE/HLETables.h"
@@ -991,7 +990,6 @@ inline Thread *__GetCurrentThread() {
 inline void __SetCurrentThread(Thread *thread, SceUID threadID, const char *name) {
 	currentThread = threadID;
 	currentThreadPtr = thread;
-	hleCurrentThreadName = name;
 }
 
 u32 __KernelMipsCallReturnAddress() {
@@ -3147,7 +3145,7 @@ void __KernelSwitchContext(Thread *target, const char *reason)
 {
 	u32 oldPC = 0;
 	SceUID oldUID = 0;
-	const char *oldName = hleCurrentThreadName != NULL ? hleCurrentThreadName : "(none)";
+	const char *oldName = "(none)";
 
 	Thread *cur = __GetCurrentThread();
 	if (cur)  // It might just have been deleted.
@@ -3182,7 +3180,7 @@ void __KernelSwitchContext(Thread *target, const char *reason)
 		lastSwitchCycles = nowCycles;
 
 		DEBUG_LOG(SCEKERNEL, "Context switch: %s -> %s (%i->%i, pc: %08x->%08x, %s) +%lldus",
-			oldName, hleCurrentThreadName,
+			oldName, oldName,
 			oldUID, currentThread,
 			oldPC, currentMIPS->pc,
 			reason,

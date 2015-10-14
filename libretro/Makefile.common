@@ -364,8 +364,7 @@ SOURCES_CXX += $(NATIVEDIR)/file/chunk_file.cpp \
 				$(COREDIR)/Util/PPGeDraw.cpp \
 				$(COREDIR)/Util/ppge_atlas.cpp \
 				$(COREDIR)/Util/AudioFormat.cpp \
-				$(LIBRETRODIR)/libretro.cpp \
-				$(LIBRETRODIR)/libretro_osm.cpp
+				$(LIBRETRODIR)/libretro.cpp
 
 
 #SOURCES_CXX += $(LIBRETRODIR)/Core/HLE/__sceAudio.cpp

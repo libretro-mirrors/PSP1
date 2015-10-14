@@ -46,7 +46,6 @@
 #include "GPU/GLES/TransformPipeline.h"
 #include "GPU/GLES/ShaderManager.h"
 
-#include "UI/OnScreenDisplay.h"
 
 #if defined(USING_GLES2)
 #ifndef GL_READ_FRAMEBUFFER
@@ -212,11 +211,6 @@ void FramebufferManager::CompileDraw2DProgram() {
 						start = i + 1;
 						firstLine.clear();
 					}
-				}
-				if (!firstLine.empty()) {
-					osm.Show("Post-shader error: " + firstLine + "...", 10.0f, 0xFF3090FF);
-				} else {
-					osm.Show("Post-shader error, see log for details", 10.0f, 0xFF3090FF);
 				}
 				usePostShader_ = false;
 			} else {

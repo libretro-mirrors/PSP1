@@ -42,7 +42,6 @@
 #include "Core/MIPS/MIPS.h"
 #include "HW/MemoryStick.h"
 #include "GPU/GPUState.h"
-#include "UI/OnScreenDisplay.h"
 
 namespace SaveState
 {
@@ -315,7 +314,6 @@ namespace SaveState
 		g_Config.iCurrentStateSlot = (g_Config.iCurrentStateSlot + 1) % SaveState::SAVESTATESLOTS;
 		char msg[128];
 		snprintf(msg, sizeof(msg), "%s: %d", sy->T("Savestate Slot"), g_Config.iCurrentStateSlot + 1);
-		osm.Show(msg);
 		NativeMessageReceived("slotchanged", "");
 	}
 
@@ -326,7 +324,6 @@ namespace SaveState
 			Load(fn, callback, cbUserData);
 		} else {
 			I18NCategory *sy = GetI18NCategory("System");
-			osm.Show(sy->T("Failed to load state. Error in the file system."), 2.0);
 			if (callback)
 				callback(false, cbUserData);
 		}
@@ -353,7 +350,6 @@ namespace SaveState
 			Save(fn + ".tmp", renameCallback, cbUserData);
 		} else {
 			I18NCategory *sc = GetI18NCategory("Screen");
-			osm.Show("Failed to save state. Error in the file system.", 2.0);
 			if (callback)
 				callback(false, cbUserData);
 		}
@@ -517,16 +513,13 @@ namespace SaveState
 				INFO_LOG(COMMON, "Loading state from %s", op.filename.c_str());
 				result = CChunkFileReader::Load(op.filename, REVISION, PPSSPP_GIT_VERSION, state, &reason);
 				if (result == CChunkFileReader::ERROR_NONE) {
-					osm.Show(sc->T("Loaded State"), 2.0);
 					callbackResult = true;
 					hasLoadedState = true;
 				} else if (result == CChunkFileReader::ERROR_BROKEN_STATE) {
 					HandleFailure();
-					osm.Show(i18nLoadFailure, 2.0);
 					ERROR_LOG(COMMON, "Load state failure: %s", reason.c_str());
 					callbackResult = false;
 				} else {
-					osm.Show(sc->T(reason.c_str(), i18nLoadFailure), 2.0);
 					callbackResult = false;
 				}
 				break;
@@ -536,15 +529,12 @@ namespace SaveState
 				result = CChunkFileReader::Save(op.filename, REVISION, PPSSPP_GIT_VERSION, state);
 				if (result == CChunkFileReader::ERROR_NONE) {
 
-					osm.Show(sc->T("Saved State"), 2.0);
 					callbackResult = true;
 				} else if (result == CChunkFileReader::ERROR_BROKEN_STATE) {
 					HandleFailure();
-					osm.Show(i18nSaveFailure, 2.0);
 					ERROR_LOG(COMMON, "Save state failure: %s", reason.c_str());
 					callbackResult = false;
 				} else {
-					osm.Show(i18nSaveFailure, 2.0);
 					callbackResult = false;
 				}
 				break;
@@ -558,22 +548,18 @@ namespace SaveState
 				INFO_LOG(COMMON, "Rewinding to recent savestate snapshot");
 				result = rewindStates.Restore();
 				if (result == CChunkFileReader::ERROR_NONE) {
-					osm.Show(sc->T("Loaded State"), 2.0);
 					callbackResult = true;
 					hasLoadedState = true;
 				} else if (result == CChunkFileReader::ERROR_BROKEN_STATE) {
 					// Cripes.  Good news is, we might have more.  Let's try those too, better than a reset.
 					if (HandleFailure()) {
 						// Well, we did rewind, even if too much...
-						osm.Show(sc->T("Loaded State"), 2.0);
 						callbackResult = true;
 						hasLoadedState = true;
 					} else {
-						osm.Show(i18nLoadFailure, 2.0);
 						callbackResult = false;
 					}
 				} else {
-					osm.Show(i18nLoadFailure, 2.0);
 					callbackResult = false;
 				}
 				break;

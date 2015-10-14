@@ -1,5 +1,4 @@
 #include "i18n/i18n.h"
-#include "UI/OnScreenDisplay.h"
 #include "Common/StringUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/FileUtil.h"
@@ -50,7 +49,6 @@ static void __CheatStart() {
 		}
 		if (!File::Exists(activeCheatFile)) {
 			I18NCategory *err = GetI18NCategory("Error");
-			osm.Show(err->T("Unable to create cheat file, disk may be full"));
 		}
 
 	}

@@ -187,9 +187,8 @@ SOURCES_CXX += $(NATIVEDIR)/file/chunk_file.cpp \
 				$(NATIVEDIR)/image/png_load.cpp \
 				$(NATIVEDIR)/input/input_state.cpp \
 				$(NATIVEDIR)/math/expression_parser.cpp \
-				$(NATIVEDIR)/math/lin/plane.cpp \
-				$(NATIVEDIR)/math/lin/quat.cpp \
 				$(NATIVEDIR)/math/lin/vec3.cpp \
+				$(NATIVEDIR)/math/lin/quat.cpp \
 				$(NATIVEDIR)/math/lin/matrix4x4.cpp \
 				$(NATIVEDIR)/math/math_util.cpp \
 				$(NATIVEDIR)/net/http_client.cpp \

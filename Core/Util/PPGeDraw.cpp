@@ -157,13 +157,6 @@ void __PPGeSetupListArgs()
 
 void __PPGeInit()
 {
-	// PPGe isn't really important for headless, and LoadZIM takes a long time.
-	if (PSP_CoreParameter().gpuCore == GPU_NULL || host->ShouldSkipUI()) {
-		// Let's just not bother.
-		dlPtr = 0;
-		NOTICE_LOG(SCEGE, "Not initializing PPGe - GPU is NullGpu");
-		return;
-	}
 	u8 *imageData[12];
 	int width[12];
 	int height[12];

@@ -39,7 +39,6 @@ public:
 	virtual void InitSound() = 0;
 	virtual void UpdateSound() {}
 	virtual void UpdateScreen() {}
-	virtual void GoFullscreen(bool) {}
 	virtual void ShutdownSound() = 0;
 	virtual void PollControllers(InputState &input_state) {}
 	virtual void ToggleDebugConsoleVisibility() {}
@@ -61,11 +60,7 @@ public:
 	virtual void GPUNotifyDraw() {}
 	virtual void GPUNotifyTextureAttachment(u32 addr) {}
 
-	virtual bool CanCreateShortcut() {return false;}
-	virtual bool CreateDesktopShortcut(std::string argumentPath, std::string title) {return false;}
-
 	// Used for headless.
-	virtual bool ShouldSkipUI() { return false; }
 	virtual void SendDebugOutput(const std::string &output) {}
 	virtual void SendDebugScreenshot(const u8 *pixbuf, u32 w, u32 h) {}
 };

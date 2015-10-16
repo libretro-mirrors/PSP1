@@ -167,7 +167,6 @@ SOURCES_CXX += $(NATIVEDIR)/file/chunk_file.cpp \
 				$(GPUDIR)/GPUState.cpp \
 				$(GPUDIR)/Math3D.cpp \
 				$(NATIVEDIR)/file/zip_read.cpp \
-				$(GPUDIR)/Null/NullGpu.cpp \
 				$(GPUDIR)/Software/Clipper.cpp \
 				$(GPUDIR)/Software/Lighting.cpp \
 				$(GPUDIR)/Software/Rasterizer.cpp \

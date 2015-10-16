@@ -20,7 +20,6 @@
 #include "GPU/GPU.h"
 #include "GPU/GPUInterface.h"
 #include "GPU/GLES/GLES_GPU.h"
-#include "GPU/Null/NullGpu.h"
 #include "GPU/Software/SoftGpu.h"
 
 GPUStatistics gpuStats;
@@ -35,9 +34,6 @@ static void SetGPU(T *obj) {
 
 bool GPU_Init() {
 	switch (PSP_CoreParameter().gpuCore) {
-	case GPU_NULL:
-		SetGPU(new NullGPU());
-		break;
 	case GPU_GLES:
 		SetGPU(new GLES_GPU());
 		break;

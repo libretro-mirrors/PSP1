@@ -341,8 +341,7 @@ SOURCES_CXX += $(NATIVEDIR)/file/chunk_file.cpp \
 				$(LIBRETRODIR)/libretro.cpp
 
 
-#SOURCES_CXX += $(LIBRETRODIR)/Core/HLE/__sceAudio.cpp
-SOURCES_CXX += $(LIBRETRODIR)/Core/HLE/StereoResampler.cpp
+SOURCES_CXX += $(COREDIR)/HW/StereoResampler.cpp
 SOURCES_CXX += $(COREDIR)/HLE/__sceAudio.cpp
 
 

@@ -25,20 +25,11 @@
 #include "file/zip_read.h"
 #include "util/text/utf8.h"
 
-#if defined(_WIN32) && !defined(__MINGW32__)
-#define _WIN32_NO_MINGW
-#endif
-
 #ifdef _WIN32
 #include "Common/CommonWindows.h"
 #include <sys/stat.h>
-#endif
-
-#ifndef _WIN32_NO_MINGW
+#else
 #include <dirent.h>
-#endif
-
-#ifndef _WIN32
 #include <unistd.h>
 #include <sys/stat.h>
 #include <ctype.h>
@@ -139,7 +130,7 @@ void VirtualDiscFileSystem::LoadFileListIndex() {
 				ERROR_LOG(FILESYS, "Unable to open virtual file: %s", entry.fileName.c_str());
 			}
 		} else {
-			entry.totalSize = File::GetSize(GetLocalPath(entry.fileName));
+			entry.totalSize = File::GetFileSize(GetLocalPath(entry.fileName));
 		}
 
 		// Try to keep currentBlockIndex sane, in case there are other files.
@@ -281,7 +272,7 @@ int VirtualDiscFileSystem::getFileListIndex(std::string& fileName)
 
 	FileListEntry entry = {""};
 	entry.fileName = fileName;
-	entry.totalSize = File::GetSize(fullName);
+	entry.totalSize = File::GetFileSize(fullName);
 	entry.firstBlock = currentBlockIndex;
 	currentBlockIndex += (entry.totalSize+2047)/2048;
 
@@ -353,7 +344,7 @@ u32 VirtualDiscFileSystem::OpenFile(std::string filename, FileAccess access, con
 		bool success = entry.Open(basePath, fileList[entry.fileIndex].fileName, FILEACCESS_READ);
 
 		if (!success) {
-#ifdef _WIN32_NO_MINGW
+#ifdef _WIN32
 			ERROR_LOG(FILESYS, "VirtualDiscFileSystem::OpenFile: FAILED, %i", GetLastError());
 #else
 			ERROR_LOG(FILESYS, "VirtualDiscFileSystem::OpenFile: FAILED");
@@ -379,7 +370,7 @@ u32 VirtualDiscFileSystem::OpenFile(std::string filename, FileAccess access, con
 	bool success = entry.Open(basePath, filename, access);
 
 	if (!success) {
-#ifdef _WIN32_NO_MINGW
+#ifdef _WIN32
 		ERROR_LOG(FILESYS, "VirtualDiscFileSystem::OpenFile: FAILED, %i - access = %i", GetLastError(), (int)access);
 #else
 		ERROR_LOG(FILESYS, "VirtualDiscFileSystem::OpenFile: FAILED, access = %i", (int)access);
@@ -445,10 +436,8 @@ size_t VirtualDiscFileSystem::ReadFile(u32 handle, u8 *pointer, s64 size) {
 size_t VirtualDiscFileSystem::ReadFile(u32 handle, u8 *pointer, s64 size, int &usec) {
 	EntryMap::iterator iter = entries.find(handle);
 	if (iter != entries.end()) {
-		if (size < 0) {
-			ERROR_LOG_REPORT(FILESYS, "Invalid read for %lld bytes from virtual umd", size);
+		if (size < 0)
 			return 0;
-		}
 
 		// it's the whole iso... it could reference any of the files on the disc.
 		// For now let's just open and close the files on demand. Can certainly be done
@@ -604,17 +593,28 @@ PSPFileInfo VirtualDiscFileSystem::GetFileInfo(std::string filename) {
 	}
 
 	if (x.type != FILETYPE_DIRECTORY) {
-		struct stat s;
-		stat(fullName.c_str(), &s);
+		File::FileDetails details;
+		if (!File::GetFileDetails(fullName, &details)) {
+			ERROR_LOG(FILESYS, "DirectoryFileSystem::GetFileInfo: GetFileDetails failed: %s", fullName.c_str());
+			x.size = 0;
+			x.access = 0;
+			memset(&x.atime, 0, sizeof(x.atime));
+			memset(&x.ctime, 0, sizeof(x.ctime));
+			memset(&x.mtime, 0, sizeof(x.mtime));
+		} else {
+			x.size = details.size;
+			x.access = details.access;
+			time_t atime = details.atime;
+			time_t ctime = details.ctime;
+			time_t mtime = details.mtime;
 
-		x.size = File::GetSize(fullName);
+			localtime_r((time_t*)&atime, &x.atime);
+			localtime_r((time_t*)&ctime, &x.ctime);
+			localtime_r((time_t*)&mtime, &x.mtime);
+		}
 
 		x.startSector = fileList[fileIndex].firstBlock;
 		x.numSectors = (x.size+2047)/2048;
-
-		localtime_r((time_t*)&s.st_atime,&x.atime);
-		localtime_r((time_t*)&s.st_ctime,&x.ctime);
-		localtime_r((time_t*)&s.st_mtime,&x.mtime);
 	}
 
 	return x;
@@ -626,7 +626,7 @@ bool VirtualDiscFileSystem::GetHostPath(const std::string &inpath, std::string &
 	return false;
 }
 
-#ifdef _WIN32_NO_MINGW
+#ifdef _WIN32
 #define FILETIME_FROM_UNIX_EPOCH_US 11644473600000000ULL
 
 static void tmFromFiletime(tm &dest, FILETIME &src)
@@ -642,7 +642,7 @@ static void tmFromFiletime(tm &dest, FILETIME &src)
 std::vector<PSPFileInfo> VirtualDiscFileSystem::GetDirListing(std::string path)
 {
 	std::vector<PSPFileInfo> myVector;
-#ifdef _WIN32_NO_MINGW
+#ifdef _WIN32
 	WIN32_FIND_DATA findData;
 	HANDLE hFind;
 
@@ -789,12 +789,8 @@ void VirtualDiscFileSystem::HandlerLogger(void *arg, HandlerHandle handle, LogTy
 }
 
 VirtualDiscFileSystem::Handler::Handler(const char *filename, VirtualDiscFileSystem *const sys) {
-#if defined(_WIN32_NO_MINGW)
+#ifdef _WIN32
 #define dlopen(name, ignore) (void *)LoadLibrary(ConvertUTF8ToWString(name).c_str())
-#define dlsym(mod, name) GetProcAddress((HMODULE)mod, name)
-#define dlclose(mod) FreeLibrary((HMODULE)mod)
-#elif defined(_WIN32)
-#define dlopen(name, ignore) (void *)LoadLibrary(name)
 #define dlsym(mod, name) GetProcAddress((HMODULE)mod, name)
 #define dlclose(mod) FreeLibrary((HMODULE)mod)
 #endif

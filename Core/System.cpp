@@ -169,9 +169,8 @@ void CPU_Init() {
 	IdentifiedFileType type = Identify_File(loadedFile);
 
 	// TODO: Put this somewhere better?
-	if (coreParameter.mountIso != "") {
+	if (coreParameter.mountIso != "")
 		coreParameter.mountIsoLoader = ConstructFileLoader(coreParameter.mountIso);
-	}
 
 	MIPSAnalyst::Reset();
 	Replacement_Init();
@@ -288,9 +287,8 @@ void CPU_RunLoop() {
 		}
 	}
 
-	if (coreState != CORE_ERROR) {
+	if (coreState != CORE_ERROR)
 		coreState = CORE_POWERDOWN;
-	}
 
 	// Let's make sure the gpu has already cleaned up before we start freeing memory.
 	if (gpu) {
@@ -356,13 +354,11 @@ bool PSP_InitStart(const CoreParameter &coreParam, std::string *error_string) {
 }
 
 bool PSP_InitUpdate(std::string *error_string) {
-	if (pspIsInited || !pspIsIniting) {
+	if (pspIsInited || !pspIsIniting)
 		return true;
-	}
 
-	if (g_Config.bSeparateCPUThread && !CPU_IsReady()) {
+	if (g_Config.bSeparateCPUThread && !CPU_IsReady())
 		return false;
-	}
 
 	bool success = coreParameter.fileToStart != "";
 	*error_string = coreParameter.errorString;
@@ -433,11 +429,11 @@ void PSP_Shutdown() {
 	g_Config.unloadGameConfig();
 }
 
-void PSP_RunLoopUntil(u64 globalticks) {
+void PSP_RunLoopUntil(u64 globalticks)
+{
 	SaveState::Process();
-	if (coreState == CORE_POWERDOWN || coreState == CORE_ERROR) {
+	if (coreState == CORE_POWERDOWN || coreState == CORE_ERROR)
 		return;
-	}
 
 	// Switch the CPU thread on or off, as the case may be.
 	bool useCPUThread = g_Config.bSeparateCPUThread;
@@ -448,19 +444,19 @@ void PSP_RunLoopUntil(u64 globalticks) {
 		cpuThread = new std::thread(&CPU_RunLoop);
 		cpuThreadID = cpuThread->get_id();
 		cpuThread->detach();
-		if (gpu) {
+		if (gpu)
 			gpu->SetThreadEnabled(true);
-		}
 		CPU_WaitStatus(cpuThreadReplyCond, &CPU_IsReady);
-	} else if (!useCPUThread && cpuThread != nullptr) {
+	}
+   else if (!useCPUThread && cpuThread != nullptr)
+   {
 		CPU_SetState(CPU_THREAD_QUIT);
 		CPU_WaitStatus(cpuThreadReplyCond, &CPU_IsShutdown);
 		delete cpuThread;
 		cpuThread = nullptr;
 		cpuThreadID = std::thread::id();
-		if (gpu) {
+		if (gpu)
 			gpu->SetThreadEnabled(false);
-		}
 	}
 
 	if (cpuThread != nullptr) {
@@ -471,13 +467,15 @@ void PSP_RunLoopUntil(u64 globalticks) {
 		if (CPU_NextState(CPU_THREAD_RUNNING, CPU_THREAD_EXECUTE)) {
 			// The CPU doesn't actually respect cpuThreadUntil well, especially when skipping frames.
 			// TODO: Something smarter?  Or force CPU to bail periodically?
-			while (!CPU_IsReady()) {
+			while (!CPU_IsReady())
+         {
 				gpu->RunEventsUntil(CoreTiming::GetTicks() + msToCycles(1000));
-				if (coreState != CORE_RUNNING) {
+				if (coreState != CORE_RUNNING)
 					CPU_WaitStatus(cpuThreadReplyCond, &CPU_IsReady);
-				}
 			}
-		} else {
+		}
+      else
+      {
 			ERROR_LOG(CPU, "Unable to execute CPU run loop, unexpected state: %d", cpuThreadState);
 		}
 	} else {
@@ -496,7 +494,8 @@ CoreParameter &PSP_CoreParameter() {
 }
 
 std::string GetSysDirectory(PSPDirectories directoryType) {
-	switch (directoryType) {
+	switch (directoryType)
+   {
 	case DIRECTORY_CHEATS:
 		return g_Config.memStickDirectory + "PSP/Cheats/";
 	case DIRECTORY_GAME:
@@ -518,6 +517,7 @@ std::string GetSysDirectory(PSPDirectories directoryType) {
 	// Just return the memory stick root if we run into some sort of problem.
 	default:
 		ERROR_LOG(FILESYS, "Unknown directory type.");
-		return g_Config.memStickDirectory;
+      break;
 	}
+   return g_Config.memStickDirectory;
 }

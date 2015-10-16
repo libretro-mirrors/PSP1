@@ -295,8 +295,6 @@ void __KernelMutexBeginCallback(SceUID threadID, SceUID prevCallbackId)
 	auto result = HLEKernel::WaitBeginCallback<Mutex, WAITTYPE_MUTEX, SceUID>(threadID, prevCallbackId, mutexWaitTimer);
 	if (result == HLEKernel::WAIT_CB_SUCCESS)
 		DEBUG_LOG(SCEKERNEL, "sceKernelLockMutexCB: Suspending lock wait for callback");
-	else
-		WARN_LOG_REPORT(SCEKERNEL, "sceKernelLockMutexCB: beginning callback with bad wait id?");
 }
 
 void __KernelMutexEndCallback(SceUID threadID, SceUID prevCallbackId)
@@ -309,15 +307,9 @@ void __KernelMutexEndCallback(SceUID threadID, SceUID prevCallbackId)
 int sceKernelCreateMutex(const char *name, u32 attr, int initialCount, u32 optionsPtr)
 {
 	if (!name)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "%08x=sceKernelCreateMutex(): invalid name", SCE_KERNEL_ERROR_ERROR);
 		return SCE_KERNEL_ERROR_ERROR;
-	}
 	if (attr & ~0xBFF)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "%08x=sceKernelCreateMutex(): invalid attr parameter: %08x", SCE_KERNEL_ERROR_ILLEGAL_ATTR, attr);
 		return SCE_KERNEL_ERROR_ILLEGAL_ATTR;
-	}
 
 	if (initialCount < 0)
 		return SCE_KERNEL_ERROR_ILLEGAL_COUNT;
@@ -341,15 +333,6 @@ int sceKernelCreateMutex(const char *name, u32 attr, int initialCount, u32 optio
 		__KernelMutexAcquireLock(mutex, initialCount);
 
 	DEBUG_LOG(SCEKERNEL, "%i=sceKernelCreateMutex(%s, %08x, %d, %08x)", id, name, attr, initialCount, optionsPtr);
-
-	if (optionsPtr != 0)
-	{
-		u32 size = Memory::Read_U32(optionsPtr);
-		if (size > 4)
-			WARN_LOG_REPORT(SCEKERNEL, "sceKernelCreateMutex(%s) unsupported options parameter, size = %d", name, size);
-	}
-	if ((attr & ~PSP_MUTEX_ATTR_KNOWN) != 0)
-		WARN_LOG_REPORT(SCEKERNEL, "sceKernelCreateMutex(%s) unsupported attr parameter: %08x", name, attr);
 
 	return id;
 }
@@ -699,15 +682,9 @@ int sceKernelReferMutexStatus(SceUID id, u32 infoAddr)
 int sceKernelCreateLwMutex(u32 workareaPtr, const char *name, u32 attr, int initialCount, u32 optionsPtr)
 {
 	if (!name)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "%08x=sceKernelCreateLwMutex(): invalid name", SCE_KERNEL_ERROR_ERROR);
 		return SCE_KERNEL_ERROR_ERROR;
-	}
 	if (attr >= 0x400)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "%08x=sceKernelCreateLwMutex(): invalid attr parameter: %08x", SCE_KERNEL_ERROR_ILLEGAL_ATTR, attr);
 		return SCE_KERNEL_ERROR_ILLEGAL_ATTR;
-	}
 
 	if (initialCount < 0)
 		return SCE_KERNEL_ERROR_ILLEGAL_COUNT;
@@ -734,15 +711,6 @@ int sceKernelCreateLwMutex(u32 workareaPtr, const char *name, u32 attr, int init
 	workarea->uid = id;
 
 	DEBUG_LOG(SCEKERNEL, "sceKernelCreateLwMutex(%08x, %s, %08x, %d, %08x)", workareaPtr, name, attr, initialCount, optionsPtr);
-
-	if (optionsPtr != 0)
-	{
-		u32 size = Memory::Read_U32(optionsPtr);
-		if (size > 4)
-			WARN_LOG_REPORT(SCEKERNEL, "sceKernelCreateLwMutex(%s) unsupported options parameter, size = %d", name, size);
-	}
-	if ((attr & ~PSP_MUTEX_ATTR_KNOWN) != 0)
-		WARN_LOG_REPORT(SCEKERNEL, "sceKernelCreateLwMutex(%s) unsupported attr parameter: %08x", name, attr);
 
 	return 0;
 }
@@ -917,8 +885,6 @@ void __KernelLwMutexBeginCallback(SceUID threadID, SceUID prevCallbackId)
 	auto result = HLEKernel::WaitBeginCallback<LwMutex, WAITTYPE_LWMUTEX, SceUID>(threadID, prevCallbackId, lwMutexWaitTimer);
 	if (result == HLEKernel::WAIT_CB_SUCCESS)
 		DEBUG_LOG(SCEKERNEL, "sceKernelLockLwMutexCB: Suspending lock wait for callback");
-	else
-		WARN_LOG_REPORT(SCEKERNEL, "sceKernelLockLwMutexCB: beginning callback with bad wait id?");
 }
 
 void __KernelLwMutexEndCallback(SceUID threadID, SceUID prevCallbackId)

@@ -434,26 +434,22 @@ static u32 sceAudioSRCOutputBlocking(u32 vol, u32 buf) {
 }
 
 static u32 sceAudioRoutingSetMode(u32 mode) {
-	ERROR_LOG_REPORT(SCEAUDIO, "sceAudioRoutingSetMode(%08x)", mode);
 	int previousMode = defaultRoutingMode;
 	defaultRoutingMode = mode;
 	return previousMode;
 }
 
 static u32 sceAudioRoutingGetMode() {
-	ERROR_LOG_REPORT(SCEAUDIO, "sceAudioRoutingGetMode()");
 	return defaultRoutingMode;
 }
 
 static u32 sceAudioRoutingSetVolumeMode(u32 mode) {
-	ERROR_LOG_REPORT(SCEAUDIO, "sceAudioRoutingSetVolumeMode(%08x)", mode);
 	int previousMode = defaultRoutingVolMode;
 	defaultRoutingVolMode = mode;
 	return previousMode;
 }
 
 static u32 sceAudioRoutingGetVolumeMode() {
-	ERROR_LOG_REPORT(SCEAUDIO, "sceAudioRoutingGetVolumeMode()");
 	return defaultRoutingVolMode;
 }
 

@@ -536,10 +536,6 @@ void __KernelFplBeginCallback(SceUID threadID, SceUID prevCallbackId)
 	auto result = HLEKernel::WaitBeginCallback<FPL, WAITTYPE_FPL, FplWaitingThread>(threadID, prevCallbackId, fplWaitTimer);
 	if (result == HLEKernel::WAIT_CB_SUCCESS)
 		DEBUG_LOG(SCEKERNEL, "sceKernelAllocateFplCB: Suspending fpl wait for callback");
-	else if (result == HLEKernel::WAIT_CB_BAD_WAIT_DATA)
-		ERROR_LOG_REPORT(SCEKERNEL, "sceKernelAllocateFplCB: wait not found to pause for callback");
-	else
-		WARN_LOG_REPORT(SCEKERNEL, "sceKernelAllocateFplCB: beginning callback with bad wait id?");
 }
 
 void __KernelFplEndCallback(SceUID threadID, SceUID prevCallbackId)
@@ -578,26 +574,14 @@ static void __KernelSortFplThreads(FPL *fpl)
 int sceKernelCreateFpl(const char *name, u32 mpid, u32 attr, u32 blockSize, u32 numBlocks, u32 optPtr)
 {
 	if (!name)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "%08x=sceKernelCreateFpl(): invalid name", SCE_KERNEL_ERROR_NO_MEMORY);
 		return SCE_KERNEL_ERROR_NO_MEMORY;
-	}
 	if (mpid < 1 || mpid > 9 || mpid == 7)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "%08x=sceKernelCreateFpl(): invalid partition %d", SCE_KERNEL_ERROR_ILLEGAL_ARGUMENT, mpid);
 		return SCE_KERNEL_ERROR_ILLEGAL_ARGUMENT;
-	}
 	// We only support user right now.
 	if (mpid != 2 && mpid != 6)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "%08x=sceKernelCreateFpl(): invalid partition %d", SCE_KERNEL_ERROR_ILLEGAL_PERM, mpid);
 		return SCE_KERNEL_ERROR_ILLEGAL_PERM;
-	}
 	if (((attr & ~PSP_FPL_ATTR_KNOWN) & ~0xFF) != 0)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "%08x=sceKernelCreateFpl(): invalid attr parameter: %08x", SCE_KERNEL_ERROR_ILLEGAL_ATTR, attr);
 		return SCE_KERNEL_ERROR_ILLEGAL_ATTR;
-	}
 	// There's probably a simpler way to get this same basic formula...
 	// This is based on results from a PSP.
 	bool illegalMemSize = blockSize == 0 || numBlocks == 0;
@@ -606,25 +590,17 @@ int sceKernelCreateFpl(const char *name, u32 mpid, u32 attr, u32 blockSize, u32 
 	if (!illegalMemSize && (u64) numBlocks >= 0x100000000ULL / (((u64) blockSize + 3ULL) & ~3ULL))
 		illegalMemSize = true;
 	if (illegalMemSize)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "%08x=sceKernelCreateFpl(): invalid blockSize/count", SCE_KERNEL_ERROR_ILLEGAL_MEMSIZE);
 		return SCE_KERNEL_ERROR_ILLEGAL_MEMSIZE;
-	}
 
 	int alignment = 4;
 	if (optPtr != 0)
 	{
 		u32 size = Memory::Read_U32(optPtr);
-		if (size > 8)
-			WARN_LOG_REPORT(SCEKERNEL, "sceKernelCreateFpl(): unsupported extra options, size = %d", size);
 		if (size >= 4)
 			alignment = Memory::Read_U32(optPtr + 4);
 		// Must be a power of 2 to be valid.
 		if ((alignment & (alignment - 1)) != 0)
-		{
-			WARN_LOG_REPORT(SCEKERNEL, "%08x=sceKernelCreateFpl(): invalid alignment %d", SCE_KERNEL_ERROR_ILLEGAL_ARGUMENT, alignment);
 			return SCE_KERNEL_ERROR_ILLEGAL_ARGUMENT;
-		}
 	}
 
 	if (alignment < 4)
@@ -981,37 +957,19 @@ static u32 sceKernelTotalFreeMemSize()
 static int sceKernelAllocPartitionMemory(int partition, const char *name, int type, u32 size, u32 addr)
 {
 	if (name == NULL)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "%08x=sceKernelAllocPartitionMemory(): invalid name", SCE_KERNEL_ERROR_ERROR);
 		return SCE_KERNEL_ERROR_ERROR;
-	}
 	if (size == 0)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "%08x=sceKernelAllocPartitionMemory(): invalid size %x", SCE_KERNEL_ERROR_MEMBLOCK_ALLOC_FAILED, size);
 		return SCE_KERNEL_ERROR_MEMBLOCK_ALLOC_FAILED;
-	}
 	if (partition < 1 || partition > 9 || partition == 7)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "%08x=sceKernelAllocPartitionMemory(): invalid partition %x", SCE_KERNEL_ERROR_ILLEGAL_ARGUMENT, partition);
 		return SCE_KERNEL_ERROR_ILLEGAL_ARGUMENT;
-	}
 	// We only support user right now.
 	if (partition != 2 && partition != 5 && partition != 6)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "%08x=sceKernelAllocPartitionMemory(): invalid partition %x", SCE_KERNEL_ERROR_ILLEGAL_PARTITION, partition);
 		return SCE_KERNEL_ERROR_ILLEGAL_PARTITION;
-	}
 	if (type < PSP_SMEM_Low || type > PSP_SMEM_HighAligned)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "%08x=sceKernelAllocPartitionMemory(): invalid type %x", SCE_KERNEL_ERROR_ILLEGAL_MEMBLOCKTYPE, type);
 		return SCE_KERNEL_ERROR_ILLEGAL_MEMBLOCKTYPE;
-	}
 	// Alignment is only allowed for powers of 2.
 	if ((type == PSP_SMEM_LowAligned || type == PSP_SMEM_HighAligned) && ((addr & (addr - 1)) != 0 || addr == 0))
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "%08x=sceKernelAllocPartitionMemory(): invalid alignment %x", SCE_KERNEL_ERROR_ILLEGAL_ALIGNMENT_SIZE, addr);
 		return SCE_KERNEL_ERROR_ILLEGAL_ALIGNMENT_SIZE;
-	}
 
 	PartitionMemoryBlock *block = new PartitionMemoryBlock(&userMemory, name, size, (MemblockType)type, addr);
 	if (!block->IsValid())
@@ -1155,33 +1113,6 @@ static int sceKernelPrintf(const char *formatString)
 }
 
 static int sceKernelSetCompiledSdkVersion(int sdkVersion) {
-	int sdkMainVersion = sdkVersion & 0xFFFF0000;
-	bool validSDK = false;
-	switch (sdkMainVersion) {
-	case 0x01000000:
-	case 0x01050000:
-	case 0x02000000:
-	case 0x02050000:
-	case 0x02060000:
-	case 0x02070000:
-	case 0x02080000:
-	case 0x03000000:
-	case 0x03010000:
-	case 0x03030000:
-	case 0x03040000:
-	case 0x03050000:
-	case 0x03060000:
-		validSDK = true;
-		break;
-	default:
-		validSDK = false;
-		break;
-	}
-
-	if (!validSDK) {
-		WARN_LOG_REPORT(SCEKERNEL, "sceKernelSetCompiledSdkVersion unknown SDK: %x", sdkVersion);
-	}
-
 	DEBUG_LOG(SCEKERNEL, "sceKernelSetCompiledSdkVersion(%08x)", sdkVersion);
 	sdkVersion_ = sdkVersion;
 	flags_ |=  SCE_KERNEL_HASCOMPILEDSDKVERSION;
@@ -1189,11 +1120,6 @@ static int sceKernelSetCompiledSdkVersion(int sdkVersion) {
 }
 
 static int sceKernelSetCompiledSdkVersion370(int sdkVersion) {
-	int sdkMainVersion = sdkVersion & 0xFFFF0000;
-	if (sdkMainVersion != 0x03070000) {
-		WARN_LOG_REPORT(SCEKERNEL, "sceKernelSetCompiledSdkVersion370 unknown SDK: %x", sdkVersion);
-	}
-
 	DEBUG_LOG(SCEKERNEL, "sceKernelSetCompiledSdkVersion370(%08x)", sdkVersion);
 	sdkVersion_ = sdkVersion;
 	flags_ |=  SCE_KERNEL_HASCOMPILEDSDKVERSION;
@@ -1203,7 +1129,6 @@ static int sceKernelSetCompiledSdkVersion370(int sdkVersion) {
 static int sceKernelSetCompiledSdkVersion380_390(int sdkVersion) {
 	int sdkMainVersion = sdkVersion & 0xFFFF0000;
 	if (sdkMainVersion != 0x03080000 && sdkMainVersion != 0x03090000) {
-		WARN_LOG_REPORT(SCEKERNEL, "sceKernelSetCompiledSdkVersion380_390 unknown SDK: %x", sdkVersion);
 		sdkVersion_ = sdkVersion;
 		flags_ |=  SCE_KERNEL_HASCOMPILEDSDKVERSION;
 	}
@@ -1215,15 +1140,6 @@ static int sceKernelSetCompiledSdkVersion380_390(int sdkVersion) {
 }
 
 static int sceKernelSetCompiledSdkVersion395(int sdkVersion) {
-	int sdkMainVersion = sdkVersion & 0xFFFFFF00;
-	if (sdkMainVersion != 0x04000000
-			&& sdkMainVersion != 0x04000100
-			&& sdkMainVersion != 0x04000500
-			&& sdkMainVersion != 0x03090500
-			&& sdkMainVersion != 0x03090600) {
-		WARN_LOG_REPORT(SCEKERNEL, "sceKernelSetCompiledSdkVersion395 unknown SDK: %x", sdkVersion);
-	}
-
 	DEBUG_LOG(SCEKERNEL, "sceKernelSetCompiledSdkVersion395(%08x)", sdkVersion);
 	sdkVersion_ = sdkVersion;
 	flags_ |=  SCE_KERNEL_HASCOMPILEDSDKVERSION;
@@ -1231,13 +1147,6 @@ static int sceKernelSetCompiledSdkVersion395(int sdkVersion) {
 }
 
 static int sceKernelSetCompiledSdkVersion600_602(int sdkVersion) {
-	int sdkMainVersion = sdkVersion & 0xFFFF0000;
-	if (sdkMainVersion != 0x06010000
-			&& sdkMainVersion != 0x06000000
-			&& sdkMainVersion != 0x06020000) {
-		WARN_LOG_REPORT(SCEKERNEL, "sceKernelSetCompiledSdkVersion600_602 unknown SDK: %x", sdkVersion);
-	}
-
 	DEBUG_LOG(SCEKERNEL, "sceKernelSetCompiledSdkVersion600_602(%08x)", sdkVersion);
 	sdkVersion_ = sdkVersion;
 	flags_ |=  SCE_KERNEL_HASCOMPILEDSDKVERSION;
@@ -1246,12 +1155,6 @@ static int sceKernelSetCompiledSdkVersion600_602(int sdkVersion) {
 
 static int sceKernelSetCompiledSdkVersion500_505(int sdkVersion)
 {
-	int sdkMainVersion = sdkVersion & 0xFFFF0000;
-	if (sdkMainVersion != 0x05000000
-			&& sdkMainVersion != 0x05050000) {
-		WARN_LOG_REPORT(SCEKERNEL, "sceKernelSetCompiledSdkVersion500_505 unknown SDK: %x", sdkVersion);
-	}
-
 	DEBUG_LOG(SCEKERNEL, "sceKernelSetCompiledSdkVersion500_505(%08x)", sdkVersion);
 	sdkVersion_ = sdkVersion;
 	flags_ |=  SCE_KERNEL_HASCOMPILEDSDKVERSION;
@@ -1259,12 +1162,6 @@ static int sceKernelSetCompiledSdkVersion500_505(int sdkVersion)
 }
 
 static int sceKernelSetCompiledSdkVersion401_402(int sdkVersion) {
-	int sdkMainVersion = sdkVersion & 0xFFFF0000;
-	if (sdkMainVersion != 0x04010000
-			&& sdkMainVersion != 0x04020000) {
-		WARN_LOG_REPORT(SCEKERNEL, "sceKernelSetCompiledSdkVersion401_402 unknown SDK: %x", sdkVersion);
-	}
-
 	DEBUG_LOG(SCEKERNEL, "sceKernelSetCompiledSdkVersion401_402(%08x)", sdkVersion);
 	sdkVersion_ = sdkVersion;
 	flags_ |=  SCE_KERNEL_HASCOMPILEDSDKVERSION;
@@ -1272,11 +1169,6 @@ static int sceKernelSetCompiledSdkVersion401_402(int sdkVersion) {
 }
 
 static int sceKernelSetCompiledSdkVersion507(int sdkVersion) {
-	int sdkMainVersion = sdkVersion & 0xFFFF0000;
-	if (sdkMainVersion != 0x05070000) {
-		WARN_LOG_REPORT(SCEKERNEL, "sceKernelSetCompiledSdkVersion507 unknown SDK: %x", sdkVersion);
-	}
-
 	DEBUG_LOG(SCEKERNEL, "sceKernelSetCompiledSdkVersion507(%08x)", sdkVersion);
 	sdkVersion_ = sdkVersion;
 	flags_ |=  SCE_KERNEL_HASCOMPILEDSDKVERSION;
@@ -1284,13 +1176,6 @@ static int sceKernelSetCompiledSdkVersion507(int sdkVersion) {
 }
 
 static int sceKernelSetCompiledSdkVersion603_605(int sdkVersion) {
-	int sdkMainVersion = sdkVersion & 0xFFFF0000;
-	if (sdkMainVersion != 0x06040000
-			&& sdkMainVersion != 0x06030000
-			&& sdkMainVersion != 0x06050000) {
-		WARN_LOG_REPORT(SCEKERNEL, "sceKernelSetCompiledSdkVersion603_605 unknown SDK: %x", sdkVersion);
-	}
-
 	DEBUG_LOG(SCEKERNEL, "sceKernelSetCompiledSdkVersion603_605(%08x)", sdkVersion);
 	sdkVersion_ = sdkVersion;
 	flags_ |=  SCE_KERNEL_HASCOMPILEDSDKVERSION;
@@ -1298,11 +1183,6 @@ static int sceKernelSetCompiledSdkVersion603_605(int sdkVersion) {
 }
 
 static int sceKernelSetCompiledSdkVersion606(int sdkVersion) {
-	int sdkMainVersion = sdkVersion & 0xFFFF0000;
-	if (sdkMainVersion != 0x06060000) {
-		ERROR_LOG_REPORT(SCEKERNEL, "sceKernelSetCompiledSdkVersion606 unknown SDK: %x (would crash)", sdkVersion);
-	}
-
 	DEBUG_LOG(SCEKERNEL, "sceKernelSetCompiledSdkVersion606(%08x)", sdkVersion);
 	sdkVersion_ = sdkVersion;
 	flags_ |=  SCE_KERNEL_HASCOMPILEDSDKVERSION;
@@ -1394,10 +1274,6 @@ void __KernelVplBeginCallback(SceUID threadID, SceUID prevCallbackId)
 	auto result = HLEKernel::WaitBeginCallback<VPL, WAITTYPE_VPL, VplWaitingThread>(threadID, prevCallbackId, vplWaitTimer);
 	if (result == HLEKernel::WAIT_CB_SUCCESS)
 		DEBUG_LOG(SCEKERNEL, "sceKernelAllocateVplCB: Suspending vpl wait for callback");
-	else if (result == HLEKernel::WAIT_CB_BAD_WAIT_DATA)
-		ERROR_LOG_REPORT(SCEKERNEL, "sceKernelAllocateVplCB: wait not found to pause for callback");
-	else
-		WARN_LOG_REPORT(SCEKERNEL, "sceKernelAllocateVplCB: beginning callback with bad wait id?");
 }
 
 void __KernelVplEndCallback(SceUID threadID, SceUID prevCallbackId)
@@ -1436,37 +1312,19 @@ static void __KernelSortVplThreads(VPL *vpl)
 SceUID sceKernelCreateVpl(const char *name, int partition, u32 attr, u32 vplSize, u32 optPtr)
 {
 	if (!name)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "%08x=sceKernelCreateVpl(): invalid name", SCE_KERNEL_ERROR_ERROR);
 		return SCE_KERNEL_ERROR_ERROR;
-	}
 	if (partition < 1 || partition > 9 || partition == 7)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "%08x=sceKernelCreateVpl(): invalid partition %d", SCE_KERNEL_ERROR_ILLEGAL_ARGUMENT, partition);
 		return SCE_KERNEL_ERROR_ILLEGAL_ARGUMENT;
-	}
 	// We only support user right now.
 	if (partition != 2 && partition != 6)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "%08x=sceKernelCreateVpl(): invalid partition %d", SCE_KERNEL_ERROR_ILLEGAL_PERM, partition);
 		return SCE_KERNEL_ERROR_ILLEGAL_PERM;
-	}
 	if (((attr & ~PSP_VPL_ATTR_KNOWN) & ~0xFF) != 0)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "%08x=sceKernelCreateVpl(): invalid attr parameter: %08x", SCE_KERNEL_ERROR_ILLEGAL_ATTR, attr);
 		return SCE_KERNEL_ERROR_ILLEGAL_ATTR;
-	}
 	if (vplSize == 0)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "%08x=sceKernelCreateVpl(): invalid size", SCE_KERNEL_ERROR_ILLEGAL_MEMSIZE);
 		return SCE_KERNEL_ERROR_ILLEGAL_MEMSIZE;
-	}
 	// Block Allocator seems to A-OK this, let's stop it here.
 	if (vplSize >= 0x80000000)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "%08x=sceKernelCreateVpl(): way too big size", SCE_KERNEL_ERROR_NO_MEMORY);
 		return SCE_KERNEL_ERROR_NO_MEMORY;
-	}
 
 	// Can't have that little space in a Vpl, sorry.
 	if (vplSize <= 0x30)
@@ -1502,13 +1360,6 @@ SceUID sceKernelCreateVpl(const char *name, int partition, u32 attr, u32 vplSize
 
 	DEBUG_LOG(SCEKERNEL, "%x=sceKernelCreateVpl(\"%s\", block=%i, attr=%i, size=%i)", 
 		id, name, partition, vpl->nv.attr, vpl->nv.poolSize);
-
-	if (optPtr != 0)
-	{
-		u32 size = Memory::Read_U32(optPtr);
-		if (size > 4)
-			WARN_LOG_REPORT(SCEKERNEL, "sceKernelCreateVpl(): unsupported options parameter, size = %d", size);
-	}
 
 	return id;
 }
@@ -1779,22 +1630,14 @@ int sceKernelReferVplStatus(SceUID uid, u32 infoPtr) {
 }
 
 static u32 AllocMemoryBlock(const char *pname, u32 type, u32 size, u32 paramsAddr) {
-	if (Memory::IsValidAddress(paramsAddr) && Memory::Read_U32(paramsAddr) != 4) {
-		ERROR_LOG_REPORT(SCEKERNEL, "AllocMemoryBlock(%s): unsupported params size %d", pname, Memory::Read_U32(paramsAddr));
+	if (Memory::IsValidAddress(paramsAddr) && Memory::Read_U32(paramsAddr) != 4)
 		return SCE_KERNEL_ERROR_ILLEGAL_ARGUMENT;
-	}
-	if (type != PSP_SMEM_High && type != PSP_SMEM_Low) {
-		ERROR_LOG_REPORT(SCEKERNEL, "AllocMemoryBlock(%s): unsupported type %d", pname, type);
+	if (type != PSP_SMEM_High && type != PSP_SMEM_Low)
 		return SCE_KERNEL_ERROR_ILLEGAL_MEMBLOCKTYPE;
-	}
-	if (size == 0) {
-		WARN_LOG_REPORT(SCEKERNEL, "AllocMemoryBlock(%s): invalid size %x", pname, size);
+	if (size == 0)
 		return SCE_KERNEL_ERROR_MEMBLOCK_ALLOC_FAILED;
-	}
-	if (pname == NULL) {
-		ERROR_LOG_REPORT(SCEKERNEL, "AllocMemoryBlock(): NULL name");
+	if (pname == NULL)
 		return SCE_KERNEL_ERROR_ERROR;
-	}
 
 	PartitionMemoryBlock *block = new PartitionMemoryBlock(&userMemory, pname, size, (MemblockType)type, 0);
 	if (!block->IsValid())
@@ -1837,13 +1680,11 @@ static u32 SysMemUserForUser_D8DE5C1E() {
 }
 
 static u32 SysMemUserForUser_ACBD88CA() {
-	ERROR_LOG_REPORT_ONCE(SysMemUserForUser_ACBD88CA, SCEKERNEL, "UNIMPL SysMemUserForUser_ACBD88CA()");
 	return 0; 
 }
 
 static u32 SysMemUserForUser_945E45DA() {
 	// Called by Evangelion Jo and expected return 0 here.
-	ERROR_LOG_REPORT_ONCE(SysMemUserForUser945E45DA, SCEKERNEL, "UNIMPL SysMemUserForUser_945E45DA()");
 	return 0; 
 }
 
@@ -2027,26 +1868,14 @@ void __KernelTlsplThreadEnd(SceUID threadID)
 SceUID sceKernelCreateTlspl(const char *name, u32 partition, u32 attr, u32 blockSize, u32 count, u32 optionsPtr)
 {
 	if (!name)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "%08x=sceKernelCreateTlspl(): invalid name", SCE_KERNEL_ERROR_NO_MEMORY);
 		return SCE_KERNEL_ERROR_NO_MEMORY;
-	}
 	if ((attr & ~PSP_TLSPL_ATTR_KNOWN) >= 0x100)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "%08x=sceKernelCreateTlspl(): invalid attr parameter: %08x", SCE_KERNEL_ERROR_ILLEGAL_ATTR, attr);
 		return SCE_KERNEL_ERROR_ILLEGAL_ATTR;
-	}
 	if (partition < 1 || partition > 9 || partition == 7)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "%08x=sceKernelCreateTlspl(): invalid partition %d", SCE_KERNEL_ERROR_ILLEGAL_ARGUMENT, partition);
 		return SCE_KERNEL_ERROR_ILLEGAL_ARGUMENT;
-	}
 	// We only support user right now.
 	if (partition != 2 && partition != 6)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "%08x=sceKernelCreateTlspl(): invalid partition %d", SCE_KERNEL_ERROR_ILLEGAL_PERM, partition);
 		return SCE_KERNEL_ERROR_ILLEGAL_PERM;
-	}
 
 	// There's probably a simpler way to get this same basic formula...
 	// This is based on results from a PSP.
@@ -2056,10 +1885,7 @@ SceUID sceKernelCreateTlspl(const char *name, u32 partition, u32 attr, u32 block
 	if (!illegalMemSize && (u64) count >= 0x100000000ULL / (((u64) blockSize + 3ULL) & ~3ULL))
 		illegalMemSize = true;
 	if (illegalMemSize)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "%08x=sceKernelCreateTlspl(): invalid blockSize/count", SCE_KERNEL_ERROR_ILLEGAL_MEMSIZE);
 		return SCE_KERNEL_ERROR_ILLEGAL_MEMSIZE;
-	}
 
 	int index = -1;
 	for (int i = 0; i < TLSPL_NUM_INDEXES; ++i)
@@ -2070,27 +1896,19 @@ SceUID sceKernelCreateTlspl(const char *name, u32 partition, u32 attr, u32 block
 		}
 
 	if (index == -1)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "%08x=sceKernelCreateTlspl(): ran out of indexes for TLS pools", PSP_ERROR_TOO_MANY_TLSPL);
 		return PSP_ERROR_TOO_MANY_TLSPL;
-	}
 
 	// Unless otherwise specified, we align to 4 bytes (a mips word.)
 	u32 alignment = 4;
 	if (optionsPtr != 0)
 	{
 		u32 size = Memory::Read_U32(optionsPtr);
-		if (size > 8)
-			WARN_LOG_REPORT(SCEKERNEL, "sceKernelCreateTlspl(%s) unsupported options parameter, size = %d", name, size);
 		if (size >= 8)
 			alignment = Memory::Read_U32(optionsPtr + 4);
 
 		// Note that 0 intentionally is allowed.
 		if ((alignment & (alignment - 1)) != 0)
-		{
-			ERROR_LOG_REPORT(SCEKERNEL, "sceKernelCreateTlspl(%s): alignment is not a power of 2: %d", name, alignment);
 			return SCE_KERNEL_ERROR_ILLEGAL_ARGUMENT;
-		}
 		// This goes for 0, 1, and 2.  Can't have less than 4 byte alignment.
 		if (alignment < 4)
 			alignment = 4;

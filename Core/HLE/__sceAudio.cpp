@@ -306,9 +306,7 @@ void __AudioWakeThreads(AudioChannel &chan, int result) {
 }
 
 void __AudioSetOutputFrequency(int freq) {
-	if (freq != 44100) {
-		WARN_LOG_REPORT(SCEAUDIO, "Switching audio frequency to %i", freq);
-	} else {
+	if (freq == 44100) {
 		DEBUG_LOG(SCEAUDIO, "Switching audio frequency to %i", freq);
 	}
 	mixFrequency = freq;

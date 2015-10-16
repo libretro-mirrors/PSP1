@@ -142,8 +142,6 @@ void __KernelSemaBeginCallback(SceUID threadID, SceUID prevCallbackId)
 	auto result = HLEKernel::WaitBeginCallback<Semaphore, WAITTYPE_SEMA, SceUID>(threadID, prevCallbackId, semaWaitTimer);
 	if (result == HLEKernel::WAIT_CB_SUCCESS)
 		DEBUG_LOG(SCEKERNEL, "sceKernelWaitSemaCB: Suspending sema wait for callback");
-	else
-		WARN_LOG_REPORT(SCEKERNEL, "sceKernelWaitSemaCB: beginning callback with bad wait id?");
 }
 
 void __KernelSemaEndCallback(SceUID threadID, SceUID prevCallbackId)
@@ -205,15 +203,9 @@ int sceKernelCancelSema(SceUID id, int newCount, u32 numWaitThreadsPtr)
 int sceKernelCreateSema(const char* name, u32 attr, int initVal, int maxVal, u32 optionPtr)
 {
 	if (!name)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "%08x=sceKernelCreateSema(): invalid name", SCE_KERNEL_ERROR_ERROR);
 		return SCE_KERNEL_ERROR_ERROR;
-	}
 	if (attr >= 0x200)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "%08x=sceKernelCreateSema(): invalid attr parameter: %08x", SCE_KERNEL_ERROR_ILLEGAL_ATTR, attr);
 		return SCE_KERNEL_ERROR_ILLEGAL_ATTR;
-	}
 
 	Semaphore *s = new Semaphore;
 	SceUID id = kernelObjects.Create(s);
@@ -228,15 +220,6 @@ int sceKernelCreateSema(const char* name, u32 attr, int initVal, int maxVal, u32
 	s->ns.numWaitThreads = 0;
 
 	DEBUG_LOG(SCEKERNEL, "%i=sceKernelCreateSema(%s, %08x, %i, %i, %08x)", id, s->ns.name, s->ns.attr, s->ns.initCount, s->ns.maxCount, optionPtr);
-
-	if (optionPtr != 0)
-	{
-		u32 size = Memory::Read_U32(optionPtr);
-		if (size > 4)
-			WARN_LOG_REPORT(SCEKERNEL, "sceKernelCreateSema(%s) unsupported options parameter, size = %d", name, size);
-	}
-	if ((attr & ~PSP_SEMA_ATTR_PRIORITY) != 0)
-		WARN_LOG_REPORT(SCEKERNEL, "sceKernelCreateSema(%s) unsupported attr parameter: %08x", name, attr);
 
 	return id;
 }

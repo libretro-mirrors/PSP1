@@ -493,40 +493,27 @@ int __ReleaseSubIntrHandler(int intrNumber, int subIntrNumber) {
 }
 
 u32 sceKernelRegisterSubIntrHandler(u32 intrNumber, u32 subIntrNumber, u32 handler, u32 handlerArg) {
-	if (intrNumber >= PSP_NUMBER_INTERRUPTS) {
-		ERROR_LOG_REPORT(SCEINTC, "sceKernelRegisterSubIntrHandler(%i, %i, %08x, %08x): invalid interrupt", intrNumber, subIntrNumber, handler, handlerArg);
+	if (intrNumber >= PSP_NUMBER_INTERRUPTS)
 		return SCE_KERNEL_ERROR_ILLEGAL_INTRCODE;
-	}
-	if (subIntrNumber >= PSP_NUMBER_SUBINTERRUPTS) {
-		ERROR_LOG_REPORT(SCEINTC, "sceKernelRegisterSubIntrHandler(%i, %i, %08x, %08x): invalid subinterrupt", intrNumber, subIntrNumber, handler, handlerArg);
+	if (subIntrNumber >= PSP_NUMBER_SUBINTERRUPTS)
 		return SCE_KERNEL_ERROR_ILLEGAL_INTRCODE;
-	}
 
 	u32 error;
 	SubIntrHandler *subIntrHandler = __RegisterSubIntrHandler(intrNumber, subIntrNumber, handler, handlerArg, error);
 	if (subIntrHandler) {
-		if (handler == 0) {
-			WARN_LOG_REPORT(SCEINTC, "sceKernelRegisterSubIntrHandler(%i, %i, %08x, %08x): ignored NULL handler", intrNumber, subIntrNumber, handler, handlerArg);
-		} else {
+		if (handler != 0) 
+      {
 			DEBUG_LOG(SCEINTC, "sceKernelRegisterSubIntrHandler(%i, %i, %08x, %08x)", intrNumber, subIntrNumber, handler, handlerArg);
-		}
-	} else if (error == SCE_KERNEL_ERROR_FOUND_HANDLER) {
-		ERROR_LOG_REPORT(SCEINTC, "sceKernelRegisterSubIntrHandler(%i, %i, %08x, %08x): duplicate handler", intrNumber, subIntrNumber, handler, handlerArg);
-	} else {
-		ERROR_LOG_REPORT(SCEINTC, "sceKernelRegisterSubIntrHandler(%i, %i, %08x, %08x): error %08x", intrNumber, subIntrNumber, handler, handlerArg, error);
+      }
 	}
-	return error;
+   return error;
 }
 
 u32 sceKernelReleaseSubIntrHandler(u32 intrNumber, u32 subIntrNumber) {
-	if (intrNumber >= PSP_NUMBER_INTERRUPTS) {
-		ERROR_LOG_REPORT(SCEINTC, "sceKernelReleaseSubIntrHandler(%i, %i): invalid interrupt", intrNumber, subIntrNumber);
+	if (intrNumber >= PSP_NUMBER_INTERRUPTS)
 		return SCE_KERNEL_ERROR_ILLEGAL_INTRCODE;
-	}
-	if (subIntrNumber >= PSP_NUMBER_SUBINTERRUPTS) {
-		ERROR_LOG_REPORT(SCEINTC, "sceKernelReleaseSubIntrHandler(%i, %i): invalid subinterrupt", intrNumber, subIntrNumber);
+	if (subIntrNumber >= PSP_NUMBER_SUBINTERRUPTS)
 		return SCE_KERNEL_ERROR_ILLEGAL_INTRCODE;
-	}
 
 	u32 error = __ReleaseSubIntrHandler(intrNumber, subIntrNumber);
 	if (error != SCE_KERNEL_ERROR_OK) {
@@ -536,14 +523,10 @@ u32 sceKernelReleaseSubIntrHandler(u32 intrNumber, u32 subIntrNumber) {
 }
 
 u32 sceKernelEnableSubIntr(u32 intrNumber, u32 subIntrNumber) {
-	if (intrNumber >= PSP_NUMBER_INTERRUPTS) {
-		ERROR_LOG_REPORT(SCEINTC, "sceKernelEnableSubIntr(%i, %i): invalid interrupt", intrNumber, subIntrNumber);
+	if (intrNumber >= PSP_NUMBER_INTERRUPTS)
 		return SCE_KERNEL_ERROR_ILLEGAL_INTRCODE;
-	}
-	if (subIntrNumber >= PSP_NUMBER_SUBINTERRUPTS) {
-		ERROR_LOG_REPORT(SCEINTC, "sceKernelEnableSubIntr(%i, %i): invalid subinterrupt", intrNumber, subIntrNumber);
+	if (subIntrNumber >= PSP_NUMBER_SUBINTERRUPTS)
 		return SCE_KERNEL_ERROR_ILLEGAL_INTRCODE;
-	}
 
 	DEBUG_LOG(SCEINTC, "sceKernelEnableSubIntr(%i, %i)", intrNumber, subIntrNumber);
 	u32 error;
@@ -557,14 +540,10 @@ u32 sceKernelEnableSubIntr(u32 intrNumber, u32 subIntrNumber) {
 }
 
 static u32 sceKernelDisableSubIntr(u32 intrNumber, u32 subIntrNumber) {
-	if (intrNumber >= PSP_NUMBER_INTERRUPTS) {
-		ERROR_LOG_REPORT(SCEINTC, "sceKernelDisableSubIntr(%i, %i): invalid interrupt", intrNumber, subIntrNumber);
+	if (intrNumber >= PSP_NUMBER_INTERRUPTS)
 		return SCE_KERNEL_ERROR_ILLEGAL_INTRCODE;
-	}
-	if (subIntrNumber >= PSP_NUMBER_SUBINTERRUPTS) {
-		ERROR_LOG_REPORT(SCEINTC, "sceKernelDisableSubIntr(%i, %i): invalid subinterrupt", intrNumber, subIntrNumber);
+	if (subIntrNumber >= PSP_NUMBER_SUBINTERRUPTS)
 		return SCE_KERNEL_ERROR_ILLEGAL_INTRCODE;
-	}
 
 	DEBUG_LOG(SCEINTC, "sceKernelDisableSubIntr(%i, %i)", intrNumber, subIntrNumber);
 
@@ -599,7 +578,6 @@ struct PspIntrHandlerOptionParam {
 
 static int QueryIntrHandlerInfo()
 {
-	ERROR_LOG_REPORT(SCEINTC, "QueryIntrHandlerInfo()");
 	return 0;
 }
 

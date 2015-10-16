@@ -330,10 +330,8 @@ void __DisplayVblankBeginCallback(SceUID threadID, SceUID prevCallbackId) {
 		}
 	}
 
-	if (waitData.threadID != threadID) {
-		WARN_LOG_REPORT(SCEDISPLAY, "sceDisplayWaitVblankCB: could not find waiting thread info.");
+	if (waitData.threadID != threadID)
 		return;
-	}
 
 	vblankPausedWaits[pauseKey] = vCount + waitData.vcountUnblock;
 	DEBUG_LOG(SCEDISPLAY, "sceDisplayWaitVblankCB: Suspending vblank wait for callback");
@@ -946,10 +944,8 @@ static u32 sceDisplayGetCurrentHcount() {
 }
 
 static int sceDisplayAdjustAccumulatedHcount(int value) {
-	if (value < 0) {
-		ERROR_LOG_REPORT(SCEDISPLAY, "sceDisplayAdjustAccumulatedHcount(%d): invalid value", value);
+	if (value < 0)
 		return SCE_KERNEL_ERROR_INVALID_VALUE;
-	}
 
 	// Since it includes the current hCount, find the difference to apply to the base.
 	u32 accumHCount = __DisplayGetAccumulatedHcount();

@@ -469,7 +469,6 @@ SceUID KernelObjectPool::Create(KernelObject *obj, int rangeBottom, int rangeTop
 		}
 	}
 
-	ERROR_LOG_REPORT(SCEKERNEL, "Unable to allocate kernel object, too many objects slots in use.");
 	return 0;
 }
 

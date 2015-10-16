@@ -34,13 +34,6 @@
 using namespace Gen;
 using namespace X64JitConstants;
 
-//TODO - make an option
-//#if _DEBUG
-static bool enableDebug = false; 
-//#else
-//		bool enableDebug = false; 
-//#endif
-
 //static bool enableStatistics = false; //unused?
 
 //GLOBAL STATIC ALLOCATIONS x86
@@ -119,10 +112,6 @@ void AsmRoutineManager::Generate(MIPSState *mips, MIPSComp::Jit *jit, MIPSComp::
 			SHR(32, R(EDX), Imm8(24));
 			CMP(32, R(EDX), Imm8(MIPS_EMUHACK_OPCODE >> 24));
 			FixupBranch notfound = J_CC(CC_NE);
-				if (enableDebug)
-				{
-					ADD(32, M(&mips->debugCount), Imm8(1));
-				}
 				//grab from list and jump to it
 				AND(32, R(EAX), Imm32(MIPS_EMUHACK_VALUE_MASK));
 #ifdef _M_IX86

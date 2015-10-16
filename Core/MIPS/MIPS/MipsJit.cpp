@@ -107,14 +107,6 @@ void MipsJit::InvalidateCacheAt(u32 em_address, int length)
 }
 
 void MipsJit::EatInstruction(MIPSOpcode op) {
-	MIPSInfo info = MIPSGetInfo(op);
-	if (info & DELAYSLOT) {
-		ERROR_LOG_REPORT_ONCE(ateDelaySlot, JIT, "Ate a branch op.");
-	}
-	if (js.inDelaySlot) {
-		ERROR_LOG_REPORT_ONCE(ateInDelaySlot, JIT, "Ate an instruction inside a delay slot.");
-	}
-
 	js.numInstructions++;
 	js.compilerPC += 4;
 	js.downcountAmount += MIPSGetInstructionCycleEstimate(op);

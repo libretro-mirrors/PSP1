@@ -525,7 +525,6 @@ namespace MIPSInt
 				} else if (fs == 0) {
 					R(rt) = MIPSState::FCR0_VALUE;
 				} else {
-					WARN_LOG_REPORT(CPU, "ReadFCR: Unexpected reg %d", fs);
 					R(rt) = 0;
 				}
 				break;
@@ -541,8 +540,6 @@ namespace MIPSInt
 				if (fs == 31) {
 					currentMIPS->fcr31 = value & 0x0181FFFF;
 					currentMIPS->fpcond = (value >> 23) & 1;
-				} else {
-					WARN_LOG_REPORT(CPU, "WriteFCR: Unexpected reg %d (value %08x)", fs, value);
 				}
 				DEBUG_LOG(CPU, "FCR%i written to, value %08x", fs, value);
 				break;

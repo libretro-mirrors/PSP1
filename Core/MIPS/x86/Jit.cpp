@@ -339,12 +339,6 @@ void Jit::CompileDelaySlot(int flags, RegCacheState *state)
 void Jit::EatInstruction(MIPSOpcode op)
 {
 	MIPSInfo info = MIPSGetInfo(op);
-	if (info & DELAYSLOT) {
-		ERROR_LOG_REPORT_ONCE(ateDelaySlot, JIT, "Ate a branch op.");
-	}
-	if (js.inDelaySlot) {
-		ERROR_LOG_REPORT_ONCE(ateInDelaySlot, JIT, "Ate an instruction inside a delay slot.");
-	}
 
 	CheckJitBreakpoint(GetCompilerPC() + 4, 0);
 	js.numInstructions++;
@@ -663,8 +657,6 @@ void Jit::Comp_Generic(MIPSOpcode op)
 			ABI_CallFunctionC(func, op.encoding);
 		ApplyRoundingMode();
 	}
-	else
-		ERROR_LOG_REPORT(JIT, "Trying to compile instruction %08x that can't be interpreted", op.encoding);
 
 	const MIPSInfo info = MIPSGetInfo(op);
 	if ((info & IS_VFPU) != 0 && (info & VFPU_NO_PREFIX) == 0)
@@ -679,9 +671,6 @@ void Jit::WriteExit(u32 destination, int exit_num)
 {
 	_dbg_assert_msg_(JIT, exit_num < MAX_JIT_BLOCK_EXITS, "Expected a valid exit_num");
 
-	if (!Memory::IsValidAddress(destination)) {
-		ERROR_LOG_REPORT(JIT, "Trying to write block exit to illegal destination %08x: pc = %08x", destination, currentMIPS->pc);
-	}
 	// If we need to verify coreState and rewind, we may not jump yet.
 	if (js.afterOp & (JitState::AFTER_CORE_STATE | JitState::AFTER_REWIND_PC_BAD_STATE))
 	{

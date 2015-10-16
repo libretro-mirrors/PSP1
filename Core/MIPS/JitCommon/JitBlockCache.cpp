@@ -522,10 +522,8 @@ void JitBlockCache::RestoreSavedEmuHackOps(std::vector<u32> saved) {
 }
 
 void JitBlockCache::DestroyBlock(int block_num, bool invalidate) {
-	if (block_num < 0 || block_num >= num_blocks_) {
-		ERROR_LOG_REPORT(JIT, "DestroyBlock: Invalid block number %d", block_num);
+	if (block_num < 0 || block_num >= num_blocks_)
 		return;
-	}
 	JitBlock *b = &blocks_[block_num];
 	// No point it being in there anymore.
 	RemoveBlockMap(block_num);

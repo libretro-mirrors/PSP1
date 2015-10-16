@@ -333,7 +333,6 @@ OpArg GPRRegCache::GetDefaultLocation(MIPSGPReg reg) const {
 	case MIPS_REG_VFPUCC:
 		return M(&mips->vfpuCtrl[VFPU_CTRL_CC]);
 	default:
-		ERROR_LOG_REPORT(JIT, "bad mips register %i", reg);
 		return M(&mips->r[0]);
 	}
 }

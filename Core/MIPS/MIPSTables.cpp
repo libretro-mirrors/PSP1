@@ -933,17 +933,13 @@ void MIPSCompileOp(MIPSOpcode op) {
 		return;
 	const MIPSInstruction *instr = MIPSGetInstruction(op);
 	const MIPSInfo info = MIPSGetInfo(op);
-	if (instr) {
-		if (instr->compile) {
+	if (instr)
+   {
+		if (instr->compile)
 			(MIPSComp::jit->*(instr->compile))(op);
-		} else {
-			ERROR_LOG_REPORT(CPU,"MIPSCompileOp %08x failed",op.encoding);
-		}
 
 		if (info & OUT_EAT_PREFIX)
 			MIPSComp::jit->EatPrefix();
-	} else {
-		ERROR_LOG_REPORT(CPU, "MIPSCompileOp: Invalid instruction %08x", op.encoding);
 	}
 }
 
@@ -973,7 +969,6 @@ void MIPSInterpret(MIPSOpcode op) {
 	if (instr && instr->interpret) {
 		instr->interpret(op);
 	} else {
-		ERROR_LOG_REPORT(CPU, "Unknown instruction %08x at %08x", op.encoding, currentMIPS->pc);
 		// Try to disassemble it
 		char disasm[256];
 		MIPSDisAsm(op, currentMIPS->pc, disasm);

@@ -122,13 +122,8 @@ void ApplyPrefixST(float *r, u32 data, VectorSize size)
 		{
 			// Prefix may say "z, z, z, z" but if this is a pair, we force to x.
 			// TODO: But some ops seem to use const 0 instead?
-			if (regnum >= n) {
-				ERROR_LOG_REPORT(CPU, "Invalid VFPU swizzle: %08x: %i / %d at PC = %08x (%s)", data, regnum, n, currentMIPS->pc, MIPSDisasmAt(currentMIPS->pc));
-				//for (int i = 0; i < 12; i++) {
-				//	ERROR_LOG(CPU, "  vfpuCtrl[%i] = %08x", i, currentMIPS->vfpuCtrl[i]);
-				//}
+			if (regnum >= n)
 				regnum = 0;
-			}
 
 			r[i] = origV[regnum];
 			if (abs)
@@ -805,7 +800,6 @@ namespace MIPSInt
 				break;
 
 			default:
-				ERROR_LOG_REPORT(CPU, "vus2i with more than 2 elements.");
 				break;
 			}
 			break;
@@ -826,7 +820,6 @@ namespace MIPSInt
 				break;
 
 			default:
-				ERROR_LOG_REPORT(CPU, "vs2i with more than 2 elements.");
 				break;
 			}
 			break;
@@ -1709,10 +1702,6 @@ namespace MIPSInt
 					d[i] = s[i];
 			}
 		}
-		else
-		{
-			ERROR_LOG_REPORT(CPU, "Bad Imm3 in cmov: %d", imm3);
-		}
 		ApplyPrefixD(d, sz);
 		WriteVector(d, sz, vd);
 		PC += 4;
@@ -1829,9 +1818,6 @@ bad:
 		// TODO: Test swizzle, t?
 		ApplySwizzleS(s.f, sz);
 
-		if (sz != V_Single) {
-			ERROR_LOG_REPORT(CPU, "vwbn not implemented for size %d", GetNumVectorElements(sz));
-		}
 		for (int i = 0; i < GetNumVectorElements(sz); ++i) {
 			u32 sigbit = s.u[i] & 0x80000000;
 			u32 prevExp = (s.u[i] & 0x7F800000) >> 23;
@@ -1870,9 +1856,6 @@ bad:
 		// TODO: Test swizzle, t?
 		ApplySwizzleS(s.f, sz);
 
-		if (sz != V_Single) {
-			ERROR_LOG_REPORT(CPU, "vsbn not implemented for size %d", GetNumVectorElements(sz));
-		}
 		for (int i = 0; i < GetNumVectorElements(sz); ++i) {
 			// Simply replace the exponent bits.
 			u32 prev = s.u[i] & 0x7F800000;

@@ -154,7 +154,6 @@ CCFlags Jit::FlipCCFlag(CCFlags flag)
 	case CC_LE: return CC_NLE;
 	case CC_NLE: return CC_LE;
 	}
-	ERROR_LOG_REPORT(JIT, "FlipCCFlag: Unexpected CC flag: %d", flag);
 	return CC_O;
 }
 
@@ -180,7 +179,6 @@ CCFlags Jit::SwapCCFlag(CCFlags flag)
 	case CC_LE: return CC_GE;
 	case CC_NLE: return CC_NGE;
 	}
-	ERROR_LOG_REPORT(JIT, "SwapCCFlag: Unexpected CC flag: %d", flag);
 	return CC_O;
 }
 
@@ -319,10 +317,8 @@ void Jit::CompBranchExit(bool taken, u32 targetAddr, u32 notTakenAddr, bool dela
 void Jit::BranchRSRTComp(MIPSOpcode op, Gen::CCFlags cc, bool likely)
 {
 	CONDITIONAL_LOG;
-	if (js.inDelaySlot) {
-		ERROR_LOG_REPORT(JIT, "Branch in RSRTComp delay slot at %08x in block starting at %08x", GetCompilerPC(), js.blockStart);
+	if (js.inDelaySlot)
 		return;
-	}
 	int offset = _IMM16 << 2;
 	MIPSGPReg rt = _RT;
 	MIPSGPReg rs = _RS;
@@ -395,10 +391,8 @@ void Jit::BranchRSRTComp(MIPSOpcode op, Gen::CCFlags cc, bool likely)
 void Jit::BranchRSZeroComp(MIPSOpcode op, Gen::CCFlags cc, bool andLink, bool likely)
 {
 	CONDITIONAL_LOG;
-	if (js.inDelaySlot) {
-		ERROR_LOG_REPORT(JIT, "Branch in RSZeroComp delay slot at %08x in block starting at %08x", GetCompilerPC(), js.blockStart);
+	if (js.inDelaySlot)
 		return;
-	}
 	int offset = _IMM16 << 2;
 	MIPSGPReg rs = _RS;
 	u32 targetAddr = GetCompilerPC() + offset + 4;
@@ -509,10 +503,8 @@ void Jit::Comp_RelBranchRI(MIPSOpcode op)
 void Jit::BranchFPFlag(MIPSOpcode op, Gen::CCFlags cc, bool likely)
 {
 	CONDITIONAL_LOG;
-	if (js.inDelaySlot) {
-		ERROR_LOG_REPORT(JIT, "Branch in FPFlag delay slot at %08x in block starting at %08x", GetCompilerPC(), js.blockStart);
+	if (js.inDelaySlot)
 		return;
-	}
 	int offset = _IMM16 << 2;
 	u32 targetAddr = GetCompilerPC() + offset + 4;
 
@@ -547,10 +539,8 @@ void Jit::Comp_FPUBranch(MIPSOpcode op)
 void Jit::BranchVFPUFlag(MIPSOpcode op, Gen::CCFlags cc, bool likely)
 {
 	CONDITIONAL_LOG;
-	if (js.inDelaySlot) {
-		ERROR_LOG_REPORT(JIT, "Branch in VFPU delay slot at %08x in block starting at %08x", GetCompilerPC(), js.blockStart);
+	if (js.inDelaySlot)
 		return;
-	}
 	int offset = _IMM16 << 2;
 	u32 targetAddr = GetCompilerPC() + offset + 4;
 
@@ -564,8 +554,6 @@ void Jit::BranchVFPUFlag(MIPSOpcode op, Gen::CCFlags cc, bool likely)
 	CONDITIONAL_NICE_DELAYSLOT;
 	if (!likely && delaySlotIsNice)
 		CompileDelaySlot(DELAYSLOT_NICE);
-	if (delaySlotIsBranch && (signed short)(delaySlotOp & 0xFFFF) != (signed short)(op & 0xFFFF) - 1)
-		ERROR_LOG_REPORT(JIT, "VFPU branch in VFPU delay slot at %08x with different target %d / %d", GetCompilerPC(), (signed short)(delaySlotOp & 0xFFFF), (signed short)(op & 0xFFFF) - 1);
 
 	// THE CONDITION
 	int imm3 = (op >> 18) & 7;
@@ -594,20 +582,15 @@ void Jit::Comp_VBranch(MIPSOpcode op)
 
 void Jit::Comp_Jump(MIPSOpcode op) {
 	CONDITIONAL_LOG;
-	if (js.inDelaySlot) {
-		ERROR_LOG_REPORT(JIT, "Branch in Jump delay slot at %08x in block starting at %08x", GetCompilerPC(), js.blockStart);
+	if (js.inDelaySlot)
 		return;
-	}
 	u32 off = _IMM26 << 2;
 	u32 targetAddr = (GetCompilerPC() & 0xF0000000) | off;
 
 	// Might be a stubbed address or something?
 	if (!Memory::IsValidAddress(targetAddr)) {
-		if (js.nextExit == 0) {
-			ERROR_LOG_REPORT(JIT, "Jump to invalid address: %08x PC %08x LR %08x", targetAddr, GetCompilerPC(), currentMIPS->r[MIPS_REG_RA]);
-		} else {
-			js.compiling = false;
-		}
+		if (js.nextExit != 0)
+         js.compiling = false;
 		// TODO: Mark this block dirty or something?  May be indication it will be changed by imports.
 		return;
 	}
@@ -666,10 +649,8 @@ static u32 savedPC;
 void Jit::Comp_JumpReg(MIPSOpcode op)
 {
 	CONDITIONAL_LOG;
-	if (js.inDelaySlot) {
-		ERROR_LOG_REPORT(JIT, "Branch in JumpReg delay slot at %08x in block starting at %08x", GetCompilerPC(), js.blockStart);
+	if (js.inDelaySlot)
 		return;
-	}
 	MIPSGPReg rs = _RS;
 	MIPSGPReg rd = _RD;
 	bool andLink = (op & 0x3f) == 9 && rd != MIPS_REG_ZERO;

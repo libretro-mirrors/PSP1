@@ -164,17 +164,15 @@ void FramebufferManager::CompileDraw2DProgram() {
 	if (!draw2dprogram_) {
 		std::string errorString;
 		draw2dprogram_ = glsl_create_source(basic_vs, tex_fs, &errorString);
-		if (!draw2dprogram_) {
-			ERROR_LOG_REPORT(G3D, "Failed to compile draw2dprogram! This shouldn't happen.\n%s", errorString.c_str());
-		} else {
+		if (draw2dprogram_)
+      {
 			glsl_bind(draw2dprogram_);
 			glUniform1i(draw2dprogram_->sampler0, 0);
 		}
 
 		plainColorProgram_ = glsl_create_source(color_vs, color_fs, &errorString);
-		if (!plainColorProgram_) {
-			ERROR_LOG_REPORT(G3D, "Failed to compile plainColorProgram! This shouldn't happen.\n%s", errorString.c_str());
-		} else {
+		if (plainColorProgram_)
+		{
 			glsl_bind(plainColorProgram_);
 			plainColorLoc_ = glsl_uniform_loc(plainColorProgram_, "u_color");
 		}
@@ -910,11 +908,6 @@ void FramebufferManager::CopyDisplayToOutput() {
 				}
 			}
 		}
-
-		if (vfb) {
-			// Okay, we found one above.
-			INFO_LOG_REPORT_ONCE(displayoffset, HLE, "Rendering from framebuf with offset %08x -> %08x+%dx%d", addr, vfb->fb_address, offsetX, offsetY);
-		}
 	}
 
 	if (vfb && vfb->format != displayFormat_) {
@@ -1483,7 +1476,6 @@ void FramebufferManager::PackFramebufferAsync_(VirtualFramebuffer *vfb) {
 		if (vfb->fbo) {
 			fbo_bind_for_read(vfb->fbo);
 		} else {
-			ERROR_LOG_REPORT_ONCE(vfbfbozero, SCEGE, "PackFramebufferAsync_: vfb->fbo == 0");
 			fbo_unbind_read();
 			return;
 		}
@@ -1549,7 +1541,6 @@ void FramebufferManager::PackFramebufferSync_(VirtualFramebuffer *vfb, int x, in
 	if (vfb->fbo) {
 		fbo_bind_for_read(vfb->fbo);
 	} else {
-		ERROR_LOG_REPORT_ONCE(vfbfbozero, SCEGE, "PackFramebufferSync_: vfb->fbo == 0");
 		fbo_unbind_read();
 		return;
 	}

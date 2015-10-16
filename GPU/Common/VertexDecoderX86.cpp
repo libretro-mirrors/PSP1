@@ -1172,7 +1172,6 @@ void VertexDecoderJitCache::Jit_NormalFloatSkin() {
 
 // Through expands into floats, always. Might want to look at changing this.
 void VertexDecoderJitCache::Jit_PosS8Through() {
-	DEBUG_LOG_REPORT_ONCE(vertexS8Through, G3D, "Using S8 positions in throughmode");
 	// TODO: SIMD
 	for (int i = 0; i < 3; i++) {
 		MOVSX(32, 8, tempReg1, MDisp(srcReg, dec_->posoff + i));

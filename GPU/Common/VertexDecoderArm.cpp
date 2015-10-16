@@ -1136,7 +1136,6 @@ void VertexDecoderJitCache::Jit_NormalFloat() {
 
 // Through expands into floats, always. Might want to look at changing this.
 void VertexDecoderJitCache::Jit_PosS8Through() {
-	DEBUG_LOG_REPORT_ONCE(vertexS8Through, G3D, "Using S8 positions in throughmode");
 	_dbg_assert_msg_(JIT, fpScratchReg + 1 == fpScratchReg2, "VertexDecoder fpScratchRegs must be in order.");
 	_dbg_assert_msg_(JIT, fpScratchReg2 + 1 == fpScratchReg3, "VertexDecoder fpScratchRegs must be in order.");
 

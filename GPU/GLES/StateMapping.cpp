@@ -176,10 +176,8 @@ bool TransformDrawEngine::ApplyShaderBlending() {
 
 	static int lastFrameBlit = -1;
 	static int blitsThisFrame = 0;
-	if (lastFrameBlit != gpuStats.numFlips) {
-		if (blitsThisFrame > MAX_REASONABLE_BLITS_PER_FRAME) {
-			WARN_LOG_REPORT_ONCE(blendingBlit, G3D, "Lots of blits needed for obscure blending: %d per frame, blend %d/%d/%d", blitsThisFrame, gstate.getBlendFuncA(), gstate.getBlendFuncB(), gstate.getBlendEq());
-		}
+	if (lastFrameBlit != gpuStats.numFlips)
+   {
 		blitsThisFrame = 0;
 		lastFrameBlit = gpuStats.numFlips;
 	}
@@ -231,7 +229,6 @@ void TransformDrawEngine::ApplyStencilReplaceAndLogicOp(ReplaceAlphaType replace
 			break;
 		case GE_LOGIC_AND:
 		case GE_LOGIC_AND_REVERSE:
-			WARN_LOG_REPORT_ONCE(d3dLogicOpAnd, G3D, "Unsupported AND logic op: %x", gstate.getLogicOp());
 			break;
 		case GE_LOGIC_COPY:
 			// This is the same as off.
@@ -244,33 +241,27 @@ void TransformDrawEngine::ApplyStencilReplaceAndLogicOp(ReplaceAlphaType replace
 		case GE_LOGIC_NAND:
 		case GE_LOGIC_EQUIV:
 			// Handled in the shader.
-			WARN_LOG_REPORT_ONCE(d3dLogicOpAndInverted, G3D, "Attempted invert for logic op: %x", gstate.getLogicOp());
 			break;
 		case GE_LOGIC_INVERTED:
 			srcBlend = GL_ONE;
 			dstBlend = GL_ONE;
 			blendOp = GL_FUNC_SUBTRACT;
-			WARN_LOG_REPORT_ONCE(d3dLogicOpInverted, G3D, "Attempted inverse for logic op: %x", gstate.getLogicOp());
 			break;
 		case GE_LOGIC_NOOP:
 			srcBlend = GL_ZERO;
 			dstBlend = GL_ONE;
 			break;
 		case GE_LOGIC_XOR:
-			WARN_LOG_REPORT_ONCE(d3dLogicOpOrXor, G3D, "Unsupported XOR logic op: %x", gstate.getLogicOp());
 			break;
 		case GE_LOGIC_OR:
 		case GE_LOGIC_OR_INVERTED:
 			// Inverted in shader.
 			dstBlend = GL_ONE;
-			WARN_LOG_REPORT_ONCE(d3dLogicOpOr, G3D, "Attempted or for logic op: %x", gstate.getLogicOp());
 			break;
 		case GE_LOGIC_OR_REVERSE:
-			WARN_LOG_REPORT_ONCE(d3dLogicOpOrReverse, G3D, "Unsupported OR REVERSE logic op: %x", gstate.getLogicOp());
 			break;
 		case GE_LOGIC_SET:
 			dstBlend = GL_ONE;
-			WARN_LOG_REPORT_ONCE(d3dLogicOpSet, G3D, "Attempted set for logic op: %x", gstate.getLogicOp());
 			break;
 		}
 	}
@@ -677,18 +668,6 @@ void TransformDrawEngine::ApplyDrawState(int prim) {
 		bool amask = (gstate.pmska & 0xFF) < 128;
 
 		u8 abits = (gstate.pmska >> 0) & 0xFF;
-#ifndef MOBILE_DEVICE
-		u8 rbits = (gstate.pmskc >> 0) & 0xFF;
-		u8 gbits = (gstate.pmskc >> 8) & 0xFF;
-		u8 bbits = (gstate.pmskc >> 16) & 0xFF;
-		if ((rbits != 0 && rbits != 0xFF) || (gbits != 0 && gbits != 0xFF) || (bbits != 0 && bbits != 0xFF)) {
-			WARN_LOG_REPORT_ONCE(rgbmask, G3D, "Unsupported RGB mask: r=%02x g=%02x b=%02x", rbits, gbits, bbits);
-		}
-		if (abits != 0 && abits != 0xFF) {
-			// The stencil part of the mask is supported.
-			WARN_LOG_REPORT_ONCE(amask, G3D, "Unsupported alpha/stencil mask: %02x", abits);
-		}
-#endif
 
 		// Let's not write to alpha if stencil isn't enabled.
 		if (!gstate.isStencilTestEnabled()) {
@@ -877,19 +856,6 @@ void TransformDrawEngine::ApplyDrawState(int prim) {
 		float depthRangeMin = zOff - zScale;
 		float depthRangeMax = zOff + zScale;
 		glstate.depthRange.set(depthRangeMin, depthRangeMax);
-
-#ifndef MOBILE_DEVICE
-		float minz = gstate.getDepthRangeMin() * (1.0f / 65535.0f);
-		float maxz = gstate.getDepthRangeMax() * (1.0f / 65535.0f);
-		if ((minz > depthRangeMin && minz > depthRangeMax) || (maxz < depthRangeMin && maxz < depthRangeMax)) {
-			WARN_LOG_REPORT_ONCE(minmaxz, G3D, "Unsupported depth range test - depth range: %f-%f, test: %f-%f", depthRangeMin, depthRangeMax, minz, maxz);
-		} else if ((gstate.clipEnable & 1) == 0) {
-			// TODO: Need to test whether clipEnable should even affect depth or not.
-			if ((minz < depthRangeMin && minz < depthRangeMax) || (maxz > depthRangeMin && maxz > depthRangeMax)) {
-				WARN_LOG_REPORT_ONCE(znoclip, G3D, "Unsupported depth range test without clipping - depth range: %f-%f, test: %f-%f", depthRangeMin, depthRangeMax, minz, maxz);
-			}
-		}
-#endif
 	}
 }
 

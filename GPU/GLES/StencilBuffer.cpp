@@ -147,9 +147,7 @@ bool FramebufferManager::NotifyStencilUpload(u32 addr, int size, bool skipZero) 
 	if (!stencilUploadProgram_) {
 		std::string errorString;
 		stencilUploadProgram_ = glsl_create_source(stencil_vs, stencil_fs, &errorString);
-		if (!stencilUploadProgram_) {
-			ERROR_LOG_REPORT(G3D, "Failed to compile stencilUploadProgram! This shouldn't happen.\n%s", errorString.c_str());
-		} else {
+		if (stencilUploadProgram_) {
 			glsl_bind(stencilUploadProgram_);
 		}
 

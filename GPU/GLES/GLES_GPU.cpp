@@ -790,26 +790,16 @@ void GLES_GPU::Execute_Prim(u32 op, u32 diff) {
 		return;
 	}
 
-	if (!Memory::IsValidAddress(gstate_c.vertexAddr)) {
-		ERROR_LOG_REPORT(G3D, "Bad vertex address %08x!", gstate_c.vertexAddr);
+	if (!Memory::IsValidAddress(gstate_c.vertexAddr))
 		return;
-	}
 
 	void *verts = Memory::GetPointerUnchecked(gstate_c.vertexAddr);
 	void *inds = 0;
 	if ((gstate.vertType & GE_VTYPE_IDX_MASK) != GE_VTYPE_IDX_NONE) {
-		if (!Memory::IsValidAddress(gstate_c.indexAddr)) {
-			ERROR_LOG_REPORT(G3D, "Bad index address %08x!", gstate_c.indexAddr);
+		if (!Memory::IsValidAddress(gstate_c.indexAddr))
 			return;
-		}
 		inds = Memory::GetPointerUnchecked(gstate_c.indexAddr);
 	}
-
-#ifndef MOBILE_DEVICE
-	if (prim > GE_PRIM_RECTANGLES) {
-		ERROR_LOG_REPORT_ONCE(reportPrim, G3D, "Unexpected prim type: %d", prim);
-	}
-#endif
 
 	int bytesRead = 0;
 	transformDraw_.SubmitPrim(verts, inds, prim, count, gstate.vertType, &bytesRead);
@@ -863,32 +853,19 @@ void GLES_GPU::Execute_Bezier(u32 op, u32 diff) {
 		return;
 	}
 
-	if (!Memory::IsValidAddress(gstate_c.vertexAddr)) {
-		ERROR_LOG_REPORT(G3D, "Bad vertex address %08x!", gstate_c.vertexAddr);
+	if (!Memory::IsValidAddress(gstate_c.vertexAddr))
 		return;
-	}
 
 	void *control_points = Memory::GetPointerUnchecked(gstate_c.vertexAddr);
 	void *indices = NULL;
 	if ((gstate.vertType & GE_VTYPE_IDX_MASK) != GE_VTYPE_IDX_NONE) {
-		if (!Memory::IsValidAddress(gstate_c.indexAddr)) {
-			ERROR_LOG_REPORT(G3D, "Bad index address %08x!", gstate_c.indexAddr);
+		if (!Memory::IsValidAddress(gstate_c.indexAddr))
 			return;
-		}
 		indices = Memory::GetPointerUnchecked(gstate_c.indexAddr);
 	}
 
-	if (gstate.getPatchPrimitiveType() == GE_PATCHPRIM_UNKNOWN) {
-		ERROR_LOG_REPORT(G3D, "Unsupported patch primitive %x", gstate.getPatchPrimitiveType());
+	if (gstate.getPatchPrimitiveType() == GE_PATCHPRIM_UNKNOWN)
 		return;
-	}
-
-	if (gstate.vertType & GE_VTYPE_MORPHCOUNT_MASK) {
-		DEBUG_LOG_REPORT(G3D, "Bezier + morph: %i", (gstate.vertType & GE_VTYPE_MORPHCOUNT_MASK) >> GE_VTYPE_MORPHCOUNT_SHIFT);
-	}
-	if (vertTypeIsSkinningEnabled(gstate.vertType)) {
-		DEBUG_LOG_REPORT(G3D, "Bezier + skinning: %i", vertTypeGetNumBoneWeights(gstate.vertType));
-	}
 
 	GEPatchPrimType patchPrim = gstate.getPatchPrimitiveType();
 	int bz_ucount = op & 0xFF;
@@ -906,32 +883,19 @@ void GLES_GPU::Execute_Spline(u32 op, u32 diff) {
 		return;
 	}
 
-	if (!Memory::IsValidAddress(gstate_c.vertexAddr)) {
-		ERROR_LOG_REPORT(G3D, "Bad vertex address %08x!", gstate_c.vertexAddr);
+	if (!Memory::IsValidAddress(gstate_c.vertexAddr))
 		return;
-	}
 
 	void *control_points = Memory::GetPointerUnchecked(gstate_c.vertexAddr);
 	void *indices = NULL;
 	if ((gstate.vertType & GE_VTYPE_IDX_MASK) != GE_VTYPE_IDX_NONE) {
-		if (!Memory::IsValidAddress(gstate_c.indexAddr)) {
-			ERROR_LOG_REPORT(G3D, "Bad index address %08x!", gstate_c.indexAddr);
+		if (!Memory::IsValidAddress(gstate_c.indexAddr))
 			return;
-		}
 		indices = Memory::GetPointerUnchecked(gstate_c.indexAddr);
 	}
 
-	if (gstate.getPatchPrimitiveType() == GE_PATCHPRIM_UNKNOWN) {
-		ERROR_LOG_REPORT(G3D, "Unsupported patch primitive %x", gstate.getPatchPrimitiveType());
+	if (gstate.getPatchPrimitiveType() == GE_PATCHPRIM_UNKNOWN)
 		return;
-	}
-
-	if (gstate.vertType & GE_VTYPE_MORPHCOUNT_MASK) {
-		DEBUG_LOG_REPORT(G3D, "Spline + morph: %i", (gstate.vertType & GE_VTYPE_MORPHCOUNT_MASK) >> GE_VTYPE_MORPHCOUNT_SHIFT);
-	}
-	if (vertTypeIsSkinningEnabled(gstate.vertType)) {
-		DEBUG_LOG_REPORT(G3D, "Spline + skinning: %i", vertTypeGetNumBoneWeights(gstate.vertType));
-	}
 
 	int sp_ucount = op & 0xFF;
 	int sp_vcount = (op >> 8) & 0xFF;
@@ -955,7 +919,6 @@ void GLES_GPU::Execute_BoundingBox(u32 op, u32 diff) {
 	if (((data & 7) == 0) && data <= 64) {  // Sanity check
 		void *control_points = Memory::GetPointer(gstate_c.vertexAddr);
 		if (gstate.vertType & GE_VTYPE_IDX_MASK) {
-			ERROR_LOG_REPORT_ONCE(boundingbox, G3D, "Indexed bounding box data not supported.");
 			// Data seems invalid. Let's assume the box test passed.
 			currentList->bboxResult = true;
 			return;
@@ -964,7 +927,6 @@ void GLES_GPU::Execute_BoundingBox(u32 op, u32 diff) {
 		// Test if the bounding box is within the drawing region.
 		currentList->bboxResult = transformDraw_.TestBoundingBox(control_points, data, gstate.vertType);
 	} else {
-		ERROR_LOG_REPORT_ONCE(boundingbox, G3D, "Bad bounding box data: %06x", data);
 		// Data seems invalid. Let's assume the box test passed.
 		currentList->bboxResult = true;
 	}
@@ -1788,17 +1750,11 @@ void GLES_GPU::Execute_Generic(u32 op, u32 diff) {
 		Execute_BoneMtxData(op, diff);
 		break;
 
-#ifndef MOBILE_DEVICE
 	case GE_CMD_ANTIALIASENABLE:
-		if (data != 0)
-			WARN_LOG_REPORT_ONCE(antiAlias, G3D, "Unsupported antialias enabled: %06x", data);
 		break;
 
 	case GE_CMD_TEXLODSLOPE:
-		if (data != 0)
-			WARN_LOG_REPORT_ONCE(texLodSlope, G3D, "Unsupported texture lod slope: %06x", data);
 		break;
-#endif
 
 	case GE_CMD_TEXLEVEL:
 		Execute_TexLevel(op, diff);
@@ -1824,53 +1780,33 @@ void GLES_GPU::Execute_Generic(u32 op, u32 diff) {
 		break;
 
 	case GE_CMD_VSCX:
-		if (data != 0)
-			WARN_LOG_REPORT_ONCE(vscx, G3D, "Unsupported Vertex Screen Coordinate X : %06x", data);
 		break;
 
 	case GE_CMD_VSCY:
-		if (data != 0)
-			WARN_LOG_REPORT_ONCE(vscy, G3D, "Unsupported Vertex Screen Coordinate Y : %06x", data);
 		break;
 
 	case GE_CMD_VSCZ:
-		if (data != 0)
-			WARN_LOG_REPORT_ONCE(vscz, G3D, "Unsupported Vertex Screen Coordinate Z : %06x", data);
 		break;
 
 	case GE_CMD_VTCS:
-		if (data != 0)
-			WARN_LOG_REPORT_ONCE(vtcs, G3D, "Unsupported Vertex Texture Coordinate S : %06x", data);
 		break;
 
 	case GE_CMD_VTCT:
-		if (data != 0)
-			WARN_LOG_REPORT_ONCE(vtct, G3D, "Unsupported Vertex Texture Coordinate T : %06x", data);
 		break;
 
 	case GE_CMD_VTCQ:
-		if (data != 0)
-			WARN_LOG_REPORT_ONCE(vtcq, G3D, "Unsupported Vertex Texture Coordinate Q : %06x", data);
 		break;
 
 	case GE_CMD_VCV:
-		if (data != 0)
-			WARN_LOG_REPORT_ONCE(vcv, G3D, "Unsupported Vertex Color Value : %06x", data);
 		break;
 
 	case GE_CMD_VAP:
-		if (data != 0)
-			WARN_LOG_REPORT_ONCE(vap, G3D, "Unsupported Vertex Alpha and Primitive : %06x", data);
 		break;
 
 	case GE_CMD_VFC:
-		if (data != 0)
-			WARN_LOG_REPORT_ONCE(vfc, G3D, "Unsupported Vertex Fog Coefficient : %06x", data);
 		break;
 
 	case GE_CMD_VSCV:
-		if (data != 0)
-			WARN_LOG_REPORT_ONCE(vscv, G3D, "Unsupported Vertex Secondary Color Value : %06x", data);
 		break;
 
 
@@ -1896,8 +1832,6 @@ void GLES_GPU::Execute_Generic(u32 op, u32 diff) {
 	case GE_CMD_UNKNOWN_FC:
 	case GE_CMD_UNKNOWN_FD:
 	case GE_CMD_UNKNOWN_FE:
-		if (data != 0)
-			WARN_LOG_REPORT_ONCE(unknowncmd, G3D, "Unknown GE command : %08x ", op);
 		break;
 	case GE_CMD_UNKNOWN_FF:
 		// This is hit in quite a few games, supposedly it is a no-op.
@@ -1964,29 +1898,21 @@ void GLES_GPU::DoBlockTransfer(u32 skipDrawReason) {
 
 	DEBUG_LOG(G3D, "Block transfer: %08x/%x -> %08x/%x, %ix%ix%i (%i,%i)->(%i,%i)", srcBasePtr, srcStride, dstBasePtr, dstStride, width, height, bpp, srcX, srcY, dstX, dstY);
 
-	if (!Memory::IsValidAddress(srcBasePtr)) {
-		ERROR_LOG_REPORT(G3D, "BlockTransfer: Bad source transfer address %08x!", srcBasePtr);
+	if (!Memory::IsValidAddress(srcBasePtr))
 		return;
-	}
 
-	if (!Memory::IsValidAddress(dstBasePtr)) {
-		ERROR_LOG_REPORT(G3D, "BlockTransfer: Bad destination transfer address %08x!", dstBasePtr);
+	if (!Memory::IsValidAddress(dstBasePtr))
 		return;
-	}
 	
 	// Check that the last address of both source and dest are valid addresses
 
 	u32 srcLastAddr = srcBasePtr + ((height - 1 + srcY) * srcStride + (srcX + width - 1)) * bpp;
 	u32 dstLastAddr = dstBasePtr + ((height - 1 + dstY) * dstStride + (dstX + width - 1)) * bpp;
 
-	if (!Memory::IsValidAddress(srcLastAddr)) {
-		ERROR_LOG_REPORT(G3D, "Bottom-right corner of source of block transfer is at an invalid address: %08x", srcLastAddr);
+	if (!Memory::IsValidAddress(srcLastAddr))
 		return;
-	}
-	if (!Memory::IsValidAddress(dstLastAddr)) {
-		ERROR_LOG_REPORT(G3D, "Bottom-right corner of destination of block transfer is at an invalid address: %08x", srcLastAddr);
+	if (!Memory::IsValidAddress(dstLastAddr))
 		return;
-	}
 
 	// Tell the framebuffer manager to take action if possible. If it does the entire thing, let's just return.
 	if (!framebufferManager_.NotifyBlockTransferBefore(dstBasePtr, dstStride, dstX, dstY, srcBasePtr, srcStride, srcX, srcY, width, height, bpp, skipDrawReason)) {

@@ -208,10 +208,6 @@ void GenerateDepalShaderFloat(char *buffer, GEBufferFormat pixelFormat, ShaderLa
 	// Adjust index_multiplier, similar to the use of 15.99 instead of 16 in the ES 3 path.
 	// index_multiplier -= 0.01f / texturePixels;
 
-	if (!formatOK) {
-		ERROR_LOG_REPORT_ONCE(depal, G3D, "%i depal unsupported: shift=%i mask=%02x offset=%d", pixelFormat, shift, mask, clutBase);
-	}
-
 	// Offset by half a texel (plus clutBase) to turn NEAREST filtering into FLOOR.
 	// Technically, the clutBase should be |'d, not added, but that's hard with floats.
 	float texel_offset = ((float)clutBase + 0.5f) / texturePixels;

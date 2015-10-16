@@ -252,7 +252,6 @@ VirtualFramebuffer *FramebufferManagerCommon::DoSetRenderFrameBuffer(const Frame
 			const u32 bpp = v->format == GE_FORMAT_8888 ? 4 : 2;
 			const int x_offset = (params.fb_address - v->fb_address) / bpp;
 			if (v->format == params.fmt && v->fb_stride == params.fb_stride && x_offset < params.fb_stride && v->height >= drawing_height) {
-				WARN_LOG_REPORT_ONCE(renderoffset, HLE, "Rendering to framebuffer offset: %08x +%dx%d", v->fb_address, x_offset, 0);
 				vfb = v;
 				gstate_c.curRTOffsetX = x_offset;
 				vfb->width = std::max((int)vfb->width, x_offset + drawing_width);
@@ -346,33 +345,6 @@ VirtualFramebuffer *FramebufferManagerCommon::DoSetRenderFrameBuffer(const Frame
 			NotifyStencilUpload(fb_address_mem, byteSize, true);
 			// TODO: Is it worth trying to upload the depth buffer?
 		}
-
-		// Let's check for depth buffer overlap.  Might be interesting.
-		bool sharingReported = false;
-		for (size_t i = 0, end = vfbs_.size(); i < end; ++i) {
-			if (vfbs_[i]->z_stride != 0 && params.fb_address == vfbs_[i]->z_address) {
-				// If it's clearing it, most likely it just needs more video memory.
-				// Technically it could write something interesting and the other might not clear, but that's not likely.
-				if (params.isDrawing) {
-					if (params.fb_address != params.z_address && vfbs_[i]->fb_address != vfbs_[i]->z_address) {
-						WARN_LOG_REPORT(SCEGE, "FBO created from existing depthbuffer as color, %08x/%08x and %08x/%08x", params.fb_address, params.z_address, vfbs_[i]->fb_address, vfbs_[i]->z_address);
-					}
-				}
-			} else if (params.z_stride != 0 && params.z_address == vfbs_[i]->fb_address) {
-				// If it's clearing it, then it's probably just the reverse of the above case.
-				if (params.isWritingDepth) {
-					WARN_LOG_REPORT(SCEGE, "FBO using existing buffer as depthbuffer, %08x/%08x and %08x/%08x", params.fb_address, params.z_address, vfbs_[i]->fb_address, vfbs_[i]->z_address);
-				}
-			} else if (vfbs_[i]->z_stride != 0 && params.z_address == vfbs_[i]->z_address && params.fb_address != vfbs_[i]->fb_address && !sharingReported) {
-				// This happens a lot, but virtually always it's cleared.
-				// It's possible the other might not clear, but when every game is reported it's not useful.
-				if (params.isWritingDepth) {
-					WARN_LOG_REPORT(SCEGE, "FBO reusing depthbuffer, %08x/%08x and %08x/%08x", params.fb_address, params.z_address, vfbs_[i]->fb_address, vfbs_[i]->z_address);
-					sharingReported = true;
-				}
-			}
-		}
-
 	// We already have it!
 	} else if (vfb != currentRenderVfb_) {
 		// Use it as a render target.
@@ -441,9 +413,8 @@ void FramebufferManagerCommon::UpdateFromMemory(u32 addr, int size, bool safe) {
 }
 
 bool FramebufferManagerCommon::NotifyFramebufferCopy(u32 src, u32 dst, int size, bool isMemset, u32 skipDrawReason) {
-	if (updateVRAM_ || size == 0) {
+	if (updateVRAM_ || size == 0)
 		return false;
-	}
 
 	dst &= 0x3FFFFFFF;
 	src &= 0x3FFFFFFF;
@@ -496,34 +467,35 @@ bool FramebufferManagerCommon::NotifyFramebufferCopy(u32 src, u32 dst, int size,
 		// MotoGP workaround - it copies a framebuffer to memory and then displays it.
 		// TODO: It's rare anyway, but the game could modify the RAM and then we'd display the wrong thing.
 		// Unfortunately, that would force 1x render resolution.
-		if (Memory::IsRAMAddress(dst)) {
+		if (Memory::IsRAMAddress(dst))
 			knownFramebufferRAMCopies_.insert(std::pair<u32, u32>(src, dst));
-		}
 	}
 
-	if (!useBufferedRendering_) {
+	if (!useBufferedRendering_)
+   {
 		// If we're copying into a recently used display buf, it's probably destined for the screen.
-		if (srcBuffer || (dstBuffer != displayFramebuf_ && dstBuffer != prevDisplayFramebuf_)) {
+		if (srcBuffer || (dstBuffer != displayFramebuf_ && dstBuffer != prevDisplayFramebuf_))
 			return false;
-		}
 	}
 
-	if (dstBuffer && srcBuffer && !isMemset) {
-		if (srcBuffer == dstBuffer) {
-			WARN_LOG_REPORT_ONCE(dstsrccpy, G3D, "Intra-buffer memcpy (not supported) %08x -> %08x", src, dst);
-		} else {
-			WARN_LOG_REPORT_ONCE(dstnotsrccpy, G3D, "Inter-buffer memcpy %08x -> %08x", src, dst);
+	if (dstBuffer && srcBuffer && !isMemset)
+   {
+		if (srcBuffer != dstBuffer)
+		{
 			// Just do the blit!
-			if (g_Config.bBlockTransferGPU) {
+			if (g_Config.bBlockTransferGPU)
+         {
 				BlitFramebuffer(dstBuffer, 0, dstY, srcBuffer, 0, srcY, srcBuffer->width, srcH, 0);
 				SetColorUpdated(dstBuffer, skipDrawReason);
 				RebindFramebuffer();
 			}
 		}
-		return false;
-	} else if (dstBuffer) {
+	}
+   else if (dstBuffer)
+   {
 		WARN_LOG_ONCE(btucpy, G3D, "Memcpy fbo upload %08x -> %08x", src, dst);
-		if (g_Config.bBlockTransferGPU) {
+		if (g_Config.bBlockTransferGPU)
+      {
 			FlushBeforeCopy();
 			const u8 *srcBase = Memory::GetPointerUnchecked(src);
 			DrawPixels(dstBuffer, 0, dstY, srcBase, dstBuffer->format, dstBuffer->fb_stride, dstBuffer->width, dstH);
@@ -532,19 +504,16 @@ bool FramebufferManagerCommon::NotifyFramebufferCopy(u32 src, u32 dst, int size,
 			// This is a memcpy, let's still copy just in case.
 			return false;
 		}
-		return false;
-	} else if (srcBuffer) {
+	}
+   else if (srcBuffer)
+   {
 		WARN_LOG_ONCE(btdcpy, G3D, "Memcpy fbo download %08x -> %08x", src, dst);
 		FlushBeforeCopy();
-		if (srcH == 0 || srcY + srcH > srcBuffer->bufferHeight) {
-			WARN_LOG_REPORT_ONCE(btdcpyheight, G3D, "Memcpy fbo download %08x -> %08x skipped, %d+%d is taller than %d", src, dst, srcY, srcH, srcBuffer->bufferHeight);
-		} else if (g_Config.bBlockTransferGPU && !srcBuffer->memoryUpdated) {
+		if (srcH == 0 || srcY + srcH > srcBuffer->bufferHeight) { }
+		else if (g_Config.bBlockTransferGPU && !srcBuffer->memoryUpdated)
 			ReadFramebufferToMemory(srcBuffer, true, 0, srcY, srcBuffer->width, srcH);
-		}
-		return false;
-	} else {
-		return false;
 	}
+   return false;
 }
 
 void FramebufferManagerCommon::FindTransferFramebuffers(VirtualFramebuffer *&dstBuffer, VirtualFramebuffer *&srcBuffer, u32 dstBasePtr, int dstStride, int &dstX, int &dstY, u32 srcBasePtr, int srcStride, int &srcX, int &srcY, int &srcWidth, int &srcHeight, int &dstWidth, int &dstHeight, int bpp) const {

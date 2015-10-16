@@ -346,16 +346,10 @@ void SoftwareTransform(
 
 					case GE_PROJMAP_NORMALIZED_NORMAL: // Use normalized normal as source
 						source = normal.Normalized();
-						if (!reader.hasNormal()) {
-							ERROR_LOG_REPORT(G3D, "Normal projection mapping without normal?");
-						}
 						break;
 
 					case GE_PROJMAP_NORMAL: // Use non-normalized normal as source!
 						source = normal;
-						if (!reader.hasNormal()) {
-							ERROR_LOG_REPORT(G3D, "Normal projection mapping without normal?");
-						}
 						break;
 					}
 
@@ -381,7 +375,6 @@ void SoftwareTransform(
 
 			default:
 				// Illegal
-				ERROR_LOG_REPORT(G3D, "Impossible UV gen mode? %d", gstate.getUVGenMode());
 				break;
 			}
 

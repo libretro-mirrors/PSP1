@@ -328,7 +328,6 @@ void TransformDrawEngine::DecodeVerts() {
 	}
 	// Sanity check
 	if (indexGen.Prim() < 0) {
-		ERROR_LOG_REPORT(G3D, "DecodeVerts: Failed to deduce prim: %i", indexGen.Prim());
 		// Force to points (0)
 		indexGen.AddPrim(GE_PRIM_POINTS, 0);
 	}

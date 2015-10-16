@@ -335,11 +335,7 @@ bool TextureCache::AttachFramebuffer(TexCacheEntry *entry, u32 address, VirtualF
 			return false;
 
 		DEBUG_LOG(G3D, "Render to texture detected at %08x!", address);
-		if (framebuffer->fb_stride != entry->bufw) {
-			WARN_LOG_REPORT_ONCE(diffStrides1, G3D, "Render to texture with different strides %d != %d", entry->bufw, framebuffer->fb_stride);
-		}
 		if (entry->format != (GETextureFormat)framebuffer->format) {
-			WARN_LOG_REPORT_ONCE(diffFormat1, G3D, "Render to texture with different formats %d != %d", entry->format, framebuffer->format);
 			// Let's avoid using it when we know the format is wrong.  May be a video/etc. updating memory.
 			// However, some games use a different format to clear the buffer.
 			if (framebuffer->last_frame_attached + 1 < gpuStats.numFlips) {
@@ -364,9 +360,8 @@ bool TextureCache::AttachFramebuffer(TexCacheEntry *entry, u32 address, VirtualF
 		fbInfo.xOffset = entry->bufw == 0 ? 0 : pixelOffset % entry->bufw;
 
 		if (framebuffer->fb_stride != entry->bufw) {
-			if (noOffset) {
-				WARN_LOG_REPORT_ONCE(diffStrides2, G3D, "Render to texture using CLUT with different strides %d != %d", entry->bufw, framebuffer->fb_stride);
-			} else {
+			if (!noOffset)
+         {
 				// Assume any render-to-tex with different bufw + offset is a render from ram.
 				DetachFramebuffer(entry, address, framebuffer);
 				return false;
@@ -381,39 +376,30 @@ bool TextureCache::AttachFramebuffer(TexCacheEntry *entry, u32 address, VirtualF
 		// Trying to play it safe.  Below 0x04110000 is almost always framebuffers.
 		// TODO: Maybe we can reduce this check and find a better way above 0x04110000?
 		if (fbInfo.yOffset > MAX_SUBAREA_Y_OFFSET_SAFE && addr > 0x04110000) {
-			WARN_LOG_REPORT_ONCE(subareaIgnored, G3D, "Ignoring possible render to texture at %08x +%dx%d / %dx%d", address, fbInfo.xOffset, fbInfo.yOffset, framebuffer->width, framebuffer->height);
 			DetachFramebuffer(entry, address, framebuffer);
 			return false;
 		}
 
 		// Check for CLUT. The framebuffer is always RGB, but it can be interpreted as a CLUT texture.
 		// 3rd Birthday (and a bunch of other games) render to a 16 bit clut texture.
-		if (clutFormat) {
-			if (!noOffset) {
-				WARN_LOG_REPORT_ONCE(subareaClut, G3D, "Render to texture using CLUT with offset at %08x +%dx%d", address, fbInfo.xOffset, fbInfo.yOffset);
-			}
+		if (clutFormat)
+      {
 			AttachFramebufferValid(entry, framebuffer, fbInfo);
 			entry->status |= TexCacheEntry::STATUS_DEPALETTIZE;
 			// We'll validate it compiles later.
 			return true;
-		} else if (entry->format == GE_TFMT_CLUT8 || entry->format == GE_TFMT_CLUT4) {
-			ERROR_LOG_REPORT_ONCE(fourEightBit, G3D, "4 and 8-bit CLUT format not supported for framebuffers");
 		}
 
 		// This is either normal or we failed to generate a shader to depalettize
 		if (framebuffer->format == entry->format || clutFormat) {
 			if (framebuffer->format != entry->format) {
-				WARN_LOG_REPORT_ONCE(diffFormat2, G3D, "Render to texture with different formats %d != %d at %08x", entry->format, framebuffer->format, address);
 				AttachFramebufferValid(entry, framebuffer, fbInfo);
 				return true;
 			} else {
-				WARN_LOG_REPORT_ONCE(subarea, G3D, "Render to area containing texture at %08x +%dx%d", address, fbInfo.xOffset, fbInfo.yOffset);
 				// If "AttachFramebufferValid" ,  God of War Ghost of Sparta/Chains of Olympus will be missing special effect.
 				AttachFramebufferInvalid(entry, framebuffer, fbInfo);
 				return true;
 			}
-		} else {
-			WARN_LOG_REPORT_ONCE(diffFormat2, G3D, "Render to texture with incompatible formats %d != %d at %08x", entry->format, framebuffer->format, address);
 		}
 	}
 
@@ -621,7 +607,6 @@ void *TextureCache::ReadIndexedTex(int level, const u8 *texptr, int bytesPerInde
 		break;
 
 	default:
-		ERROR_LOG_REPORT(G3D, "Unhandled clut texture mode %d!!!", (gstate.clutformat & 3));
 		break;
 	}
 
@@ -743,10 +728,6 @@ void TextureCache::UpdateSamplingParams(TexCacheEntry &entry, bool force) {
 	if (force || entry.magFilt != magFilt) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, MagFiltGL[magFilt]);
 		entry.magFilt = magFilt;
-	}
-
-	if (entry.framebuffer) {
-		WARN_LOG_REPORT_ONCE(wrongFramebufAttach, G3D, "Framebuffer still attached in UpdateSamplingParams()?");
 	}
 
 	if (force || entry.sClamp != sClamp) {
@@ -1141,7 +1122,6 @@ void TextureCache::SetTexture(bool force) {
 
 	GETextureFormat format = gstate.getTextureFormat();
 	if (format >= 11) {
-		ERROR_LOG_REPORT(G3D, "Unknown texture format %i", format);
 		// TODO: Better assumption?
 		format = GE_TFMT_5650;
 	}
@@ -1354,10 +1334,6 @@ void TextureCache::SetTexture(bool force) {
 		} else {
 			entry->status = TexCacheEntry::STATUS_UNRELIABLE;
 		}
-	}
-
-	if ((bufw == 0 || (gstate.texbufwidth[0] & 0xf800) != 0) && texaddr >= PSP_GetKernelMemoryEnd()) {
-		ERROR_LOG_REPORT(G3D, "Texture with unexpected bufw (full=%d)", gstate.texbufwidth[0] & 0xffff);
 	}
 
 	// We have to decode it, let's setup the cache entry first.
@@ -1588,7 +1564,6 @@ void *TextureCache::DecodeTextureLevel(GETextureFormat format, GEPaletteFormat c
 	bool swizzled = gstate.isTextureSwizzled();
 	if ((texaddr & 0x00600000) != 0 && Memory::IsVRAMAddress(texaddr)) {
 		// This means it's in a mirror, possibly a swizzled mirror.  Let's report.
-		WARN_LOG_REPORT_ONCE(texmirror, G3D, "Decoding texture from VRAM mirror at %08x swizzle=%d", texaddr, swizzled ? 1 : 0);
 		if ((texaddr & 0x00200000) == 0x00200000) {
 			// Technically 2 and 6 are slightly different, but this is better than nothing probably.
 			swizzled = !swizzled;
@@ -1656,7 +1631,6 @@ void *TextureCache::DecodeTextureLevel(GETextureFormat format, GEPaletteFormat c
 			break;
 
 		default:
-			ERROR_LOG_REPORT(G3D, "Unknown CLUT4 texture mode %d", gstate.getClutPaletteFormat());
 			return NULL;
 		}
 		}
@@ -1783,12 +1757,7 @@ void *TextureCache::DecodeTextureLevel(GETextureFormat format, GEPaletteFormat c
 		break;
 
 	default:
-		ERROR_LOG_REPORT(G3D, "Unknown Texture Format %d!!!", format);
 		return NULL;
-	}
-
-	if (!finalBuf) {
-		ERROR_LOG_REPORT(G3D, "NO finalbuf! Will crash!");
 	}
 
 	if (!(g_Config.iTexScalingLevel == 1 && gl_extensions.EXT_unpack_subimage) && w != bufw) {
@@ -1905,7 +1874,6 @@ void TextureCache::LoadTextureLevel(TexCacheEntry &entry, int level, bool replac
 		if (!lowMemoryMode_) {
 			GLenum err = glGetError();
 			if (err == GL_OUT_OF_MEMORY) {
-				WARN_LOG_REPORT(G3D, "Texture cache ran out of GPU memory; switching to low memory mode");
 				lowMemoryMode_ = true;
 				decimationCounter_ = 0;
 				Decimate();

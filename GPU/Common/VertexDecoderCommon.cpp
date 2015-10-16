@@ -864,12 +864,6 @@ void VertexDecoder::SetVertexType(u32 fmt, const VertexDecoderOptions &options, 
 	int decOff = 0;
 	memset(&decFmt, 0, sizeof(decFmt));
 
-	if (morphcount > 1) {
-		DEBUG_LOG_REPORT_ONCE(vtypeM, G3D, "VTYPE with morph used: THRU=%i TC=%i COL=%i POS=%i NRM=%i WT=%i NW=%i IDX=%i MC=%i", (int)throughmode, tc, col, pos, nrm, weighttype, nweights, idx, morphcount);
-	} else {
-		DEBUG_LOG(G3D, "VTYPE: THRU=%i TC=%i COL=%i POS=%i NRM=%i WT=%i NW=%i IDX=%i MC=%i", (int)throughmode, tc, col, pos, nrm, weighttype, nweights, idx, morphcount);
-	}
-
 	bool skinInDecode = weighttype != 0 && g_Config.bSoftwareSkinning && morphcount == 1;
 
 	if (weighttype) { // && nweights?
@@ -1017,10 +1011,8 @@ void VertexDecoder::SetVertexType(u32 fmt, const VertexDecoderOptions &options, 
 		decOff += DecFmtSize(decFmt.nrmfmt);
 	}
 
-	if (!pos) {
-		ERROR_LOG_REPORT(G3D, "Vertices without position found");
+	if (!pos)
 		pos = 1;
-	}
 	if (pos) { // there's always a position
 		size = align(size, posalign[pos]);
 		posoff = size;

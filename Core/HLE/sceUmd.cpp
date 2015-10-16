@@ -180,8 +180,6 @@ void __UmdBeginCallback(SceUID threadID, SceUID prevCallbackId)
 
 		DEBUG_LOG(SCEIO, "sceUmdWaitDriveStatCB: Suspending lock wait for callback");
 	}
-	else
-		WARN_LOG_REPORT(SCEIO, "sceUmdWaitDriveStatCB: beginning callback with bad wait id?");
 }
 
 void __UmdEndCallback(SceUID threadID, SceUID prevCallbackId)
@@ -192,8 +190,6 @@ void __UmdEndCallback(SceUID threadID, SceUID prevCallbackId)
 	u32 stat = __KernelGetWaitValue(threadID, error);
 	if (umdPausedWaits.find(pauseKey) == umdPausedWaits.end())
 	{
-		WARN_LOG_REPORT(SCEIO, "__UmdEndCallback(): UMD paused wait missing");
-
 		__KernelResumeThreadFromWait(threadID, 0);
 		return;
 	}

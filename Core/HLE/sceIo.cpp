@@ -321,10 +321,8 @@ static void __IoAsyncNotify(u64 userdata, int cyclesLate) {
 
 	u32 error;
 	FileNode *f = __IoGetFd(fd, error);
-	if (!f) {
-		ERROR_LOG_REPORT(SCEIO, "__IoAsyncNotify: file no longer exists?");
+	if (!f)
 		return;
-	}
 
 	if (g_Config.iIOTimingMethod == IOTIMING_HOST) {
 		// Not all async operations actually queue up.  Maybe should separate them?
@@ -378,10 +376,8 @@ static void __IoSyncNotify(u64 userdata, int cyclesLate) {
 	s64 result = -1;
 	u32 error;
 	FileNode *f = __IoGetFd(fd, error);
-	if (!f) {
-		ERROR_LOG_REPORT(SCEIO, "__IoSyncNotify: file no longer exists?");
+	if (!f)
 		return;
-	}
 
 	if (g_Config.iIOTimingMethod == IOTIMING_HOST) {
 		if (!ioManager.HasResult(f->handle)) {
@@ -419,8 +415,6 @@ static void __IoAsyncBeginCallback(SceUID threadID, SceUID prevCallbackId) {
 	auto result = HLEKernel::WaitBeginCallback<FileNode, WAITTYPE_ASYNCIO, SceUID>(threadID, prevCallbackId, -1);
 	if (result == HLEKernel::WAIT_CB_SUCCESS) {
 		DEBUG_LOG(SCEIO, "sceIoWaitAsync: Suspending wait for callback");
-	} else if (result == HLEKernel::WAIT_CB_BAD_WAIT_ID) {
-		WARN_LOG_REPORT(SCEIO, "sceIoWaitAsync: beginning callback with bad wait id?");
 	}
 }
 
@@ -433,10 +427,8 @@ static bool __IoCheckAsyncWait(FileNode *f, SceUID threadID, u32 &error, int res
 			break;
 		}
 	}
-	if (fd == -1) {
-		ERROR_LOG_REPORT(SCEIO, "__IoCheckAsyncWait: could not find io handle");
+	if (fd == -1)
 		return true;
-	}
 
 	if (!HLEKernel::VerifyWait(threadID, WAITTYPE_ASYNCIO, f->GetUID())) {
 		return true;
@@ -581,13 +573,11 @@ static u32 sceIoAssign(u32 alias_addr, u32 physical_addr, u32 filesystem_addr, i
 			perm = "unhandled";
 			break;
 	}
-	WARN_LOG_REPORT(SCEIO, "sceIoAssign(%s, %s, %s, %s, %08x, %i)", alias.c_str(), physical_dev.c_str(), filesystem_dev.c_str(), perm.c_str(), arg_addr, argSize);
 	return 0;
 }
 
 static u32 sceIoUnassign(const char *alias)
 {
-	WARN_LOG_REPORT(SCEIO, "sceIoUnassign(%s)", alias);
 	return 0;
 }
 
@@ -1043,7 +1033,6 @@ static u32 sceIoGetDevType(int id) {
 
 static u32 sceIoCancel(int id)
 {
-	ERROR_LOG_REPORT(SCEIO, "UNIMPL sceIoCancel(%d)", id);
 	u32 error;
 	FileNode *f = __IoGetFd(id, error);
 	if (f) {
@@ -1421,7 +1410,6 @@ static u32 sceIoDevctl(const char *name, int cmd, u32 argAddr, int argLen, u32 o
 	case 0x01F100A6:
 	case 0x01F100A8:
 	case 0x01F100A9:
-		ERROR_LOG_REPORT(SCEIO, "UNIMPL sceIoDevctl(\"%s\", %08x, %08x, %i, %08x, %i)", name, cmd, argAddr, argLen, outPtr, outLen);
 		return 0;
 	}
 
@@ -1660,7 +1648,6 @@ static u32 sceIoDevctl(const char *name, int cmd, u32 argAddr, int argLen, u32 o
 	089c6bdc ]: HLE: sceKernelCreateCallback(name= MemoryStick Detection ,entry= 089c7484 ) (z_un_089c6bc4)
 	089c6c40 ]: HLE: sceKernelCreateCallback(name= MemoryStick Assignment ,entry= 089c7534 ) (z_un_089c6bc4)
 	*/
-	ERROR_LOG_REPORT(SCEIO, "UNIMPL sceIoDevctl(\"%s\", %08x, %08x, %i, %08x, %i)", name, cmd, argAddr, argLen, outPtr, outLen);
 	return SCE_KERNEL_ERROR_UNSUP;
 }
 
@@ -2362,12 +2349,10 @@ static u32 sceIoGetFdList(u32 outAddr, int outSize, u32 fdNumAddr) {
 
 // Presumably lets you hook up stderr to a MsgPipe.
 static u32 sceKernelRegisterStderrPipe(u32 msgPipeUID) {
-	ERROR_LOG_REPORT(SCEIO, "UNIMPL sceKernelRegisterStderrPipe(%08x)", msgPipeUID);
 	return 0;
 }
 
 static u32 sceKernelRegisterStdoutPipe(u32 msgPipeUID) {
-	ERROR_LOG_REPORT(SCEIO, "UNIMPL sceKernelRegisterStdoutPipe(%08x)", msgPipeUID);
 	return 0;
 }
 

@@ -227,7 +227,6 @@ bool WriteSyscall(const char *moduleName, u32 nib, u32 address)
 {
 	if (nib == 0)
 	{
-		WARN_LOG_REPORT(HLE, "Wrote patched out nid=0 syscall (%s)", moduleName);
 		Memory::Write_U32(MIPS_MAKE_JR_RA(), address); //patched out?
 		Memory::Write_U32(MIPS_MAKE_NOP(), address+4); //patched out?
 		return true;
@@ -239,11 +238,8 @@ bool WriteSyscall(const char *moduleName, u32 nib, u32 address)
 		Memory::Write_U32(GetSyscallOp(moduleName, nib), address + 4);
 		return true;
 	}
-	else
-	{
-		ERROR_LOG_REPORT(HLE, "Unable to write unknown syscall: %s/%08x", moduleName, nib);
-		return false;
-	}
+
+   return false;
 }
 
 const char *GetFuncName(int moduleIndex, int func)
@@ -547,7 +543,6 @@ void CallSyscall(MIPSOpcode op)
 	}
 	else {
 		RETURN(SCE_KERNEL_ERROR_LIBRARY_NOT_YET_LINKED);
-		ERROR_LOG_REPORT(HLE, "Unimplemented HLE function %s", info->name ? info->name : "(\?\?\?)");
 	}
 
 	if (g_Config.bShowDebugStats)

@@ -82,12 +82,10 @@ static u32 sceVaudioOutputBlocking(int vol, u32 buffer) {
 }
 
 static u32 sceVaudioSetEffectType(int effectType, int vol) {
-	ERROR_LOG_REPORT(SCEAUDIO, "UNIMPL sceVaudioSetEffectType(%i, %i)", effectType, vol);
 	return 0;
 }
 
 static u32 sceVaudioSetAlcMode(int alcMode) {
-	ERROR_LOG_REPORT(SCEAUDIO, "UNIMPL sceVaudioSetAlcMode(%i)", alcMode);
 	return 0;
 }
 

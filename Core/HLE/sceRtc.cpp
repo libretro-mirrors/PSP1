@@ -704,10 +704,7 @@ static int sceRtcGetDosTime(u32 datePtr, u32 dosTime)
 static int sceRtcSetWin32FileTime(u32 datePtr, u64 win32Time)
 {
 	if (!Memory::IsValidAddress(datePtr))
-	{
-		ERROR_LOG_REPORT(SCERTC, "sceRtcSetWin32FileTime(%08x, %lld): invalid address", datePtr, win32Time);
 		return -1;
-	}
 
 	DEBUG_LOG(SCERTC, "sceRtcSetWin32FileTime(%08x, %lld)", datePtr, win32Time);
 
@@ -720,10 +717,7 @@ static int sceRtcSetWin32FileTime(u32 datePtr, u64 win32Time)
 static int sceRtcGetWin32FileTime(u32 datePtr, u32 win32TimePtr)
 {
 	if (!Memory::IsValidAddress(datePtr))
-	{
-		ERROR_LOG_REPORT(SCERTC, "sceRtcGetWin32FileTime(%08x, %08x): invalid address", datePtr, win32TimePtr);
 		return -1;
-	}
 
 	DEBUG_LOG(SCERTC, "sceRtcGetWin32FileTime(%08x, %08x)", datePtr, win32TimePtr);
 	if (!Memory::IsValidAddress(win32TimePtr))
@@ -919,7 +913,6 @@ static int sceRtcTickAddYears(u32 destTickPtr, u32 srcTickPtr, int numYears)
 
 static int sceRtcParseDateTime(u32 destTickPtr, u32 dateStringPtr)
 {
-	ERROR_LOG_REPORT(SCERTC, "UNIMPL sceRtcParseDateTime(%d,%d)", destTickPtr, dateStringPtr);
 	return 0;
 }
 
@@ -942,7 +935,6 @@ static int sceRtcGetLastReincarnatedTime(u32 tickPtr)
 //Returns 0 on success, according to Project Diva 2nd jpcsptrace log
 static int sceRtcSetAlarmTick(u32 unknown1, u32 unknown2)
 {
-	ERROR_LOG_REPORT(SCERTC, "UNIMPL sceRtcSetAlarmTick(%x, %x)", unknown1, unknown2);
 	return 0; 
 }
 

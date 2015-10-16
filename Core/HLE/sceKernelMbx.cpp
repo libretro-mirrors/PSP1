@@ -235,10 +235,6 @@ void __KernelMbxBeginCallback(SceUID threadID, SceUID prevCallbackId)
 	auto result = HLEKernel::WaitBeginCallback<Mbx, WAITTYPE_MBX, MbxWaitingThread>(threadID, prevCallbackId, mbxWaitTimer);
 	if (result == HLEKernel::WAIT_CB_SUCCESS)
 		DEBUG_LOG(SCEKERNEL, "sceKernelReceiveMbxCB: Suspending mbx wait for callback");
-	else if (result == HLEKernel::WAIT_CB_BAD_WAIT_DATA)
-		ERROR_LOG_REPORT(SCEKERNEL, "sceKernelReceiveMbxCB: wait not found to pause for callback");
-	else
-		WARN_LOG_REPORT(SCEKERNEL, "sceKernelReceiveMbxCB: beginning callback with bad wait id?");
 }
 
 void __KernelMbxEndCallback(SceUID threadID, SceUID prevCallbackId)
@@ -294,16 +290,10 @@ static std::vector<MbxWaitingThread>::iterator __KernelMbxFindPriority(std::vect
 SceUID sceKernelCreateMbx(const char *name, u32 attr, u32 optAddr)
 {
 	if (!name)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "%08x=sceKernelCreateMbx(): invalid name", SCE_KERNEL_ERROR_ERROR);
 		return SCE_KERNEL_ERROR_ERROR;
-	}
 	// Accepts 0x000 - 0x0FF, 0x100 - 0x1FF, and 0x400 - 0x4FF.
 	if (((attr & ~SCE_KERNEL_MBA_ATTR_KNOWN) & ~0xFF) != 0)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "%08x=sceKernelCreateMbx(): invalid attr parameter: %08x", SCE_KERNEL_ERROR_ILLEGAL_ATTR, attr);
 		return SCE_KERNEL_ERROR_ILLEGAL_ATTR;
-	}
 
 	Mbx *m = new Mbx();
 	SceUID id = kernelObjects.Create(m);
@@ -317,15 +307,6 @@ SceUID sceKernelCreateMbx(const char *name, u32 attr, u32 optAddr)
 	m->nmb.packetListHead = 0;
 
 	DEBUG_LOG(SCEKERNEL, "%i=sceKernelCreateMbx(%s, %08x, %08x)", id, name, attr, optAddr);
-
-	if (optAddr != 0)
-	{
-		u32 size = Memory::Read_U32(optAddr);
-		if (size > 4)
-			WARN_LOG_REPORT(SCEKERNEL, "sceKernelCreateMbx(%s) unsupported options parameter, size = %d", name, size);
-	}
-	if ((attr & ~SCE_KERNEL_MBA_ATTR_KNOWN) != 0)
-		WARN_LOG_REPORT(SCEKERNEL, "sceKernelCreateMbx(%s) unsupported attr parameter: %08x", name, attr);
 
 	return id;
 }

@@ -71,12 +71,10 @@ void __HeapInit() {
 }
 
 static int sceHeapReallocHeapMemory(u32 heapAddr, u32 memPtr, int memSize) {
-	ERROR_LOG_REPORT(HLE,"UNIMPL sceHeapReallocHeapMemory(%08x, %08x, %08x)", heapAddr, memPtr, memSize);
 	return 0;
 }
 
 static int sceHeapReallocHeapMemoryWithOption(u32 heapPtr, u32 memPtr, int memSize, u32 paramsPtr) {
-	ERROR_LOG_REPORT(HLE,"UNIMPL sceHeapReallocHeapMemoryWithOption(%08x, %08x, %08x, %08x)", heapPtr, memPtr, memSize, paramsPtr);
 	return 0;
 }
 
@@ -100,7 +98,6 @@ static int sceHeapFreeHeapMemory(u32 heapAddr, u32 memAddr) {
 }
 
 static int sceHeapGetMallinfo(u32 heapAddr, u32 infoPtr) {
-	ERROR_LOG_REPORT(HLE,"UNIMPL sceHeapGetMallinfo(%08x, %08x)", heapAddr, infoPtr);
 	return 0;
 }
 
@@ -118,9 +115,6 @@ static u32 sceHeapAllocHeapMemoryWithOption(u32 heapAddr, u32 memSize, u32 param
 		if (size < 8) {
 			ERROR_LOG(HLE, "sceHeapAllocHeapMemoryWithOption(%08x, %08x, %08x): invalid param size", heapAddr, memSize, paramsPtr);
 			return 0;
-		}
-		if (size > 8) {
-			WARN_LOG_REPORT(HLE, "sceHeapAllocHeapMemoryWithOption(): unexpected param size %d", size);
 		}
 		grain = Memory::Read_U32(paramsPtr + 4);
 	}
@@ -178,14 +172,8 @@ static int sceHeapDeleteHeap(u32 heapAddr) {
 }
 
 static int sceHeapCreateHeap(const char* name, u32 heapSize, int attr, u32 paramsPtr) {
-	if (paramsPtr != 0) {
-		u32 size = Memory::Read_U32(paramsPtr);
-		WARN_LOG_REPORT(HLE, "sceHeapCreateHeap(): unsupported options parameter, size = %d", size);
-	}	
-	if (name == NULL) {
-		WARN_LOG_REPORT(HLE, "sceHeapCreateHeap(): name is NULL");
+	if (name == NULL)
 		return 0;
-	}
 	int allocSize = (heapSize + 3) & ~3;
 
 	Heap *heap = new Heap;

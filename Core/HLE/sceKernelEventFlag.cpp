@@ -208,10 +208,6 @@ void __KernelEventFlagBeginCallback(SceUID threadID, SceUID prevCallbackId)
 	auto result = HLEKernel::WaitBeginCallback<EventFlag, WAITTYPE_EVENTFLAG, EventFlagTh>(threadID, prevCallbackId, eventFlagWaitTimer);
 	if (result == HLEKernel::WAIT_CB_SUCCESS)
 		DEBUG_LOG(SCEKERNEL, "sceKernelWaitEventFlagCB: Suspending lock wait for callback");
-	else if (result == HLEKernel::WAIT_CB_BAD_WAIT_DATA)
-		ERROR_LOG_REPORT(SCEKERNEL, "sceKernelWaitEventFlagCB: wait not found to pause for callback");
-	else
-		WARN_LOG_REPORT(SCEKERNEL, "sceKernelWaitEventFlagCB: beginning callback with bad wait id?");
 }
 
 void __KernelEventFlagEndCallback(SceUID threadID, SceUID prevCallbackId)
@@ -225,17 +221,11 @@ void __KernelEventFlagEndCallback(SceUID threadID, SceUID prevCallbackId)
 int sceKernelCreateEventFlag(const char *name, u32 flag_attr, u32 flag_initPattern, u32 optPtr)
 {
 	if (!name)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "%08x=sceKernelCreateEventFlag(): invalid name", SCE_KERNEL_ERROR_ERROR);
 		return SCE_KERNEL_ERROR_ERROR;
-	}
 
 	// These attributes aren't valid.
 	if ((flag_attr & 0x100) != 0 || flag_attr >= 0x300)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "%08x=sceKernelCreateEventFlag(): invalid attr parameter: %08x", SCE_KERNEL_ERROR_ILLEGAL_ATTR, flag_attr);
 		return SCE_KERNEL_ERROR_ILLEGAL_ATTR;
-	}
 
 	EventFlag *e = new EventFlag();
 	SceUID id = kernelObjects.Create(e);
@@ -249,15 +239,6 @@ int sceKernelCreateEventFlag(const char *name, u32 flag_attr, u32 flag_initPatte
 	e->nef.numWaitThreads = 0;
 
 	DEBUG_LOG(SCEKERNEL, "%i=sceKernelCreateEventFlag(\"%s\", %08x, %08x, %08x)", id, e->nef.name, e->nef.attr, e->nef.currentPattern, optPtr);
-
-	if (optPtr != 0)
-	{
-		u32 size = Memory::Read_U32(optPtr);
-		if (size > 4)
-			WARN_LOG_REPORT(SCEKERNEL, "sceKernelCreateEventFlag(%s) unsupported options parameter, size = %d", name, size);
-	}
-	if ((flag_attr & ~PSP_EVENT_WAITMULTIPLE) != 0)
-		WARN_LOG_REPORT(SCEKERNEL, "sceKernelCreateEventFlag(%s) unsupported attr parameter: %08x", name, flag_attr);
 
 	return id;
 }
@@ -414,10 +395,7 @@ static void __KernelSetEventFlagTimeout(EventFlag *e, u32 timeoutPtr)
 int sceKernelWaitEventFlag(SceUID id, u32 bits, u32 wait, u32 outBitsPtr, u32 timeoutPtr)
 {
 	if ((wait & ~PSP_EVENT_WAITKNOWN) != 0)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "sceKernelWaitEventFlag(%i) invalid mode parameter: %08x", id, wait);
 		return SCE_KERNEL_ERROR_ILLEGAL_MODE;
-	}
 	// Can't wait on 0, that's guaranteed to wait forever.
 	if (bits == 0)
 	{
@@ -482,10 +460,7 @@ int sceKernelWaitEventFlag(SceUID id, u32 bits, u32 wait, u32 outBitsPtr, u32 ti
 int sceKernelWaitEventFlagCB(SceUID id, u32 bits, u32 wait, u32 outBitsPtr, u32 timeoutPtr)
 {
 	if ((wait & ~PSP_EVENT_WAITKNOWN) != 0)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "sceKernelWaitEventFlagCB(%i) invalid mode parameter: %08x", id, wait);
 		return SCE_KERNEL_ERROR_ILLEGAL_MODE;
-	}
 	// Can't wait on 0, that's guaranteed to wait forever.
 	if (bits == 0)
 	{
@@ -563,16 +538,10 @@ int sceKernelWaitEventFlagCB(SceUID id, u32 bits, u32 wait, u32 outBitsPtr, u32 
 int sceKernelPollEventFlag(SceUID id, u32 bits, u32 wait, u32 outBitsPtr)
 {
 	if ((wait & ~PSP_EVENT_WAITKNOWN) != 0)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "sceKernelPollEventFlag(%i) invalid mode parameter: %08x", id, wait);
 		return SCE_KERNEL_ERROR_ILLEGAL_MODE;
-	}
 	// Poll seems to also fail when CLEAR and CLEARALL are used together, but not wait.
 	if ((wait & PSP_EVENT_WAITCLEAR) != 0 && (wait & PSP_EVENT_WAITCLEARALL) != 0)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "sceKernelPollEventFlag(%i) invalid mode parameter: %08x", id, wait);
 		return SCE_KERNEL_ERROR_ILLEGAL_MODE;
-	}
 	// Can't wait on 0, it never matches.
 	if (bits == 0)
 	{

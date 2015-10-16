@@ -536,11 +536,7 @@ static void __KernelMsgPipeBeginCallback(SceUID threadID, SceUID prevCallbackId)
 			auto result = HLEKernel::WaitBeginCallback<MsgPipeWaitingThread>(threadID, prevCallbackId, waitTimer, ko->sendWaitingThreads, ko->pausedSendWaits, timeoutPtr != 0);
 			if (result == HLEKernel::WAIT_CB_SUCCESS)
 				DEBUG_LOG(SCEKERNEL, "sceKernelSendMsgPipeCB: Suspending wait for callback");
-			else if (result == HLEKernel::WAIT_CB_BAD_WAIT_DATA)
-				ERROR_LOG_REPORT(SCEKERNEL, "sceKernelSendMsgPipeCB: wait not found to pause for callback");
 		}
-		else
-			WARN_LOG_REPORT(SCEKERNEL, "sceKernelSendMsgPipeCB: beginning callback with bad wait id?");
 		break;
 
 	case MSGPIPE_WAIT_VALUE_RECV:
@@ -549,15 +545,11 @@ static void __KernelMsgPipeBeginCallback(SceUID threadID, SceUID prevCallbackId)
 			auto result = HLEKernel::WaitBeginCallback<MsgPipeWaitingThread>(threadID, prevCallbackId, waitTimer, ko->receiveWaitingThreads, ko->pausedReceiveWaits, timeoutPtr != 0);
 			if (result == HLEKernel::WAIT_CB_SUCCESS)
 				DEBUG_LOG(SCEKERNEL, "sceKernelReceiveMsgPipeCB: Suspending wait for callback");
-			else if (result == HLEKernel::WAIT_CB_BAD_WAIT_DATA)
-				ERROR_LOG_REPORT(SCEKERNEL, "sceKernelReceiveMsgPipeCB: wait not found to pause for callback");
 		}
-		else
-			WARN_LOG_REPORT(SCEKERNEL, "sceKernelReceiveMsgPipeCB: beginning callback with bad wait id?");
 		break;
 
 	default:
-		ERROR_LOG_REPORT(SCEKERNEL, "__KernelMsgPipeBeginCallback: Unexpected wait value");
+      break;
 	}
 }
 
@@ -611,10 +603,8 @@ static void __KernelMsgPipeEndCallback(SceUID threadID, SceUID prevCallbackId) {
 	SceUID uid = __KernelGetWaitID(threadID, WAITTYPE_MSGPIPE, error);
 	MsgPipe *ko = uid == 0 ? NULL : kernelObjects.Get<MsgPipe>(uid, error);
 
-	if (ko == NULL) {
-		ERROR_LOG_REPORT(SCEKERNEL, "__KernelMsgPipeEndCallback: Invalid object");
+	if (ko == NULL)
 		return;
-	}
 
 	switch (waitValue) {
 	case MSGPIPE_WAIT_VALUE_SEND:
@@ -644,7 +634,7 @@ static void __KernelMsgPipeEndCallback(SceUID threadID, SceUID prevCallbackId) {
 		break;
 
 	default:
-		ERROR_LOG_REPORT(SCEKERNEL, "__KernelMsgPipeEndCallback: Unexpected wait value");
+      break;
 	}
 }
 
@@ -668,26 +658,14 @@ void __KernelMsgPipeDoState(PointerWrap &p)
 int sceKernelCreateMsgPipe(const char *name, int partition, u32 attr, u32 size, u32 optionsPtr)
 {
 	if (!name)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "%08x=sceKernelCreateMsgPipe(): invalid name", SCE_KERNEL_ERROR_NO_MEMORY);
 		return SCE_KERNEL_ERROR_NO_MEMORY;
-	}
 	if (partition < 1 || partition > 9 || partition == 7)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "%08x=sceKernelCreateMsgPipe(): invalid partition %d", SCE_KERNEL_ERROR_ILLEGAL_ARGUMENT, partition);
 		return SCE_KERNEL_ERROR_ILLEGAL_ARGUMENT;
-	}
 	// We only support user right now.
 	if (partition != 2 && partition != 6)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "%08x=sceKernelCreateMsgPipe(): invalid partition %d", SCE_KERNEL_ERROR_ILLEGAL_PERM, partition);
 		return SCE_KERNEL_ERROR_ILLEGAL_PERM;
-	}
 	if ((attr & ~SCE_KERNEL_MPA_KNOWN) >= 0x100)
-	{
-		WARN_LOG_REPORT(SCEKERNEL, "%08x=sceKernelCreateEventFlag(%s): invalid attr parameter: %08x", SCE_KERNEL_ERROR_ILLEGAL_ATTR, name, attr);
 		return SCE_KERNEL_ERROR_ILLEGAL_ATTR;
-	}
 
 	u32 memBlockPtr = 0;
 	if (size != 0)
@@ -717,13 +695,6 @@ int sceKernelCreateMsgPipe(const char *name, int partition, u32 attr, u32 size, 
 	m->buffer = memBlockPtr;
 	
 	DEBUG_LOG(SCEKERNEL, "%d=sceKernelCreateMsgPipe(%s, part=%d, attr=%08x, size=%d, opt=%08x)", id, name, partition, attr, size, optionsPtr);
-
-	if (optionsPtr != 0)
-	{
-		u32 optionsSize = Memory::Read_U32(optionsPtr);
-		if (optionsSize > 4)
-			WARN_LOG_REPORT(SCEKERNEL, "sceKernelCreateMsgPipe(%s) unsupported options parameter, size = %d", name, optionsSize);
-	}
 
 	return id;
 }

@@ -2,9 +2,10 @@
 
 #include "base/logging.h"
 #include "gfx/gl_common.h"
-#include "gfx_es2/fbo.h"
 #include "gfx/gl_common.h"
 #include "gfx_es2/gl_state.h"
+
+#include "FBO.h"
 
 #if defined(USING_GLES2) && !defined(BLACKBERRY)
 

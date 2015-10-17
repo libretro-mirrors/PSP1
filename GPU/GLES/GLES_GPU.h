@@ -20,7 +20,7 @@
 #include <list>
 #include <deque>
 
-#include "gfx_es2/fbo.h"
+#include "FBO.h"
 
 #include "GPU/GPUCommon.h"
 #include "GPU/GLES/Framebuffer.h"

@@ -19,7 +19,7 @@
 
 #include <map>
 
-#include "gfx_es2/fbo.h"
+#include "FBO.h"
 #include "gfx_es2/gpu_features.h"
 
 #include "Globals.h"

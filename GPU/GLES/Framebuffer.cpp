@@ -22,7 +22,7 @@
 
 #include "gfx_es2/glsl_program.h"
 #include "gfx_es2/gl_state.h"
-#include "gfx_es2/fbo.h"
+#include "FBO.h"
 
 #include "base/timeutil.h"
 #include "math/lin/matrix4x4.h"

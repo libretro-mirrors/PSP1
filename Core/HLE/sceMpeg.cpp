@@ -1387,6 +1387,9 @@ void PostPutAction::run(MipsCall &call) {
 			WARN_LOG(ME, "sceMpegRingbufferPut clamping packetsAdded old=%i new=%i", packetsAdded, ringbuffer->packets - ringbuffer->packetsAvail);
 			packetsAdded = ringbuffer->packets - ringbuffer->packetsAvail;
 		}
+      if (ctx->mediaengine)
+         ctx->mediaengine->addStreamData(Memory::GetPointer(ringbuffer->data), packetsAdded * 2048) / 2048;
+
 		ringbuffer->packetsRead += packetsAdded;
 		ringbuffer->packetsWritten += packetsAdded;
 		ringbuffer->packetsAvail += packetsAdded;

@@ -433,13 +433,11 @@ static u32 sceMpegRingbufferQueryMemSize(int packets) {
 
 
 static u32 sceMpegRingbufferConstruct(u32 ringbufferAddr, u32 numPackets, u32 data, u32 size, u32 callbackAddr, u32 callbackArg) {
-	if (!Memory::IsValidAddress(ringbufferAddr)) {
+	if (!Memory::IsValidAddress(ringbufferAddr))
 		return SCE_KERNEL_ERROR_ILLEGAL_ADDRESS;
-	}
 
-	if ((int)size < 0) {
+	if ((int)size < 0)
 		return ERROR_MPEG_NO_MEMORY;
-	}
 
 	if (__MpegRingbufferQueryMemSize(numPackets) > size) {
 		if (numPackets < 0x00100000)
@@ -487,10 +485,9 @@ static u32 sceMpegCreate(u32 mpegAddr, u32 dataPtr, u32 size, u32 ringbufferAddr
 		Memory::Write_U32(ringbuffer->dataUpperBound, mpegHandle + 20);
 	}
 	MpegContext *ctx = new MpegContext;
-	if (mpegMap.find(mpegHandle) != mpegMap.end()) {
+	if (mpegMap.find(mpegHandle) != mpegMap.end())
 		// Otherwise, it would leak.
 		delete mpegMap[mpegHandle];
-	}
 	mpegMap[mpegHandle] = ctx;
 
 	// Initialize mpeg values.
@@ -755,10 +752,10 @@ static bool InitPmp(MpegContext * ctx){
 	// GE_CMODE_16BIT_ABGR5551 <--> AV_PIX_FMT_BGR555LE;
 	// GE_CMODE_16BIT_ABGR4444 <--> AV_PIX_FMT_BGR444LE;
 	// GE_CMODE_32BIT_ABGR8888 <--> AV_PIX_FMT_RGBA;
-	pmp_want_pix_fmt = PIX_FMT_RGBA;
+	pmp_want_pix_fmt = AV_PIX_FMT_RGBA;
 
 	// Create H264 video codec
-	AVCodec * pmp_Codec = avcodec_find_decoder(CODEC_ID_H264);
+	AVCodec * pmp_Codec = avcodec_find_decoder(AV_CODEC_ID_H264);
 	if (pmp_Codec == NULL){
 		ERROR_LOG(ME, "Can not find H264 codec, please update ffmpeg");
 		return false;
@@ -919,7 +916,7 @@ static bool decodePmpVideo(PSPPointer<SceMpegRingBuffer> ringbuffer, u32 pmpctxA
 		// joint all blocks into H264Frames
 		SceMpegLLI lli;
 		for (int i = 0; i < pmp_nBlocks; i++){
-			Memory::ReadStruct(pmp_videoSource, &lli);
+			Memory::ReadStructUnchecked(pmp_videoSource, &lli);
 			// add source block into pmpframes
 			pmpframes->add(Memory::GetPointer(lli.pSrc), lli.iSize);
 			// get next block
@@ -1410,10 +1407,9 @@ static u32 sceMpegRingbufferPut(u32 ringbufferAddr, u32 numPackets, u32 availabl
 	}
 
 	auto ringbuffer = PSPPointer<SceMpegRingBuffer>::Create(ringbufferAddr);
-	if (!ringbuffer.IsValid()) {
+	if (!ringbuffer.IsValid())
 		// Would have crashed before, TODO test behavior.
 		return -1;
-	}
 
 	MpegContext *ctx = getMpegCtx(ringbuffer->mpeg);
 	if (!ctx) {
@@ -1446,10 +1442,9 @@ static int sceMpegGetAvcAu(u32 mpeg, u32 streamId, u32 auAddr, u32 attrAddr)
 	}
 
 	auto ringbuffer = PSPPointer<SceMpegRingBuffer>::Create(ctx->mpegRingbufferAddr);
-	if (!ringbuffer.IsValid()) {
+	if (!ringbuffer.IsValid())
 		// Would have crashed before, TODO test behavior.
 		return -1;
-	}
 
 	SceMpegAu avcAu;
 	avcAu.read(auAddr);
@@ -1464,9 +1459,8 @@ static int sceMpegGetAvcAu(u32 mpeg, u32 streamId, u32 auAddr, u32 attrAddr)
 	}
 
 	auto streamInfo = ctx->streamMap.find(streamId);
-	if (streamInfo == ctx->streamMap.end())	{
+	if (streamInfo == ctx->streamMap.end())
 		return -1;
-	}
 
 	if (streamInfo->second.needsReset) {
 		avcAu.pts = 0;

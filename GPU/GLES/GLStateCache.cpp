@@ -3,11 +3,7 @@
 #include "base/logging.h"
 #include "base/stringutil.h"
 #include "base/NativeApp.h"
-#include "gl_state.h"
-
-#ifdef _WIN32
-#include "GL/wglew.h"
-#endif
+#include "GLStateCache.h"
 
 #if defined(USING_GLES2)
 #if defined(ANDROID) || defined(BLACKBERRY)
@@ -228,21 +224,6 @@ void CheckGLExtensions() {
 		extString = "";
 	}
 
-#ifdef WIN32
-	const char *wglString = 0;
-	if (wglGetExtensionsStringEXT)
-		wglString = wglGetExtensionsStringEXT();
-	if (wglString) {
-		gl_extensions.EXT_swap_control_tear = strstr(wglString, "WGL_EXT_swap_control_tear") != 0;
-		g_all_egl_extensions = wglString;
-	} else {
-		g_all_egl_extensions = "";
-	}
-#elif !defined(USING_GLES2)
-	// const char *glXString = glXQueryExtensionString();
-	// gl_extensions.EXT_swap_control_tear = strstr(glXString, "GLX_EXT_swap_control_tear") != 0;
-#endif
-
 	// Check the desktop extension instead of the OES one. They are very similar.
 	// Also explicitly check those ATI devices that claims to support npot
 	gl_extensions.OES_texture_npot = strstr(extString, "GL_ARB_texture_non_power_of_two") != 0
@@ -398,8 +379,4 @@ void CheckGLExtensions() {
 }
 
 void OpenGLState::SetVSyncInterval(int interval) {
-#ifdef _WIN32
-	if (wglSwapIntervalEXT)
-		wglSwapIntervalEXT(interval);
-#endif
 }

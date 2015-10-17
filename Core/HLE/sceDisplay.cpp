@@ -33,7 +33,6 @@
 #include "base/timeutil.h"
 #include "profiler/profiler.h"
 
-#include "gfx_es2/gl_state.h"
 
 #include "Common/ChunkFile.h"
 #include "Core/CoreTiming.h"
@@ -52,6 +51,7 @@
 #include "GPU/GPUState.h"
 #include "GPU/GPUInterface.h"
 #include "GPU/Common/FramebufferCommon.h"
+#include "GPU/GLES/GLStateCache.h"
 
 struct FrameBufferState {
 	u32 topaddr;

@@ -27,7 +27,7 @@
 
 #include "base/logging.h"
 #include "math/math_util.h"
-#include "gfx_es2/gl_state.h"
+#include "GPU/GLES/GLStateCache.h"
 #include "math/lin/matrix4x4.h"
 #include "profiler/profiler.h"
 

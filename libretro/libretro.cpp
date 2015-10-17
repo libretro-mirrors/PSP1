@@ -19,7 +19,7 @@
 #include "GPU/GPUInterface.h"
 #include "input/input_state.h"
 #include "GPU/GLES/FBO.h"
-#include "native/gfx_es2/gl_state.h"
+#include "GPU/GLES/GLStateCache.h"
 #include "native/gfx/gl_lost_manager.h"
 #include "native/thread/thread.h"
 #include "native/thread/threadutil.h"

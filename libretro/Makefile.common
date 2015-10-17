@@ -149,6 +149,7 @@ SOURCES_CXX += $(GPUCOMMONDIR)/TextureDecoder.cpp \
 				$(GPUDIR)/GLES/TextureScaler.cpp \
 				$(GPUDIR)/GLES/VertexShaderGenerator.cpp \
 				$(GPUDIR)/GLES/FBO.cpp \
+				$(GPUDIR)/GLES/GLStateCache.cpp \
 				$(GPUDIR)/Software/Clipper.cpp \
 				$(GPUDIR)/Software/Lighting.cpp \
 				$(GPUDIR)/Software/Rasterizer.cpp \
@@ -182,7 +183,6 @@ SOURCES_CXX += $(NATIVEDIR)/file/chunk_file.cpp \
 				$(NATIVEDIR)/gfx/texture.cpp \
 				$(NATIVEDIR)/gfx/texture_atlas.cpp \
 				$(NATIVEDIR)/gfx/texture_gen.cpp \
-				$(NATIVEDIR)/gfx_es2/gl_state.cpp \
 				$(NATIVEDIR)/gfx_es2/gpu_features.cpp \
 				$(NATIVEDIR)/gfx_es2/glsl_program.cpp \
 				$(NATIVEDIR)/i18n/i18n.cpp \

@@ -37,7 +37,7 @@
 
 #include "ext/xxhash.h"
 #include "math/math_util.h"
-#include "native/gfx_es2/gl_state.h"
+#include "GPU/GLES/GLStateCache.h"
 
 #ifdef _M_SSE
 #include <xmmintrin.h>

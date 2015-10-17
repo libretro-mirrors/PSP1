@@ -19,7 +19,7 @@
 
 #include <map>
 #include "Common/CommonTypes.h"
-#include "gfx_es2/gl_state.h"
+#include "GPU/GLES/GLStateCache.h"
 #include "GPU/ge_constants.h"
 #include "GPU/GLES/TextureCache.h"
 

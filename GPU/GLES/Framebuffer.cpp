@@ -21,7 +21,7 @@
 #include "profiler/profiler.h"
 
 #include "gfx_es2/glsl_program.h"
-#include "gfx_es2/gl_state.h"
+#include "GPU/GLES/GLStateCache.h"
 #include "FBO.h"
 
 #include "base/timeutil.h"

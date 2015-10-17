@@ -21,7 +21,7 @@
 
 
 #include "StateMapping.h"
-#include "gfx_es2/gl_state.h"
+#include "GLStateCache.h"
 #include "profiler/profiler.h"
 
 #include "GPU/Math3D.h"

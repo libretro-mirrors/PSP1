@@ -16,7 +16,7 @@
 // https://github.com/hrydgard/ppsspp and http://www.ppsspp.org/.
 
 #include "base/logging.h"
-#include "gfx_es2/gl_state.h"
+#include "GPU/GLES/GLStateCache.h"
 #include "profiler/profiler.h"
 
 #include "Common/ChunkFile.h"

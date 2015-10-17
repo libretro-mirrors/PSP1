@@ -11,7 +11,7 @@
 #include "gfx/texture_gen.h"
 #include "gfx/gl_lost_manager.h"
 #include "gfx/gl_common.h"
-#include "gfx_es2/gl_state.h"
+#include "GPU/GLES/GLStateCache.h"
 
 Texture::Texture() : id_(0) {
 	CheckGLExtensions();

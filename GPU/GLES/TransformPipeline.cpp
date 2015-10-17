@@ -72,7 +72,7 @@
 #include "Core/Config.h"
 #include "Core/CoreTiming.h"
 
-#include "gfx_es2/gl_state.h"
+#include "GPU/GLES/GLStateCache.h"
 #include "profiler/profiler.h"
 
 #include "GPU/Math3D.h"

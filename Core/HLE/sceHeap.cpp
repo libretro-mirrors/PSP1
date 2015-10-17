@@ -80,10 +80,8 @@ static int sceHeapReallocHeapMemoryWithOption(u32 heapPtr, u32 memPtr, int memSi
 
 static int sceHeapFreeHeapMemory(u32 heapAddr, u32 memAddr) {
 	Heap *heap = getHeap(heapAddr);
-	if (!heap) {
-		ERROR_LOG(HLE, "sceHeapFreeHeapMemory(%08x, %08x): invalid heap", heapAddr, memAddr);
+	if (!heap)
 		return SCE_KERNEL_ERROR_INVALID_ID;
-	}
 
 	DEBUG_LOG(HLE, "sceHeapFreeHeapMemory(%08x, %08x)", heapAddr, memAddr);
 	// An invalid address will crash the PSP, but 0 is always returns success.
@@ -104,18 +102,14 @@ static int sceHeapGetMallinfo(u32 heapAddr, u32 infoPtr) {
 static u32 sceHeapAllocHeapMemoryWithOption(u32 heapAddr, u32 memSize, u32 paramsPtr) {
 	Heap *heap = getHeap(heapAddr);
 	u32 grain = 4;
-	if (!heap) {
-		ERROR_LOG(HLE, "sceHeapAllocHeapMemoryWithOption(%08x, %08x, %08x): invalid heap", heapAddr, memSize, paramsPtr);
+	if (!heap)
 		return 0;
-	}
 
 	// 0 is ignored.
 	if (paramsPtr != 0) {
 		u32 size = Memory::Read_U32(paramsPtr);
-		if (size < 8) {
-			ERROR_LOG(HLE, "sceHeapAllocHeapMemoryWithOption(%08x, %08x, %08x): invalid param size", heapAddr, memSize, paramsPtr);
+		if (size < 8)
 			return 0;
-		}
 		grain = Memory::Read_U32(paramsPtr + 4);
 	}
 
@@ -128,10 +122,8 @@ static u32 sceHeapAllocHeapMemoryWithOption(u32 heapAddr, u32 memSize, u32 param
 
 static int sceHeapGetTotalFreeSize(u32 heapAddr) {
 	Heap *heap = getHeap(heapAddr);
-	if (!heap) {
-		ERROR_LOG(HLE, "sceHeapGetTotalFreeSize(%08x): invalid heap", heapAddr);
+	if (!heap)
 		return SCE_KERNEL_ERROR_INVALID_ID;
-	}
 
 	DEBUG_LOG(HLE, "sceHeapGetTotalFreeSize(%08x)", heapAddr);
 	u32 free = heap->alloc.GetTotalFreeBytes();
@@ -143,10 +135,8 @@ static int sceHeapGetTotalFreeSize(u32 heapAddr) {
 }
 
 static int sceHeapIsAllocatedHeapMemory(u32 heapPtr, u32 memPtr) {
-	if (!Memory::IsValidAddress(memPtr)) {
-		ERROR_LOG(HLE, "sceHeapIsAllocatedHeapMemory(%08x, %08x): invalid address", heapPtr, memPtr);
+	if (!Memory::IsValidAddress(memPtr))
 		return SCE_KERNEL_ERROR_INVALID_POINTER;
-	}
 
 	DEBUG_LOG(HLE, "sceHeapIsAllocatedHeapMemory(%08x, %08x)", heapPtr, memPtr);
 	Heap *heap = getHeap(heapPtr);
@@ -160,10 +150,8 @@ static int sceHeapIsAllocatedHeapMemory(u32 heapPtr, u32 memPtr) {
 
 static int sceHeapDeleteHeap(u32 heapAddr) {
 	Heap *heap = getHeap(heapAddr);
-	if (!heap) {
-		ERROR_LOG(HLE, "sceHeapDeleteHeap(%08x): invalid heap", heapAddr);
+	if (!heap)
 		return SCE_KERNEL_ERROR_INVALID_ID;
-	}
 
 	DEBUG_LOG(HLE, "sceHeapDeleteHeap(%08x)", heapAddr);
 	heapList.erase(heapAddr);
@@ -181,13 +169,12 @@ static int sceHeapCreateHeap(const char* name, u32 heapSize, int attr, u32 param
 	heap->fromtop = (attr & PSP_HEAP_ATTR_HIGHMEM) != 0;
 	u32 addr = userMemory.Alloc(heap->size, heap->fromtop, "Heap");
 	if (addr == (u32)-1) {
-		ERROR_LOG(HLE, "sceHeapCreateHeap(): Failed to allocate %i bytes memory", allocSize);	
 		delete heap;
 		return 0;
 	}
 	heap->address = addr;
 
-	// Some of the heap is reseved by the implementation (the first 128 bytes, and 8 after each block.)
+	// Some of the heap is reserved by the implementation (the first 128 bytes, and 8 after each block.)
 	heap->alloc.Init(heap->address + 128, heap->size - 128);
 	heapList[heap->address] = heap;
 	DEBUG_LOG(HLE, "%08x=sceHeapCreateHeap(%s, %08x, %08x, %08x)", heap->address, name, heapSize, attr, paramsPtr);
@@ -197,7 +184,6 @@ static int sceHeapCreateHeap(const char* name, u32 heapSize, int attr, u32 param
 static u32 sceHeapAllocHeapMemory(u32 heapAddr, u32 memSize) {
 	Heap *heap = getHeap(heapAddr);
 	if (!heap) {
-		ERROR_LOG(HLE, "sceHeapAllocHeapMemory(%08x, %08x): invalid heap", heapAddr, memSize);
 		// Yes, not 0 (returns a pointer), but an error code.  Strange.
 		return SCE_KERNEL_ERROR_INVALID_ID;
 	}

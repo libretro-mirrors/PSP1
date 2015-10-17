@@ -127,62 +127,57 @@ SOURCES_C   += $(NATIVEDIR)/ext/libpng17/pngwutil.c
 SOURCES_CXX += $(GPUCOMMONDIR)/TextureDecoder.cpp \
 				$(GPUCOMMONDIR)/PostShader.cpp \
 				$(COMMONDIR)/ColorConv.cpp \
-				$(NATIVEDIR)/base/backtrace.cpp \
-				$(NATIVEDIR)/base/buffer.cpp \
-				$(NATIVEDIR)/base/error_context.cpp \
-				$(NATIVEDIR)/base/stringutil.cpp \
-				$(NATIVEDIR)/base/timeutil.cpp \
-				$(NATIVEDIR)/data/compression.cpp \
-				$(NATIVEDIR)/ext/vjson/block_allocator.cpp \
 				$(GPUDIR)/Debugger/Breakpoints.cpp \
 				$(GPUDIR)/Debugger/Stepping.cpp \
-				$(GPUDIR)/GLES/StencilBuffer.cpp \
 				$(GPUDIR)/GLES/DepalettizeShader.cpp \
 				$(GPUDIR)/GLES/GLES_GPU.cpp \
 				$(GPUDIR)/GLES/FragmentShaderGenerator.cpp \
 				$(GPUDIR)/GLES/FragmentTestCache.cpp \
 				$(GPUDIR)/GLES/TransformPipeline.cpp \
 				$(GPUDIR)/GLES/Framebuffer.cpp \
-				$(GPUDIR)/GLES/StateMapping.cpp \
+				$(NATIVEDIR)/base/backtrace.cpp \
 				$(GPUDIR)/GLES/ShaderManager.cpp \
-				$(GPUDIR)/GLES/TextureCache.cpp \
-				$(GPUDIR)/GLES/TextureScaler.cpp \
-				$(GPUDIR)/GLES/VertexShaderGenerator.cpp \
-				$(GPUDIR)/GLES/FBO.cpp \
-				$(GPUDIR)/GLES/GLStateCache.cpp \
-				$(GPUDIR)/Software/Clipper.cpp \
-				$(GPUDIR)/Software/Lighting.cpp \
-				$(GPUDIR)/Software/Rasterizer.cpp \
-				$(GPUDIR)/Software/SoftGpu.cpp \
-				$(GPUDIR)/Software/TransformUnit.cpp \
-				$(GPUDIR)/Common/SoftwareTransformCommon.cpp \
+				$(NATIVEDIR)/base/buffer.cpp \
+				$(NATIVEDIR)/base/error_context.cpp \
+				$(NATIVEDIR)/base/stringutil.cpp \
+				$(GPUDIR)/GLES/StateMapping.cpp \
+				$(NATIVEDIR)/base/timeutil.cpp \
+				$(NATIVEDIR)/data/compression.cpp \
+				$(GPUDIR)/GLES/StencilBuffer.cpp \
+				$(NATIVEDIR)/ext/vjson/block_allocator.cpp \
 				$(GPUDIR)/Common/TextureCacheCommon.cpp \
 				$(GPUDIR)/Common/TextureScalerCommon.cpp \
-				$(GPUDIR)/GeDisasm.cpp \
-				$(GPUDIR)/GPUCommon.cpp \
-				$(GPUDIR)/GPU.cpp \
-				$(GPUDIR)/GPUState.cpp \
-				$(GPUDIR)/Math3D.cpp
-
-ifeq ($(HAVE_NEON),1)
-SOURCES_CXX += $(GPUDIR)/Common/TextureDecoderNEON.cpp
-endif
-
+				$(GPUDIR)/GLES/TextureCache.cpp \
+				$(GPUDIR)/GLES/TextureScaler.cpp
 SOURCES_C   += $(NATIVEDIR)/gfx_es2/gl3stub.c \
 				$(NATIVEDIR)/math/fast/fast_math.c \
 				$(NATIVEDIR)/math/fast/fast_matrix.c
 SOURCES_CXX += $(NATIVEDIR)/file/chunk_file.cpp \
+				$(GPUDIR)/Common/SoftwareTransformCommon.cpp \
 				$(NATIVEDIR)/file/dialog.cpp \
 				$(NATIVEDIR)/file/easy_file.cpp \
 				$(NATIVEDIR)/file/fd_util.cpp \
 				$(NATIVEDIR)/file/file_util.cpp \
 				$(NATIVEDIR)/file/ini_file.cpp \
+				$(GPUDIR)/GLES/VertexShaderGenerator.cpp \
+				$(GPUDIR)/GeDisasm.cpp \
 				$(NATIVEDIR)/file/path.cpp \
+				$(GPUDIR)/GPUCommon.cpp \
+				$(GPUDIR)/GPU.cpp \
+				$(GPUDIR)/GPUState.cpp \
+				$(GPUDIR)/Math3D.cpp \
 				$(NATIVEDIR)/file/zip_read.cpp \
+				$(GPUDIR)/Software/Clipper.cpp \
+				$(GPUDIR)/Software/Lighting.cpp \
+				$(GPUDIR)/Software/Rasterizer.cpp \
 				$(NATIVEDIR)/gfx/gl_lost_manager.cpp \
+				$(GPUDIR)/Software/SoftGpu.cpp \
 				$(NATIVEDIR)/gfx/texture.cpp \
 				$(NATIVEDIR)/gfx/texture_atlas.cpp \
 				$(NATIVEDIR)/gfx/texture_gen.cpp \
+				$(GPUDIR)/Software/TransformUnit.cpp \
+				$(GPUDIR)/GLES/FBO.cpp \
+				$(GPUDIR)/GLES/GLStateCache.cpp \
 				$(NATIVEDIR)/gfx_es2/gpu_features.cpp \
 				$(NATIVEDIR)/gfx_es2/glsl_program.cpp \
 				$(NATIVEDIR)/i18n/i18n.cpp \
@@ -374,7 +369,8 @@ ifdef WITH_DYNAREC
 			SOURCES_CXX   += \
 							  $(COREDIR)/MIPS/ARM/ArmCompVFPUNEON.cpp \
 							  $(COREDIR)/MIPS/ARM/ArmCompVFPUNEONUtil.cpp \
-							  $(COMMONDIR)/ColorConvNEON.cpp
+							  $(COMMONDIR)/ColorConvNEON.cpp \
+							  $(GPUDIR)/Common/TextureDecoderNEON.cpp
 
 			SOURCES_C += $(NATIVEDIR)/ext/libpng17/arm/arm_init.c \
 							$(NATIVEDIR)/ext/libpng17/arm/filter_neon_intrinsics.c
@@ -406,6 +402,7 @@ ifdef WITH_DYNAREC
 							  $(COREDIR)/MIPS/ARM/ArmCompVFPUNEON.cpp \
 							  $(COREDIR)/MIPS/ARM/ArmCompVFPUNEONUtil.cpp \
 							  $(COMMONDIR)/ColorConvNEON.cpp \
+							  $(GPUDIR)/Common/TextureDecoderNEON.cpp
 
 			SOURCES_C += $(NATIVEDIR)/ext/libpng17/arm/arm_init.c \
 							$(NATIVEDIR)/ext/libpng17/arm/filter_neon_intrinsics.c
@@ -450,3 +447,4 @@ SOURCES_C += $(EXTDIR)/udis86/decode.c \
 			 $(EXTDIR)/udis86/udis86.c
 
 SOURCES_C += $(LIBRETRO_SRC)
+

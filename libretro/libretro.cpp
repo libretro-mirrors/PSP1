@@ -213,7 +213,9 @@ void retro_set_video_refresh(retro_video_refresh_t cb)
 }
 
 std::string retro_base_dir;
+std::string retro_save_dir;
 bool retro_base_dir_found;
+bool retro_save_dir_found;
 
 void retro_init(void)
 {
@@ -226,6 +228,7 @@ void retro_init(void)
       log_cb = NULL;
 
    retro_base_dir_found = false;
+   retro_save_dir_found = false;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &dir_ptr) && dir_ptr)
    {
@@ -237,6 +240,18 @@ void retro_init(void)
 
       retro_base_dir = retro_base_dir.substr(0, last);
       retro_base_dir_found = true;
+   }
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &dir_ptr) && dir_ptr)
+   {
+      retro_save_dir = dir_ptr;
+      // Make sure that we don't have any lingering slashes, etc, as they break Windows.
+      size_t last = retro_save_dir.find_last_not_of("/\\");
+      if (last != std::string::npos)
+         last++;
+
+      retro_save_dir = retro_save_dir.substr(0, last);
+      retro_save_dir_found = true;
    }
 
 #ifdef IOS
@@ -844,9 +859,18 @@ bool retro_load_game(const struct retro_game_info *game)
       retro_base_dir = std::string(_dir);
    }
 
+   if (!retro_save_dir_found)
+   {
+      char _dir[PATH_MAX];
+      extract_directory(_dir, game->path, sizeof(_dir));
+      retro_save_dir = std::string(_dir);
+   }
+
    retro_base_dir += slash;
    retro_base_dir += "PPSSPP";
    retro_base_dir += slash;
+
+   retro_save_dir += slash;
 
    if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
    {
@@ -882,7 +906,7 @@ bool retro_load_game(const struct retro_game_info *game)
 
    g_Config.currentDirectory      = retro_base_dir;
    g_Config.externalDirectory     = retro_base_dir;
-   g_Config.memStickDirectory      = retro_base_dir;
+   g_Config.memStickDirectory     = retro_save_dir;
    g_Config.flash0Directory       = retro_base_dir + "flash0/";
    g_Config.internalDataDirectory = retro_base_dir;
    g_Config.bVSync = false;
